@@ -2,8 +2,10 @@ package SignUp
 
 import (
 	"2021_1_YSNP/models"
+	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request){
@@ -15,12 +17,29 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request){
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	insertErr := _tmpDB.NewUser(&signUpData)
+	if insertErr != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	cookie := &http.Cookie{
+		Name:       "session_id",
+		Value:      _tmpDB.NewSession(signUpData.Telephone),
+		Expires:    time.Now().Add(10 * time.Hour),
+		Secure:     false,
+		HttpOnly:   false,
+	}
+
 	body, err := json.Marshal(signUpData)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
+	http.SetCookie(w, cookie)
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
