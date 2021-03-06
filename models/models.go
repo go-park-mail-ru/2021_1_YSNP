@@ -1,13 +1,13 @@
 package models
 
-type SignInData struct {
+type LoginData struct {
 	Telephone   string `json:"telephone"`
 	Password    string `json:"password"`
 	IsLoggedIn  bool   `json:"is_logged_in"`
 }
 
 type SignUpData struct {
-	ID          int      `json:"id"`
+	ID          uint64   `json:"id"`
 	Name        string   `json:"name"`
 	Surname     string   `json:"surname"`
 	Sex         string   `json:"sex"`
@@ -22,7 +22,7 @@ type SignUpData struct {
 }
 
 type ProductData struct {
-	ID          int      `json:"id"`
+	ID          uint64   `json:"id"`
 	Name        string   `json:"name"`
 	Date        int		 `json:"date"`
 	Amount      int      `json:"amount"`
@@ -31,4 +31,12 @@ type ProductData struct {
 	OwnerID     int		 `json:"owner_id"`
 	Views       int		 `json:"views"`
 	Likes       int		 `json:"likes"`
+}
+
+type ProductListData struct {
+	ID          uint64    `json:"id"`
+	Name        string   `json:"name"`
+	Date        int		 `json:"date"`
+	Amount      int      `json:"amount"`
+	LinkImages  []string `json:"linkImages"`
 }
