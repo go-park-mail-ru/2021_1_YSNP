@@ -88,7 +88,7 @@ func GetUserByLogin(login string) (models.LoginData,error){
 	}, nil
 }
 
-func getUserBySession(session string) (models.SignUpData){
+func GetUserBySession(session string) (models.SignUpData){
 	login := newDB["session"][session]
 	return newDB["users"][login.(string)].(models.SignUpData)
 }
@@ -138,7 +138,7 @@ func ChangeUserData (session string, newData *models.SignUpData) error{
 	defer mtx.Unlock()
 	mtx.Lock()
 
-	user := getUserBySession(session)
+	user := GetUserBySession(session)
 	newData.ID = user.ID
 	delete(newDB["users"], user.Telephone)
 	newDB["users"][newData.Telephone] = newData
