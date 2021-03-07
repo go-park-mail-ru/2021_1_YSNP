@@ -5,24 +5,35 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
 )
+
+func JSONError(message string) []byte {
+	jsonError, err := json.Marshal(models.Error{Message: message})
+	if err != nil {
+		return []byte("")
+	}
+	return jsonError
+}
 
 func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	signUpData := models.SignUpData{}
 	err := json.NewDecoder(r.Body).Decode(&signUpData)
 	if err != nil {
+		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		w.Write(JSONError(err.Error()))
 		return
 	}
 	fmt.Println(signUpData)
-	insertErr := _tmpDB.NewUser(&signUpData)
-	if insertErr != nil {
+	err = _tmpDB.NewUser(&signUpData)
+	if err != nil {
+		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(JSONError(err.Error()))
 		return
 	}
 
@@ -36,8 +47,9 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := json.Marshal(signUpData)
 	if err != nil {
+		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write(JSONError(err.Error()))
 		return
 	}
 	http.SetCookie(w, cookie)

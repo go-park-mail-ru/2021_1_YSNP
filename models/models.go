@@ -19,15 +19,17 @@ type SignUpData struct {
 }
 
 type ProductData struct {
-	ID          uint64   `json:"id"`
-	Name        string   `json:"name"`
-	Date        string   `json:"date"`
-	Amount      int      `json:"amount"`
-	LinkImages  []string `json:"linkImages"`
-	Description string   `json:"description"`
-	OwnerID     int      `json:"owner_id"`
-	Views       int      `json:"views"`
-	Likes       int      `json:"likes"`
+	ID           uint64   `json:"id"`
+	Name         string   `json:"name"`
+	Date         string   `json:"date"`
+	Amount       int      `json:"amount"`
+	LinkImages   []string `json:"link_images"`
+	Description  string   `json:"description"`
+	OwnerID      int      `json:"owner_id"`
+	OwnerName    string   `json:"owner_name"`
+	OwnerSurname string   `json:"owner_surname"`
+	Views        int      `json:"views"`
+	Likes        int      `json:"likes"`
 }
 
 type ProductListData struct {
@@ -35,5 +37,9 @@ type ProductListData struct {
 	Name       string   `json:"name"`
 	Date       string   `json:"date"`
 	Amount     int      `json:"amount"`
-	LinkImages []string `json:"linkImages"`
+	LinkImages []string `json:"link_images"`
+}
+
+type Error struct {
+	Message string `json:"message"`
 }

@@ -5,8 +5,17 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
+
+func JSONError(message string) []byte {
+	jsonError, err := json.Marshal(models.Error{Message: message})
+	if err != nil {
+		return []byte("")
+	}
+	return jsonError
+}
 
 func GetProfileHandler(w http.ResponseWriter, r *http.Request){
 	authorized := false
@@ -18,18 +27,20 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request){
 	if authorized {
 		userInfo := _tmpDB.GetUserBySession(session.Value)
 
-		body, marshErr := json.Marshal(userInfo)
-		if marshErr != nil {
+		body, err := json.Marshal(userInfo)
+		if err != nil {
+			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(marshErr.Error()))
+			w.Write(JSONError(err.Error()))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(body)
 
 	} else {
+		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(errors.New("User not authorised or not found").Error()))
+		w.Write(JSONError(errors.New("User not authorised or not found").Error()))
 		return
 	}
 }
@@ -43,32 +54,36 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request){
 
 	if authorized {
 		signUpData := models.SignUpData{}
-		decodeErr := json.NewDecoder(r.Body).Decode(&signUpData)
-		if decodeErr != nil {
+		err := json.NewDecoder(r.Body).Decode(&signUpData)
+		if err != nil {
+			logrus.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
-			w.Write([]byte(decodeErr.Error()))
+			w.Write(JSONError(err.Error()))
 			return
 		}
 
-		insertErr := _tmpDB.ChangeUserData(session.Value, &signUpData)
-		if insertErr != nil {
+		err = _tmpDB.ChangeUserData(session.Value, &signUpData)
+		if err != nil {
+			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(insertErr.Error()))
+			w.Write(JSONError(err.Error()))
 			return
 		}
 
-		body, marshErr := json.Marshal(signUpData)
-		if marshErr != nil {
+		body, err := json.Marshal(signUpData)
+		if err != nil {
+			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(marshErr.Error()))
+			w.Write(JSONError(err.Error()))
 			return
 		}
 		w.WriteHeader(http.StatusOK)
 		w.Write(body)
 
 	} else {
+		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write([]byte(errors.New("User not authorised or not found").Error()))
+		w.Write(JSONError(errors.New("User not authorised or not found").Error()))
 		return
 	}
 }

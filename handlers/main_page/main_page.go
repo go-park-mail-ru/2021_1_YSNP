@@ -1,9 +1,9 @@
-package MainPage
+package main_page
 
 import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
-	"log"
+	"github.com/sirupsen/logrus"
 	"net/http"
 )
 
@@ -15,8 +15,9 @@ func MainPageHandler(w http.ResponseWriter, r *http.Request){
 
 	err := encoder.Encode(products)
 	if err != nil {
-		log.Printf("error while marshalling JSON: %s", err)
-		w.Write([]byte("{}"))
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
 		return
 	}
 }
