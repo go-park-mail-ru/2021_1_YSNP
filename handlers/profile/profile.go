@@ -5,8 +5,9 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"github.com/sirupsen/logrus"
 	"net/http"
+
+	"github.com/sirupsen/logrus"
 )
 
 func JSONError(message string) []byte {
@@ -38,9 +39,10 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(body)
 
 	} else {
+		err = errors.New("User not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(JSONError(errors.New("User not authorised or not found").Error()))
+		w.Write(JSONError(err.Error()))
 		return
 	}
 }
@@ -81,9 +83,10 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(body)
 
 	} else {
+		err = errors.New("User not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(JSONError(errors.New("User not authorised or not found").Error()))
+		w.Write(JSONError(err.Error()))
 		return
 	}
 }

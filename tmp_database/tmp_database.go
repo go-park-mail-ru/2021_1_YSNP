@@ -40,7 +40,7 @@ func InitDB() { //map[string][]interface{}{
 		Telephone:  "+79990009900",
 		Password:   "Qwerty12",
 		DateBirth:  "",
-		LinkImages: nil,
+		LinkImages: []string{"http://89.208.199.170:8080/static/avatar/test-avatar.jpg"},
 	}
 
 	newDB["products"]["0"] = models.ProductData{
@@ -48,7 +48,7 @@ func InitDB() { //map[string][]interface{}{
 		Name:         "iphone",
 		Date:         "2000-10-10",
 		Amount:       12000,
-		LinkImages:   nil,
+		LinkImages:   []string{"http://89.208.199.170:8080/static/product/pic4.jpeg", "http://89.208.199.170:8080/static/product/pic5.jpeg", "http://89.208.199.170:8080/static/product/pic6.jpeg"},
 		Description:  "eto iphone",
 		OwnerID:      0,
 		OwnerName:    "Sergey",
@@ -62,7 +62,7 @@ func InitDB() { //map[string][]interface{}{
 		Name:         "iphone 10",
 		Date:         "2000-10-10",
 		Amount:       12001,
-		LinkImages:   nil,
+		LinkImages:   []string{"http://89.208.199.170:8080/static/product/pic1.jpeg", "http://89.208.199.170:8080/static/product/pic2.jpeg", "http://89.208.199.170:8080/static/product/pic3.jpeg"},
 		Description:  "eto iphone 12",
 		OwnerID:      0,
 		OwnerName:    "Sergey",
