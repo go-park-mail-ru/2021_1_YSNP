@@ -44,27 +44,31 @@ func InitDB() { //map[string][]interface{}{
 	}
 
 	newDB["products"]["0"] = models.ProductData{
-		ID:          0,
-		Name:        "iphone",
-		Date:        "2000-10-10",
-		Amount:      12000,
-		LinkImages:  nil,
-		Description: "eto iphone",
-		OwnerID:     0,
-		Views:       1000,
-		Likes:       20,
+		ID:           0,
+		Name:         "iphone",
+		Date:         "2000-10-10",
+		Amount:       12000,
+		LinkImages:   nil,
+		Description:  "eto iphone",
+		OwnerID:      0,
+		OwnerName:    "Sergey",
+		OwnerSurname: "Alehin",
+		Views:        1000,
+		Likes:        20,
 	}
 
 	newDB["products"]["1"] = models.ProductData{
-		ID:          1,
-		Name:        "iphone 10",
-		Date:        "2000-10-10",
-		Amount:      12001,
-		LinkImages:  nil,
-		Description: "eto iphone 12",
-		OwnerID:     0,
-		Views:       1000,
-		Likes:       20,
+		ID:           1,
+		Name:         "iphone 10",
+		Date:         "2000-10-10",
+		Amount:       12001,
+		LinkImages:   nil,
+		Description:  "eto iphone 12",
+		OwnerID:      0,
+		OwnerName:    "Sergey",
+		OwnerSurname: "Alehin",
+		Views:        1000,
+		Likes:        20,
 	}
 }
 
@@ -76,7 +80,7 @@ func checkLogin(number string) bool {
 func GetUserByLogin(login string) (models.LoginData, error) {
 	user, ok := newDB["users"][login]
 	if !ok {
-		return models.LoginData{}, errors.New(`no user`)
+		return models.LoginData{}, errors.New(`No user with this number`)
 	}
 	return models.LoginData{
 		Telephone:  user.(models.SignUpData).Telephone,
@@ -108,7 +112,7 @@ func GetProducts() map[string][]models.ProductListData {
 func GetProduct(id string) (models.ProductData, error) {
 	product, ok := newDB["products"][id]
 	if !ok {
-		return models.ProductData{}, errors.New("no product")
+		return models.ProductData{}, errors.New("No product with this id.")
 	}
 
 	return product.(models.ProductData), nil
@@ -119,7 +123,7 @@ func NewUser(user *models.SignUpData) error {
 	mtx.Lock()
 
 	if checkLogin(user.Telephone) {
-		return errors.New("user with this phone number exists")
+		return errors.New("User with this phone number exists.")
 	} else {
 		// var id uint64 = 0
 		// if len(newDB["users"]) > 0 {
@@ -134,7 +138,6 @@ func NewUser(user *models.SignUpData) error {
 func ChangeUserData(session string, newData *models.SignUpData) error {
 	defer mtx.Unlock()
 	mtx.Lock()
-
 	user := GetUserBySession(session)
 	newData.ID = user.ID
 	delete(newDB["users"], user.Telephone)
@@ -160,6 +163,10 @@ func NewSession(number string) string {
 	mtx.Lock()
 	newDB["session"][SID] = number
 	return SID
+}
+
+func DeleteSession(session string) {
+	delete(newDB["session"], session)
 }
 
 func CheckSession(sessionValue string) bool {

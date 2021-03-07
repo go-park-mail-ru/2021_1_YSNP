@@ -1,4 +1,4 @@
-package SignUp
+package signup
 
 import (
 	"2021_1_YSNP/models"

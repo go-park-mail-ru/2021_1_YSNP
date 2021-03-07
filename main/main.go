@@ -1,11 +1,11 @@
 package main
 
 import (
-	_login "2021_1_YSNP/handlers/Login"
-	_mainPage "2021_1_YSNP/handlers/MainPage"
-	_product "2021_1_YSNP/handlers/Product"
-	_profile "2021_1_YSNP/handlers/Profile"
-	_signUp "2021_1_YSNP/handlers/SignUp"
+	_login "2021_1_YSNP/handlers/login"
+	_mainPage "2021_1_YSNP/handlers/main_page"
+	_product "2021_1_YSNP/handlers/product"
+	_profile "2021_1_YSNP/handlers/profile"
+	_signUp "2021_1_YSNP/handlers/signup"
 	"2021_1_YSNP/middleware"
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"log"
@@ -27,11 +27,12 @@ func main() {
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	}
-
+	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("../static"))))
 	router.HandleFunc("/api/v1/", _mainPage.MainPageHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/login", _login.LoginHandler).Methods(http.MethodPost)
+	router.HandleFunc("/api/v1/logout", _login.LogoutHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/me", _profile.GetProfileHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)

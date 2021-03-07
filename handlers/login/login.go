@@ -1,4 +1,4 @@
-package Login
+package login
 
 import (
 	"2021_1_YSNP/models"
@@ -6,10 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
-	"github.com/sirupsen/logrus"
-
 )
 
 func JSONError(message string) []byte {
@@ -65,7 +64,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-func LogoutHandler(w http.ResponseWriter, r *http.Request){
+func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
 		logrus.Error(err)

@@ -1,4 +1,4 @@
-package Profile
+package profile
 
 import (
 	"2021_1_YSNP/models"
@@ -17,7 +17,7 @@ func JSONError(message string) []byte {
 	return jsonError
 }
 
-func GetProfileHandler(w http.ResponseWriter, r *http.Request){
+func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	authorized := false
 	session, err := r.Cookie("session_id")
 	if err == nil && session != nil {
@@ -45,7 +45,7 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func ChangeProfileHandler(w http.ResponseWriter, r *http.Request){
+func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	authorized := false
 	session, err := r.Cookie("session_id")
 	if err == nil && session != nil {
