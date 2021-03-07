@@ -34,6 +34,7 @@ func main() {
 	router.HandleFunc("/api/v1/login", _login.LoginHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/logout", _login.LogoutHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
+	router.HandleFunc("/api/v1/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/me", _profile.GetProfileHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
 	err := server.ListenAndServe()

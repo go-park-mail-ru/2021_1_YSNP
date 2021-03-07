@@ -5,8 +5,11 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"fmt"
+	"github.com/google/uuid"
 	"github.com/sirupsen/logrus"
+	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -53,6 +56,75 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	http.SetCookie(w, cookie)
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+}
+
+func UploadAvatarHandler(w http.ResponseWriter, r *http.Request){
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
+	err := r.ParseMultipartForm(10 * 1024 * 1024)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	file, _, err := r.FormFile("file-upload")
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+	defer file.Close()
+	r.FormValue("file-upload")
+
+	str, err := os.Getwd()
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	photoPath := "/static/avatar"
+	os.Chdir(photoPath)
+
+	photoID, err := uuid.NewRandom()
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+	defer f.Close()
+
+	os.Chdir(str)
+
+	_, err = io.Copy(f, file)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	body, err := json.Marshal(`{LinkImages: "https://mi-ami.ru/static/avatars/" + photoID.String() + ".jpg"}`)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
