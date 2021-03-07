@@ -5,12 +5,13 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 func JSONError(message string) []byte {
@@ -60,7 +61,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
-func UploadAvatarHandler(w http.ResponseWriter, r *http.Request){
+func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
@@ -88,7 +89,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	photoPath := "/static/avatar"
+	photoPath := "static/avatar/"
 	os.Chdir(photoPath)
 
 	photoID, err := uuid.NewRandom()
@@ -118,7 +119,11 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	body, err := json.Marshal(`{LinkImages: "https://mi-ami.ru/static/avatars/" + photoID.String() + ".jpg"}`)
+	mymap := make(map[string]string)
+
+	mymap["linkImages"] = "http://89.208.199.170:8080/static/avatar/" + photoID.String() + ".jpg"
+
+	body, err := json.Marshal(mymap)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
