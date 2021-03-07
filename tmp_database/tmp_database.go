@@ -24,32 +24,29 @@ func RandStringRunes(n int) string {
 	return string(b)
 }
 
-func InitDB() {//map[string][]interface{}{
+func InitDB() { //map[string][]interface{}{
 	newDB = make(map[string]map[string]interface{})
 
 	newDB["users"] = make(map[string]interface{})
 	newDB["products"] = make(map[string]interface{})
 	newDB["session"] = make(map[string]interface{})
 
-	newDB["users"]["89990009900"] = models.SignUpData{
+	newDB["users"]["+79990009900"] = models.SignUpData{
 		ID:         0,
 		Name:       "Sergey",
 		Surname:    "Alehin",
 		Sex:        "male",
 		Email:      "alehin@mail.ru",
-		Telephone:  "89990009900",
+		Telephone:  "+79990009900",
 		Password:   "Qwerty12",
-		DateBirth:  0,
-		Day:        "",
-		Month:      "",
-		Year:       "",
+		DateBirth:  "",
 		LinkImages: nil,
 	}
 
 	newDB["products"]["0"] = models.ProductData{
 		ID:          0,
 		Name:        "iphone",
-		Date:        2000,
+		Date:        "2000-10-10",
 		Amount:      12000,
 		LinkImages:  nil,
 		Description: "eto iphone",
@@ -61,7 +58,7 @@ func InitDB() {//map[string][]interface{}{
 	newDB["products"]["1"] = models.ProductData{
 		ID:          1,
 		Name:        "iphone 10",
-		Date:        2001,
+		Date:        "2000-10-10",
 		Amount:      12001,
 		LinkImages:  nil,
 		Description: "eto iphone 12",
@@ -76,7 +73,7 @@ func checkLogin(number string) bool {
 	return exist
 }
 
-func GetUserByLogin(login string) (models.LoginData,error){
+func GetUserByLogin(login string) (models.LoginData, error) {
 	user, ok := newDB["users"][login]
 	if !ok {
 		return models.LoginData{}, errors.New(`no user`)
@@ -88,27 +85,27 @@ func GetUserByLogin(login string) (models.LoginData,error){
 	}, nil
 }
 
-func GetUserBySession(session string) (models.SignUpData){
+func GetUserBySession(session string) models.SignUpData {
 	login := newDB["session"][session]
 	return newDB["users"][login.(string)].(models.SignUpData)
 }
 
-func GetProducts() map[string]models.ProductListData {
-	products := make(map[string]models.ProductListData)
+func GetProducts() map[string][]models.ProductListData {
+	products := make(map[string][]models.ProductListData)
 
-	for k, v := range newDB["products"]{
-		products[k] = models.ProductListData{
+	for _, v := range newDB["products"] {
+		products["product_list"] = append(products["product_list"], models.ProductListData{
 			ID:         v.(models.ProductData).ID,
 			Name:       v.(models.ProductData).Name,
 			Date:       v.(models.ProductData).Date,
 			Amount:     v.(models.ProductData).Amount,
 			LinkImages: v.(models.ProductData).LinkImages,
-		}
+		})
 	}
 	return products
 }
 
-func GetProduct(id string) (models.ProductData,error) {
+func GetProduct(id string) (models.ProductData, error) {
 	product, ok := newDB["products"][id]
 	if !ok {
 		return models.ProductData{}, errors.New("no product")
@@ -124,17 +121,17 @@ func NewUser(user *models.SignUpData) error {
 	if checkLogin(user.Telephone) {
 		return errors.New("user with this phone number exists")
 	} else {
-		var id uint64 = 0
-		if len(newDB["users"]) > 0 {
-			id = newDB["users"][strconv.Itoa(len(newDB["users"])-1)].(models.SignUpData).ID + 1
-		}
-		user.ID = id
-		newDB["users"][user.Telephone] = user
+		// var id uint64 = 0
+		// if len(newDB["users"]) > 0 {
+		id := RandStringRunes(32)
+		// }
+		user.ID, _ = strconv.ParseUint(id, 10, 64)
+		newDB["users"][user.Telephone] = *user
 	}
 	return nil
 }
 
-func ChangeUserData (session string, newData *models.SignUpData) error{
+func ChangeUserData(session string, newData *models.SignUpData) error {
 	defer mtx.Unlock()
 	mtx.Lock()
 
@@ -153,7 +150,7 @@ func NewProduct(product *models.ProductData) error {
 		id = newDB["products"][strconv.Itoa(len(newDB["products"])-1)].(models.ProductData).ID + 1
 	}
 	product.ID = id
-	newDB["products"][strconv.Itoa(int(id))] = product
+	newDB["products"][strconv.Itoa(int(id))] = *product
 	return nil
 }
 
@@ -169,6 +166,3 @@ func CheckSession(sessionValue string) bool {
 	_, auth := newDB["session"][sessionValue]
 	return auth
 }
-
-
-

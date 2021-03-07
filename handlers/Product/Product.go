@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-func ProductIDHandler(w http.ResponseWriter, r *http.Request){
-	productID := strings.TrimPrefix(r.URL.Path,"/product/")
+func ProductIDHandler(w http.ResponseWriter, r *http.Request) {
+	productID := strings.TrimPrefix(r.URL.Path, "/api/v1/product/")
 
 	product, err := _tmpDB.GetProduct(productID)
 	if err != nil {
@@ -30,7 +30,7 @@ func ProductIDHandler(w http.ResponseWriter, r *http.Request){
 	w.Write(body)
 }
 
-func ProductCreateHandler (w http.ResponseWriter, r *http.Request){
+func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	productData := models.ProductData{}
 	parseErr := json.NewDecoder(r.Body).Decode(&productData)
@@ -56,4 +56,3 @@ func ProductCreateHandler (w http.ResponseWriter, r *http.Request){
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
-

@@ -1,42 +1,39 @@
 package models
 
 type LoginData struct {
-	Telephone   string `json:"telephone"`
-	Password    string `json:"password"`
-	IsLoggedIn  bool   `json:"is_logged_in"`
+	Telephone  string `json:"telephone"`
+	Password   string `json:"password"`
+	IsLoggedIn bool   `json:"is_logged_in"`
 }
 
 type SignUpData struct {
-	ID          uint64   `json:"id"`
-	Name        string   `json:"name"`
-	Surname     string   `json:"surname"`
-	Sex         string   `json:"sex"`
-	Email       string   `json:"email"`
-	Telephone   string   `json:"telephone"`
-	Password    string   `json:"password"`
-	DateBirth   int      `json:"date_birth"`
-	Day         string   `json:"day"`
-	Month       string   `json:"month"`
-	Year        string   `json:"year"`
-	LinkImages  []string `json:"linkImages"`
+	ID         uint64   `json:"id"`
+	Name       string   `json:"name"`
+	Surname    string   `json:"surname"`
+	Sex        string   `json:"sex"`
+	Email      string   `json:"email"`
+	Telephone  string   `json:"telephone"`
+	Password   string   `json:"password"`
+	DateBirth  string   `json:"date_birth"`
+	LinkImages []string `json:"linkImages"`
 }
 
 type ProductData struct {
 	ID          uint64   `json:"id"`
 	Name        string   `json:"name"`
-	Date        int		 `json:"date"`
+	Date        string   `json:"date"`
 	Amount      int      `json:"amount"`
 	LinkImages  []string `json:"linkImages"`
 	Description string   `json:"description"`
-	OwnerID     int		 `json:"owner_id"`
-	Views       int		 `json:"views"`
-	Likes       int		 `json:"likes"`
+	OwnerID     int      `json:"owner_id"`
+	Views       int      `json:"views"`
+	Likes       int      `json:"likes"`
 }
 
 type ProductListData struct {
-	ID          uint64    `json:"id"`
-	Name        string   `json:"name"`
-	Date        int		 `json:"date"`
-	Amount      int      `json:"amount"`
-	LinkImages  []string `json:"linkImages"`
+	ID         uint64   `json:"id"`
+	Name       string   `json:"name"`
+	Date       string   `json:"date"`
+	Amount     int      `json:"amount"`
+	LinkImages []string `json:"linkImages"`
 }

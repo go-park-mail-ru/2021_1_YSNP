@@ -4,13 +4,12 @@ import (
 	"2021_1_YSNP/models"
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
 
-
-
-func LoginHandler(w http.ResponseWriter, r *http.Request){
+func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	signInData := models.LoginData{}
 	err := json.NewDecoder(r.Body).Decode(&signInData)
@@ -19,7 +18,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request){
 		w.Write([]byte(err.Error()))
 		return
 	}
-
+	fmt.Println(signInData)
 	user, err := _tmpDB.GetUserByLogin(signInData.Telephone)
 	if err != nil {
 		http.Error(w, `no user`, 404)
@@ -31,12 +30,13 @@ func LoginHandler(w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	cookie := &http.Cookie{
-		Name:       "session_id",
-		Value:      _tmpDB.NewSession(user.Telephone),
-		Expires:    time.Now().Add(10 * time.Hour),
-		Secure:     false,
-		HttpOnly:   false,
+	cookie := http.Cookie{
+		Name:     "session_id",
+		Value:    _tmpDB.NewSession(user.Telephone),
+		Expires:  time.Now().Add(10000 * time.Hour),
+		Secure:   false,
+		HttpOnly: false,
+		//Domain:   "http://89.208.199.170:8080",
 	}
 	body, err := json.Marshal(signInData)
 	if err != nil {
@@ -44,7 +44,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request){
 		w.Write([]byte(err.Error()))
 		return
 	}
-	http.SetCookie(w, cookie)
+	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
