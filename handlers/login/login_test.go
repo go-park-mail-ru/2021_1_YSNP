@@ -13,7 +13,7 @@ import (
 func TestLoginHandler_LoginHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"telephone":"+79990009900","password":"Qwerty12","is_logged_in":false}`
+	expectedJSON := `{"message":"Successful login."}`
 
 	var byteData = bytes.NewReader([]byte(`{
 			"telephone" : "+79990009900",

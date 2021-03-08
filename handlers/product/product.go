@@ -71,7 +71,7 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		body, err := json.Marshal(productData)
+		body, err := json.Marshal(map[string]string{"message":"Successful creation."})
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)

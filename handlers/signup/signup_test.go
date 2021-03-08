@@ -37,7 +37,7 @@ func TestSignUpHandler_SignUpHandlerWrongRequest(t *testing.T) {
 func TestSignUpHandler_SignUpHandlerSucces(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"id":0,"name":"Максим","surname":"Торжков","sex":"мужской","email":"a@a.ru","telephone":"+79169230768","password":"Qwerty12","dateBirth":"2021-03-08","linkImages":["http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"]}`
+	expectedJSON := `{"message":"Successful registration."}`
 
 	var byteData = bytes.NewReader([]byte(`{"id":0,
 			"name":"Максим",
@@ -120,7 +120,9 @@ func TestUploadAvatarHandler_UploadAvatarHandlerWrongContentType(t *testing.T) {
 //	//var byteData = bytes.NewReader([]byte(`{"linkImages":"http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"}`))
 //
 //	r := httptest.NewRequest("POST", "/upload", nil)
-//	r.Header.Add("Content-Type", "multipart/form-data;  boundary=WebKitFormBoundaryWVMPREA66wsYKNBL")
+//	body := new(bytes.Buffer)
+//	writer := multipart.NewWriter(body)
+//	r.Header.Add("Content-Type", writer.FormDataContentType())
 //	w := httptest.NewRecorder()
 //
 //	UploadAvatarHandler(w, r)

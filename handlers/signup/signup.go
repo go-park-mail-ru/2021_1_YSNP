@@ -49,7 +49,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		HttpOnly: false,
 	}
 
-	body, err := json.Marshal(signUpData)
+	body, err := json.Marshal(map[string]string{"message": "Successful registration."})
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
