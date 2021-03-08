@@ -31,6 +31,7 @@ func main() {
 	router.HandleFunc("/api/v1/", _mainPage.MainPageHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
+	router.HandleFunc("/api/v1/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/login", _login.LoginHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/logout", _login.LogoutHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/signup", _signUp.SignUpHandler).Methods(http.MethodPost)

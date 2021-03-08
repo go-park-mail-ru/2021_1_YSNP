@@ -36,7 +36,7 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	err = _tmpDB.NewUser(&signUpData)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(JSONError(err.Error()))
 		return
 	}
