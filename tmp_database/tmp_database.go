@@ -145,7 +145,7 @@ func ChangeUserData(session string, newData *models.SignUpData) error {
 	return nil
 }
 
-func NewProduct(product *models.ProductData) error {
+func NewProduct(product *models.ProductData, session string) error {
 	defer mtx.Unlock()
 	mtx.Lock()
 	var id uint64 = 0
@@ -153,6 +153,10 @@ func NewProduct(product *models.ProductData) error {
 		id = newDB["products"][strconv.Itoa(len(newDB["products"])-1)].(models.ProductData).ID + 1
 	}
 	product.ID = id
+	user := GetUserBySession(session)
+	product.OwnerID = user.ID
+	product.OwnerName = user.Name
+	product.OwnerSurname = user.Surname
 	newDB["products"][strconv.Itoa(int(id))] = *product
 	return nil
 }

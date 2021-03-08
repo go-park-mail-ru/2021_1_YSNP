@@ -5,12 +5,13 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/google/uuid"
+	"github.com/sirupsen/logrus"
 )
 
 func JSONError(message string) []byte {
@@ -63,7 +64,7 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		err = _tmpDB.NewProduct(&productData)
+		err = _tmpDB.NewProduct(&productData, session.Value)
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -71,7 +72,7 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		body, err := json.Marshal(map[string]string{"message":"Successful creation."})
+		body, err := json.Marshal(map[string]string{"message": "Successful creation."})
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -89,7 +90,7 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func UploadPhotoHandler (w http.ResponseWriter, r *http.Request){
+func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
@@ -99,16 +100,8 @@ func UploadPhotoHandler (w http.ResponseWriter, r *http.Request){
 		return
 	}
 
-	files := r.MultipartForm.File["file-upload"]
+	files := r.MultipartForm.File["photos"]
 	imgs := make(map[string][]string)
-	//if err != nil {
-	//	logrus.Error(err)
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	w.Write(JSONError(err.Error()))
-	//	return
-	//}
-	//defer files.Close()
-	//r.FormValue("file-upload")
 	for i, _ := range files {
 		file, err := files[i].Open()
 		defer file.Close()
@@ -127,7 +120,7 @@ func UploadPhotoHandler (w http.ResponseWriter, r *http.Request){
 			return
 		}
 
-		photoPath := "static/avatar/"
+		photoPath := "static/product/"
 		os.Chdir(photoPath)
 
 		photoID, err := uuid.NewRandom()
@@ -157,7 +150,7 @@ func UploadPhotoHandler (w http.ResponseWriter, r *http.Request){
 			return
 		}
 
-		imgs["linkImages"] = append(imgs["linkImages"], "http://89.208.199.170:8080/static/avatar/" + photoID.String() + ".jpg")
+		imgs["linkImages"] = append(imgs["linkImages"], "http://89.208.199.170:8080/static/product/"+photoID.String()+".jpg")
 	}
 	body, err := json.Marshal(imgs)
 	if err != nil {
