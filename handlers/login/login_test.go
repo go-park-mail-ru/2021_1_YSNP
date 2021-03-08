@@ -13,12 +13,14 @@ import (
 func TestLoginHandler_LoginHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 
+	expectedJSON := `{"telephone":"+79990009900","password":"Qwerty12","is_logged_in":false}`
+
 	var byteData = bytes.NewReader([]byte(`{
 			"telephone" : "+79990009900",
 			"password" : "Qwerty12"
 		}`))
 
-	r := httptest.NewRequest("POST", "/login", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	w := httptest.NewRecorder()
 
 	LoginHandler(w, r)
@@ -27,6 +29,10 @@ func TestLoginHandler_LoginHandlerSuccess(t *testing.T) {
 		t.Error("Status is not ok")
 	}
 
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
 }
 
 func TestLoginHandler_LoginHandlerWrongRequest(t *testing.T) {
@@ -39,7 +45,7 @@ func TestLoginHandler_LoginHandlerWrongRequest(t *testing.T) {
 			"password" : "Qwerty12",
 		}`))
 
-	r := httptest.NewRequest("POST", "/login", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	w := httptest.NewRecorder()
 
 	LoginHandler(w, r)
@@ -65,7 +71,7 @@ func TestLoginHandler_LoginHandlerNoUser(t *testing.T) {
 			"password" : "Qwerty12"
 		}`))
 
-	r := httptest.NewRequest("POST", "/login", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	w := httptest.NewRecorder()
 
 	LoginHandler(w, r)
@@ -80,6 +86,27 @@ func TestLoginHandler_LoginHandlerNoUser(t *testing.T) {
 	}
 }
 
-func TestLogoutHandler(t *testing.T) {
+func TestLogoutHandler_LogoutHandlerNoCookie(t *testing.T) {
+	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
+	w := httptest.NewRecorder()
 
+	LogoutHandler(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Error("Status is not 400")
+	}
+}
+
+func TestLogoutHandler_LogoutHandlerSucces(t *testing.T) {
+	_tmpDB.InitDB()
+
+	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	w := httptest.NewRecorder()
+
+	LogoutHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Error("Status is not ok")
+	}
 }
