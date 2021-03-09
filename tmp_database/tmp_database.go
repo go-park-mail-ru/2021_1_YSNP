@@ -15,8 +15,9 @@ var (
 	letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
 )
 
-//const Url = "http://89.208.199.170:8080"
-const Url = "http://localhost:8080"
+const Url = "http://89.208.199.170:8080"
+
+//const Url = "http://localhost:8080"
 
 var mtx sync.Mutex
 
