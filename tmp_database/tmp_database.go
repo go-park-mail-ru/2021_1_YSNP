@@ -40,7 +40,7 @@ func InitDB() { //map[string][]interface{}{
 		Email:      "alehin@mail.ru",
 		Telephone:  "+79990009900",
 		Password:   "Qwerty12",
-		DateBirth:  "",
+		DateBirth:  "1991-11-11",
 		LinkImages: []string{"http://89.208.199.170:8080/static/avatar/test-avatar.jpg"},
 	}
 
@@ -128,10 +128,7 @@ func NewUser(user *models.SignUpData) error {
 	if checkLogin(user.Telephone) {
 		return errors.New("User with this phone number exists.")
 	} else {
-		// var id uint64 = 0
-		// if len(newDB["users"]) > 0 {
 		id := RandStringRunes(32)
-		// }
 		user.ID, _ = strconv.ParseUint(id, 10, 64)
 		newDB["users"][user.Telephone] = *user
 	}
@@ -143,6 +140,7 @@ func ChangeUserPassword(session string, newData *models.PasswordChange) error {
 	mtx.Lock()
 	user := GetUserBySession(session)
 	if (newData.OldPassword == user.Password) {
+		user.Password = newData.NewPassword
 		return nil
 	} else {
 		return errors.New("Old password didn't match.")
@@ -171,7 +169,7 @@ func NewProduct(product *models.ProductData, session string) error {
 	product.OwnerID = user.ID
 	product.OwnerName = user.Name
 	product.OwnerSurname = user.Surname
-	product.Date = time.Now().UTC().String()
+	product.Date = time.Now().UTC().Format("2006-01-02")
 	newDB["products"][strconv.Itoa(int(id))] = *product
 	return nil
 }
