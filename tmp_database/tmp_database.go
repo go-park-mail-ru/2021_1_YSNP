@@ -73,6 +73,21 @@ func InitDB() { //map[string][]interface{}{
 		Views:        1000,
 		Likes:        20,
 	}
+
+	newDB["products"]["2"] = models.ProductData{
+		ID:           1,
+		Name:         "Шуба",
+		Date:         "2012-1-12",
+		Amount:       1200000,
+		LinkImages:   []string{"http://89.208.199.170:8080/static/product/pic1.jpeg", "http://89.208.199.170:8080/static/product/pic2.jpeg", "http://89.208.199.170:8080/static/product/pic3.jpeg"},
+		Description:  "Красивая Шуба",
+		Category:     "Хобби",
+		OwnerID:      0,
+		OwnerName:    "Sergey",
+		OwnerSurname: "Alehin",
+		Views:        10000,
+		Likes:        222,
+	}
 }
 
 func checkLogin(number string) bool {
@@ -152,6 +167,7 @@ func ChangeUserData(session string, newData *models.SignUpData) error {
 	mtx.Lock()
 	user := GetUserBySession(session)
 	newData.ID = user.ID
+	newData.Password = user.Password
 	delete(newDB["users"], user.Telephone)
 	newDB["users"][newData.Telephone] = newData
 	return nil
