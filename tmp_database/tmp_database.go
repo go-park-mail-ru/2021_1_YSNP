@@ -354,6 +354,7 @@ func ChangeUserPassword(session string, newData *models.PasswordChange) error {
 	user := GetUserBySession(session)
 	if newData.OldPassword == user.Password {
 		user.Password = newData.NewPassword
+		newDB["users"][user.Telephone] = user
 		return nil
 	} else {
 		return errors.New("Old password didn't match.")
