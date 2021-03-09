@@ -27,18 +27,23 @@ func main() {
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
 	}
+
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	router.HandleFunc("/api/v1/", _mainPage.MainPageHandler).Methods(http.MethodGet)
-	router.HandleFunc("/api/v1/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
-	router.HandleFunc("/api/v1/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/login", _login.LoginHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/logout", _login.LogoutHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/me", _profile.GetProfileHandler).Methods(http.MethodGet)
-	router.HandleFunc("/api/v1/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
-	router.HandleFunc("/api/v1/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
+
+	apiv1 := router.PathPrefix("/api/v1").Subrouter()
+
+	apiv1.HandleFunc("/", _mainPage.MainPageHandler).Methods(http.MethodGet)
+	apiv1.HandleFunc("/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
+	apiv1.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
+	apiv1.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
+	apiv1.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
+
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
