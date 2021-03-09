@@ -28,6 +28,8 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	if authorized {
 		userInfo := _tmpDB.GetUserBySession(session.Value)
 
+		userInfo.Password = ""
+
 		body, err := json.Marshal(userInfo)
 		if err != nil {
 			logrus.Error(err)

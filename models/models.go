@@ -13,7 +13,7 @@ type SignUpData struct {
 	Sex        string   `json:"sex"`
 	Email      string   `json:"email"`
 	Telephone  string   `json:"telephone"`
-	Password   string   `json:"password"`
+	Password   string   `json:"password,omitempty"`
 	DateBirth  string   `json:"dateBirth"`
 	LinkImages []string `json:"linkImages"`
 }
