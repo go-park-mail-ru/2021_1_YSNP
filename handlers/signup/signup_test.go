@@ -99,8 +99,6 @@ func TestSignUpHandler_SignUpHandlerUserExists(t *testing.T) {
 func TestUploadAvatarHandler_UploadAvatarHandlerWrongContentType(t *testing.T) {
 	expectedJSON := `{"message":"request Content-Type isn't multipart/form-data"}`
 
-	//var byteData = bytes.NewReader([]byte(`{"linkImages":"http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"}`))
-
 	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	w := httptest.NewRecorder()
 

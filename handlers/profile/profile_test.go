@@ -104,7 +104,7 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerWrongPass(t *t
 			"newPassword" : "Qwerty12345"
 		}`))
 
-	r := httptest.NewRequest("POST", "/api/v1/setting", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/setting/password", byteData)
 	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
@@ -123,7 +123,7 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerWrongPass(t *t
 func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerNoAuth(t *testing.T) {
 	var expectedJSON = `{"message":"User not authorised or not found"}`
 
-	r := httptest.NewRequest("POST", "/api/v1/setting", nil)
+	r := httptest.NewRequest("POST", "/api/v1/setting/password", nil)
 	w := httptest.NewRecorder()
 
 	ChangeProfilePasswordHandler(w, r)
@@ -146,11 +146,41 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerSuccess(t *tes
 			"newPassword" : "Qwerty12345"
 		}`))
 
-	r := httptest.NewRequest("POST", "/api/v1/setting", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/setting/password", byteData)
 	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ChangeProfilePasswordHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Error("status is not ok")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
+
+func TestChangeProfileHandler_ChangeProfileHandlerSuccess(t *testing.T) {
+	var expectedJSON = `{"message":"Successful change."}`
+
+	var byteData = bytes.NewReader([]byte(`{"id":0,
+			"name":"Максим",
+			"surname":"Торжков",
+			"sex":"мужской",
+			"email":"a@a.ru",
+			"telephone":"+79990009900",
+			"password":"Qwerty12",
+			"dateBirth":"2021-03-08",
+			"linkImages":["http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"]
+	}`))
+
+	r := httptest.NewRequest("POST", "/api/v1/setting", byteData)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	w := httptest.NewRecorder()
+
+	ChangeProfileHandler(w, r)
 
 	if w.Code != http.StatusOK {
 		t.Error("status is not ok")

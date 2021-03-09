@@ -368,7 +368,7 @@ func ChangeUserData(session string, newData *models.SignUpData) error {
 	newData.ID = user.ID
 	newData.Password = user.Password
 	delete(newDB["users"], user.Telephone)
-	newDB["users"][newData.Telephone] = newData
+	newDB["users"][newData.Telephone] = *newData
 	return nil
 }
 
