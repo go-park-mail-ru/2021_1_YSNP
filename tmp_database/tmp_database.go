@@ -6,6 +6,7 @@ import (
 	"math/rand"
 	"strconv"
 	"sync"
+	"time"
 )
 
 var newDB map[string]map[string]interface{}
@@ -157,6 +158,7 @@ func NewProduct(product *models.ProductData, session string) error {
 	product.OwnerID = user.ID
 	product.OwnerName = user.Name
 	product.OwnerSurname = user.Surname
+	product.Date = time.Now().UTC().String()
 	newDB["products"][strconv.Itoa(int(id))] = *product
 	return nil
 }

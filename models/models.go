@@ -25,7 +25,7 @@ type ProductData struct {
 	Amount       int      `json:"amount"`
 	LinkImages   []string `json:"linkImages"`
 	Description  string   `json:"description"`
-	OwnerID      int      `json:"ownerId"`
+	OwnerID      uint64   `json:"ownerId"`
 	OwnerName    string   `json:"ownerName"`
 	OwnerSurname string   `json:"ownerSurname"`
 	Views        int      `json:"views"`
