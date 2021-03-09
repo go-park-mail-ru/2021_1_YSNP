@@ -2,6 +2,7 @@ package profile
 
 import (
 	_tmpDB "2021_1_YSNP/tmp_database"
+	"bytes"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -51,6 +52,46 @@ func TestGetProfileHandler_GetProfileHandlerSuccess(t *testing.T) {
 	}
 }
 
-func TestChangeProfileHandler(t *testing.T) {
+func TestChangeProfileHandler_ChangeProfileHandlerNotAuth(t *testing.T) {
+	_tmpDB.InitDB()
 
+	var expectedJSON = `{"message":"User not authorised or not found"}`
+
+	r := httptest.NewRequest("GET", "/api/v1/me", nil)
+	w := httptest.NewRecorder()
+
+	ChangeProfileHandler(w, r)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Error("status is not 401")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
+func TestChangeProfileHandler_ChangeProfileHandlerWrongRequest(t *testing.T) {
+	_tmpDB.InitDB()
+
+	expectedJSON := `{"message":"invalid character '}' looking for beginning of object key string"}`
+
+	var byteData = bytes.NewReader([]byte(`{
+			"telephone" : "+79990009900",
+		}`))
+
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	w := httptest.NewRecorder()
+
+	ChangeProfileHandler(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Error("Status is not 400")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
 }

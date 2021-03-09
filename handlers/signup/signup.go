@@ -82,6 +82,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	r.FormValue("file-upload")
 
 	str, err := os.Getwd()
+	fmt.Println(str)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)

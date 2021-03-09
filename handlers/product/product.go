@@ -5,6 +5,7 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -113,6 +114,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		str, err := os.Getwd()
+		fmt.Println(str)
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -151,6 +153,12 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		imgs["linkImages"] = append(imgs["linkImages"], "http://89.208.199.170:8080/static/product/"+photoID.String()+".jpg")
+	}
+	if len(imgs) == 0 {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(errors.New("http: no such file").Error()))
+		return
 	}
 	body, err := json.Marshal(imgs)
 	if err != nil {

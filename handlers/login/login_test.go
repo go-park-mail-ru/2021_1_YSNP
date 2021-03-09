@@ -35,6 +35,31 @@ func TestLoginHandler_LoginHandlerSuccess(t *testing.T) {
 	}
 }
 
+func TestLoginHandler_LoginHandlerWrongPass(t *testing.T) {
+	_tmpDB.InitDB()
+
+	expectedJSON := `{"message":"Wrong password"}`
+
+	var byteData = bytes.NewReader([]byte(`{
+			"telephone" : "+79990009900",
+			"password" : "Qwerty11"
+		}`))
+
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
+	w := httptest.NewRecorder()
+
+	LoginHandler(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Error("Status is not 400")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
+
 func TestLoginHandler_LoginHandlerWrongRequest(t *testing.T) {
 	_tmpDB.InitDB()
 

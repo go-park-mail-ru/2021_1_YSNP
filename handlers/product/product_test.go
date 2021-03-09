@@ -4,8 +4,10 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"bytes"
 	"io/ioutil"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"testing"
 )
@@ -13,7 +15,7 @@ import (
 func TestProductIDHandler_ProductIDHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"id":0,"name":"iphone","date":"2000-10-10","amount":12000,"linkImages":["http://89.208.199.170:8080/static/product/pic4.jpeg","http://89.208.199.170:8080/static/product/pic5.jpeg","http://89.208.199.170:8080/static/product/pic6.jpeg"],"description":"eto iphone","ownerId":0,"ownerName":"Sergey","ownerSurname":"Alehin","views":1000,"likes":20}`
+	expectedJSON := `{"id":0,"name":"iphone","date":"2000-10-10","amount":12000,"linkImages":["http://89.208.199.170:8080/static/product/pic4.jpeg","http://89.208.199.170:8080/static/product/pic5.jpeg","http://89.208.199.170:8080/static/product/pic6.jpeg"],"description":"eto iphone","category":"Автомобили","ownerId":0,"ownerName":"Sergey","ownerSurname":"Alehin","views":1000,"likes":20}`
 
 	r := httptest.NewRequest("GET", "/api/v1/product/0", nil)
 	w := httptest.NewRecorder()
@@ -95,28 +97,121 @@ func TestProductCreateHandler_ProductCreateHandlerWrongRequest(t *testing.T) {
 	}
 }
 
-//func TestProductCreateHandler_ProductCreateHandlerSuccess(t *testing.T) {
-//	_tmpDB.InitDB()
-//
-//	var expectedJSON = `{"message":"invalid character '}' looking for beginning of object key string"}`
-//
-//	var byteData = bytes.NewReader([]byte(`{
-//			"telephone" : "+79990009900",
-//			"password" : "Qwerty12",
-//		}`))
-//
-//	r := httptest.NewRequest("POST", "/api/v1/product/create", byteData)
-//	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
-//	w := httptest.NewRecorder()
-//
-//	ProductCreateHandler(w, r)
-//
-//	if w.Code != http.StatusOK {
-//		t.Error("status is not ok")
-//	}
-//
-//	bytes, _ := ioutil.ReadAll(w.Body)
-//	if strings.Trim(string(bytes), "\n") != expectedJSON {
-//		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
-//	}
-//}
+func TestProductCreateHandler_ProductCreateHandlerSuccess(t *testing.T) {
+	_tmpDB.InitDB()
+
+	var expectedJSON = `{"message":"Successful creation."}`
+
+	var byteData = bytes.NewReader([]byte(`{
+				"name":"ddsdsdsdsd",
+				"description":"wefdsfdffsf",
+				"amount":2323323,
+				"linkImages":["http://89.208.199.170:8080/static/product/12fd0fce-6022-4e1c-9858-b64ff914f9cf.jpg"],
+				"category":"Электроника"
+	}`))
+
+	r := httptest.NewRequest("POST", "/api/v1/product/create", byteData)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	w := httptest.NewRecorder()
+
+	ProductCreateHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Error("status is not ok")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
+
+func TestUploadPhotoHandler_UploadPhotoHandlerWrongContentType(t *testing.T) {
+	expectedJSON := `{"message":"request Content-Type isn't multipart/form-data"}`
+
+	//var byteData = bytes.NewReader([]byte(`{"linkImages":"http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"}`))
+
+	r := httptest.NewRequest("POST", "/api/v1/product/upload", nil)
+	w := httptest.NewRecorder()
+
+	UploadPhotoHandler(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Error("Status is not 400")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
+
+func TestUploadPhotoHandler_UploadPhotoHandlerSucces(t *testing.T) {
+	path := "../../static/avatar/test-avatar.jpg"
+	body := new(bytes.Buffer)
+
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("photos", path)
+	if err != nil{
+		t.Fatal(err)
+	}
+	sample, err := os.Open(path)
+	if err != nil{
+		t.Fatal(err)
+	}
+	text, _ := ioutil.ReadAll(sample)
+	part.Write(text)
+	writer.Close()
+	sample.Close()
+
+	r := httptest.NewRequest("POST", "/api/v1/product/upload", body)
+
+	r.Header.Add("Content-Type", writer.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	UploadPhotoHandler(w, r)
+
+	if w.Code != http.StatusOK {
+		t.Error("Status is not ok")
+	}
+}
+
+func TestUploadPhotoHandler_UploadPhotoHandlerNoFile(t *testing.T) {
+	expectedJSON := `{"message":"http: no such file"}`
+
+	path := "../../static/avatar/test-avatar.jpg"
+	body := new(bytes.Buffer)
+
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file_", path)
+	if err != nil{
+		t.Error(err)
+	}
+	sample, err := os.Open(path)
+	if err != nil{
+		t.Error(err)
+	}
+	text, err := ioutil.ReadAll(sample)
+	if err != nil{
+		t.Error(err)
+	}
+	part.Write(text)
+	writer.Close()
+	sample.Close()
+
+	r := httptest.NewRequest("POST", "/api/v1/product/upload", body)
+
+	r.Header.Add("Content-Type", writer.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	UploadPhotoHandler(w, r)
+
+	if w.Code != http.StatusBadRequest {
+		t.Error("Status is not 400")
+	}
+
+	bytes, _ := ioutil.ReadAll(w.Body)
+	if strings.Trim(string(bytes), "\n") != expectedJSON {
+		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
+	}
+}
