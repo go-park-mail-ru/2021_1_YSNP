@@ -44,3 +44,8 @@ type ProductListData struct {
 type Error struct {
 	Message string `json:"message"`
 }
+
+type PasswordChange struct {
+	OldPassword string `json:"oldPassword"`
+	NewPassword string `json:"newPassword"`
+}

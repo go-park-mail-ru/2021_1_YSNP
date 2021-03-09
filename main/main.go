@@ -38,6 +38,7 @@ func main() {
 	router.HandleFunc("/api/v1/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/me", _profile.GetProfileHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
+	router.HandleFunc("/api/v1/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)

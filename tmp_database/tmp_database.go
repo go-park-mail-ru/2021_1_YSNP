@@ -138,6 +138,17 @@ func NewUser(user *models.SignUpData) error {
 	return nil
 }
 
+func ChangeUserPassword(session string, newData *models.PasswordChange) error {
+	defer mtx.Unlock()
+	mtx.Lock()
+	user := GetUserBySession(session)
+	if (newData.OldPassword == user.Password) {
+		return nil
+	} else {
+		return errors.New("Old password didn't match.")
+	}
+}
+
 func ChangeUserData(session string, newData *models.SignUpData) error {
 	defer mtx.Unlock()
 	mtx.Lock()

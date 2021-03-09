@@ -92,3 +92,47 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+
+func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
+	authorized := false
+	session, err := r.Cookie("session_id")
+	if err == nil && session != nil {
+		authorized = _tmpDB.CheckSession(session.Value)
+	}
+
+	if authorized {
+		passwordData := models.PasswordChange{}
+		err := json.NewDecoder(r.Body).Decode(&passwordData)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+
+		err = _tmpDB.ChangeUserPassword(session.Value, &passwordData)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+
+		body, err := json.Marshal(map[string]string{"message": "Successful change."})
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write(body)
+
+	} else {
+		err = errors.New("User not authorised or not found")
+		logrus.Error(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+}
