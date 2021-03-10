@@ -33,9 +33,10 @@ func TestProductIDHandler_ProductIDHandlerSuccess(t *testing.T) {
 }
 
 func TestProductIDHandler_ProductIDHandlerNoProduct(t *testing.T) {
-	expectedJSON := `{"message":"No product with this id."}`
+	expectedJSON := `{"message":"no product with this id"}`
 
 	r := httptest.NewRequest("GET", "/api/v1/product/30000000", nil)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ProductIDHandler(w, r)
@@ -53,7 +54,7 @@ func TestProductIDHandler_ProductIDHandlerNoProduct(t *testing.T) {
 func TestProductCreateHandler_ProductCreateHandlerNotAuth(t *testing.T) {
 	_tmpDB.InitDB()
 
-	var expectedJSON = `{"message":"User not authorised or not found"}`
+	var expectedJSON = `{"message":"user not authorised or not found"}`
 
 
 	r := httptest.NewRequest("POST", "/api/v1/product/create", nil)
@@ -132,6 +133,7 @@ func TestUploadPhotoHandler_UploadPhotoHandlerWrongContentType(t *testing.T) {
 	//var byteData = bytes.NewReader([]byte(`{"linkImages":"http://89.208.199.170:8080/static/avatar/b3c098f5-94d8-4bb9-8e56-bc626e60aab7.jpg"}`))
 
 	r := httptest.NewRequest("POST", "/api/v1/product/upload", nil)
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadPhotoHandler(w, r)
@@ -167,6 +169,7 @@ func TestUploadPhotoHandler_UploadPhotoHandlerSucces(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/upload", body)
 
 	r.Header.Add("Content-Type", writer.FormDataContentType())
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadPhotoHandler(w, r)
@@ -202,6 +205,7 @@ func TestUploadPhotoHandler_UploadPhotoHandlerNoFile(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/upload", body)
 
 	r.Header.Add("Content-Type", writer.FormDataContentType())
+	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadPhotoHandler(w, r)

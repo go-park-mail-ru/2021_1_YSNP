@@ -13,7 +13,7 @@ import (
 func TestGetProfileHandler_GetProfileHandlerNotAuth(t *testing.T) {
 	_tmpDB.InitDB()
 
-	var expectedJSON = `{"message":"User not authorised or not found"}`
+	var expectedJSON = `{"message":"user not authorised or not found"}`
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	w := httptest.NewRecorder()
@@ -55,7 +55,7 @@ func TestGetProfileHandler_GetProfileHandlerSuccess(t *testing.T) {
 func TestChangeProfileHandler_ChangeProfileHandlerNotAuth(t *testing.T) {
 	_tmpDB.InitDB()
 
-	var expectedJSON = `{"message":"User not authorised or not found"}`
+	var expectedJSON = `{"message":"user not authorised or not found"}`
 
 	r := httptest.NewRequest("POST", "/api/v1/setting", nil)
 	w := httptest.NewRecorder()
@@ -97,7 +97,7 @@ func TestChangeProfileHandler_ChangeProfileHandlerWrongRequest(t *testing.T) {
 }
 
 func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerWrongPass(t *testing.T) {
-	var expectedJSON = `{"message":"Old password didn't match."}`
+	var expectedJSON = `{"message":"old password didn't match"}`
 
 	var byteData = bytes.NewReader([]byte(`{
 			"oldPassword" : "Qwerty",
@@ -121,7 +121,7 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerWrongPass(t *t
 }
 
 func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerNoAuth(t *testing.T) {
-	var expectedJSON = `{"message":"User not authorised or not found"}`
+	var expectedJSON = `{"message":"user not authorised or not found"}`
 
 	r := httptest.NewRequest("POST", "/api/v1/setting/password", nil)
 	w := httptest.NewRecorder()

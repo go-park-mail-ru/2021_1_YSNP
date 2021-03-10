@@ -5,6 +5,7 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -15,6 +16,7 @@ func JSONError(message string) []byte {
 	if err != nil {
 		return []byte("")
 	}
+
 	return jsonError
 }
 
@@ -27,8 +29,9 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	if authorized {
 		userInfo := _tmpDB.GetUserBySession(session.Value)
-
 		userInfo.Password = ""
+
+		fmt.Println("GetProfileHandler", session.Value)
 
 		body, err := json.Marshal(userInfo)
 		if err != nil {
@@ -37,11 +40,12 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write(JSONError(err.Error()))
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(body)
 
 	} else {
-		err = errors.New("User not authorised or not found")
+		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
@@ -66,6 +70,8 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		fmt.Println("ChangeProfileHandler", session.Value)
+
 		err = _tmpDB.ChangeUserData(session.Value, &signUpData)
 		if err != nil {
 			logrus.Error(err)
@@ -81,11 +87,12 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write(JSONError(err.Error()))
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(body)
 
 	} else {
-		err = errors.New("User not authorised or not found")
+		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
@@ -110,6 +117,8 @@ func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		fmt.Println("ChangeProfilePasswordHandler", session.Value)
+
 		err = _tmpDB.ChangeUserPassword(session.Value, &passwordData)
 		if err != nil {
 			logrus.Error(err)
@@ -125,11 +134,12 @@ func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 			w.Write(JSONError(err.Error()))
 			return
 		}
+
 		w.WriteHeader(http.StatusOK)
 		w.Write(body)
 
 	} else {
-		err = errors.New("User not authorised or not found")
+		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))

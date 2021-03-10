@@ -13,12 +13,14 @@ func JSONError(message string) []byte {
 	if err != nil {
 		return []byte("")
 	}
+
 	return jsonError
 }
 
 func MainPageHandler(w http.ResponseWriter, r *http.Request) {
 	products := _tmpDB.GetProducts()
 
+	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	encoder := json.NewEncoder(w)
 

@@ -1,9 +1,8 @@
 package models
 
 type LoginData struct {
-	Telephone  string `json:"telephone"`
-	Password   string `json:"password"`
-	IsLoggedIn bool   `json:"is_logged_in"`
+	Telephone string `json:"telephone"`
+	Password  string `json:"password"`
 }
 
 type SignUpData struct {
