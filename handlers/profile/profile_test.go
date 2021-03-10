@@ -36,7 +36,7 @@ func TestGetProfileHandler_GetProfileHandlerSuccess(t *testing.T) {
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
 
-	var expectedJSON = `{"id":0,"name":"Sergey","surname":"Alehin","sex":"male","email":"alehin@mail.ru","telephone":"+79990009900","dateBirth":"1991-11-11","linkImages":["http://localhost:8080/static/avatar/test-avatar.jpg"]}`
+	var expectedJSON = `{"id":0,"name":"Sergey","surname":"Alehin","sex":"male","email":"alehin@mail.ru","telephone":"+79990009900","dateBirth":"1991-11-11","linkImages":["http://89.208.199.170:8080/static/avatar/test-avatar.jpg"]}`
 
 	w := httptest.NewRecorder()
 

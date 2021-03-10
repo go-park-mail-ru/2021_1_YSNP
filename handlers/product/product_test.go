@@ -15,7 +15,7 @@ import (
 func TestProductIDHandler_ProductIDHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"id":0,"name":"iphone","date":"2000-10-10","amount":5994,"linkImages":["http://localhost:8080/static/product/pic10.jpeg","http://localhost:8080/static/product/pic7.jpeg","http://localhost:8080/static/product/pic3.jpeg"],"description":"Ясность нашей позиции очевидна: перспективное планирование играет определяющее значение для благоприятных перспектив. Противоположная точка зрения подразумевает, что сторонники тоталитаризма в науке неоднозначны и будут объективно рассмотрены соответствующими инстанциями.","category":"Автомобили","ownerId":0,"ownerName":"Sergey","ownerSurname":"Alehin","views":23,"likes":634}`
+	expectedJSON := `{"id":0,"name":"iphone","date":"2000-10-10","amount":5994,"linkImages":["http://89.208.199.170:8080/static/product/pic10.jpeg","http://89.208.199.170:8080/static/product/pic7.jpeg","http://89.208.199.170:8080/static/product/pic3.jpeg"],"description":"Ясность нашей позиции очевидна: перспективное планирование играет определяющее значение для благоприятных перспектив. Противоположная точка зрения подразумевает, что сторонники тоталитаризма в науке неоднозначны и будут объективно рассмотрены соответствующими инстанциями.","category":"Автомобили","ownerId":0,"ownerName":"Sergey","ownerSurname":"Alehin","views":23,"likes":634}`
 
 	r := httptest.NewRequest("GET", "/api/v1/product/0", nil)
 	w := httptest.NewRecorder()
