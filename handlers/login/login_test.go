@@ -38,7 +38,7 @@ func TestLoginHandler_LoginHandlerSuccess(t *testing.T) {
 func TestLoginHandler_LoginHandlerWrongPass(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"message":"Wrong password"}`
+	expectedJSON := `{"message":"wrong password"}`
 
 	var byteData = bytes.NewReader([]byte(`{
 			"telephone" : "+79990009900",
@@ -89,7 +89,7 @@ func TestLoginHandler_LoginHandlerWrongRequest(t *testing.T) {
 func TestLoginHandler_LoginHandlerNoUser(t *testing.T) {
 	_tmpDB.InitDB()
 
-	expectedJSON := `{"message":"No user with this number"}`
+	expectedJSON := `{"message":"no user with this number"}`
 
 	var byteData = bytes.NewReader([]byte(`{
 			"telephone" : "+7",

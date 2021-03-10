@@ -30,19 +30,18 @@ func main() {
 
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 
-	apiv1 := router.PathPrefix("/api/v1").Subrouter()
-
-	apiv1.HandleFunc("/", _mainPage.MainPageHandler).Methods(http.MethodGet)
-	apiv1.HandleFunc("/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
-	apiv1.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
-	apiv1.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
-	apiv1.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
+	api := router.PathPrefix("/api/v1").Subrouter()
+	api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
+	api.HandleFunc("/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
+	api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
+	api.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
+	api.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
+	api.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
+	api.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
+	api.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
+	api.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
+	api.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
+	api.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
 
 	err := server.ListenAndServe()
 	if err != nil {

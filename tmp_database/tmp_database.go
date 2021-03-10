@@ -3,6 +3,7 @@ package tmp_database
 import (
 	"2021_1_YSNP/models"
 	"errors"
+	"github.com/google/uuid"
 	"math/rand"
 	"strconv"
 	"sync"
@@ -11,23 +12,10 @@ import (
 
 var newDB map[string]map[string]interface{}
 
-var (
-	letterRunes = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-)
-
 const Url = "http://89.208.199.170:8080"
-
 //const Url = "http://localhost:8080"
 
 var mtx sync.Mutex
-
-func RandStringRunes(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = letterRunes[rand.Intn(len(letterRunes))]
-	}
-	return string(b)
-}
 
 func InitDB() { //map[string][]interface{}{
 	newDB = make(map[string]map[string]interface{})
@@ -297,18 +285,27 @@ func checkLogin(number string) bool {
 func GetUserByLogin(login string) (models.LoginData, error) {
 	user, ok := newDB["users"][login]
 	if !ok {
-		return models.LoginData{}, errors.New(`No user with this number`)
+		return models.LoginData{}, errors.New(`no user with this number`)
 	}
+
 	return models.LoginData{
-		Telephone:  user.(models.SignUpData).Telephone,
-		Password:   user.(models.SignUpData).Password,
-		IsLoggedIn: false,
+		Telephone: user.(models.SignUpData).Telephone,
+		Password:  user.(models.SignUpData).Password,
 	}, nil
 }
 
 func GetUserBySession(session string) models.SignUpData {
 	login := newDB["session"][session]
 	return newDB["users"][login.(string)].(models.SignUpData)
+}
+
+func SetUserAvatar(session string, avatar []string) {
+	defer mtx.Unlock()
+
+	mtx.Lock()
+	user := GetUserBySession(session)
+	user.LinkImages = avatar
+	newDB["users"][user.Telephone] = user
 }
 
 func GetProducts() map[string][]models.ProductListData {
@@ -323,13 +320,14 @@ func GetProducts() map[string][]models.ProductListData {
 			LinkImages: v.(models.ProductData).LinkImages,
 		})
 	}
+
 	return products
 }
 
 func GetProduct(id string) (models.ProductData, error) {
 	product, ok := newDB["products"][id]
 	if !ok {
-		return models.ProductData{}, errors.New("No product with this id.")
+		return models.ProductData{}, errors.New("no product with this id")
 	}
 
 	return product.(models.ProductData), nil
@@ -337,20 +335,21 @@ func GetProduct(id string) (models.ProductData, error) {
 
 func NewUser(user *models.SignUpData) error {
 	defer mtx.Unlock()
-	mtx.Lock()
 
+	mtx.Lock()
 	if checkLogin(user.Telephone) {
-		return errors.New("User with this phone number exists.")
+		return errors.New("user with this phone number exists")
 	} else {
-		id := RandStringRunes(32)
-		user.ID, _ = strconv.ParseUint(id, 10, 64)
+		user.ID = rand.Uint64()
 		newDB["users"][user.Telephone] = *user
 	}
+
 	return nil
 }
 
 func ChangeUserPassword(session string, newData *models.PasswordChange) error {
 	defer mtx.Unlock()
+
 	mtx.Lock()
 	user := GetUserBySession(session)
 	if newData.OldPassword == user.Password {
@@ -358,23 +357,26 @@ func ChangeUserPassword(session string, newData *models.PasswordChange) error {
 		newDB["users"][user.Telephone] = user
 		return nil
 	} else {
-		return errors.New("Old password didn't match.")
+		return errors.New("old password didn't match")
 	}
 }
 
 func ChangeUserData(session string, newData *models.SignUpData) error {
 	defer mtx.Unlock()
+
 	mtx.Lock()
 	user := GetUserBySession(session)
 	newData.ID = user.ID
 	newData.Password = user.Password
 	delete(newDB["users"], user.Telephone)
 	newDB["users"][newData.Telephone] = *newData
+
 	return nil
 }
 
 func NewProduct(product *models.ProductData, session string) error {
 	defer mtx.Unlock()
+
 	mtx.Lock()
 	var id uint64 = 0
 	if len(newDB["products"]) > 0 {
@@ -387,14 +389,17 @@ func NewProduct(product *models.ProductData, session string) error {
 	product.OwnerSurname = user.Surname
 	product.Date = time.Now().UTC().Format("2006-01-02")
 	newDB["products"][strconv.Itoa(int(id))] = *product
+
 	return nil
 }
 
 func NewSession(number string) string {
 	defer mtx.Unlock()
-	SID := RandStringRunes(32)
+
+	SID := uuid.New().String()
 	mtx.Lock()
 	newDB["session"][SID] = number
+
 	return SID
 }
 

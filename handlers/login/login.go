@@ -16,11 +16,13 @@ func JSONError(message string) []byte {
 	if err != nil {
 		return []byte("")
 	}
+
 	return jsonError
 }
 
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
+
 	signInData := models.LoginData{}
 	err := json.NewDecoder(r.Body).Decode(&signInData)
 	if err != nil {
@@ -29,7 +31,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-	fmt.Println(signInData)
+
+	fmt.Println("LoginHandler", signInData)
+
 	user, err := _tmpDB.GetUserByLogin(signInData.Telephone)
 	if err != nil {
 		logrus.Error(err)
@@ -41,7 +45,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if user.Password != signInData.Password {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(JSONError(errors.New("Wrong password").Error()))
+		w.Write(JSONError(errors.New("wrong password").Error()))
 		return
 	}
 
@@ -50,8 +54,9 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Value:    _tmpDB.NewSession(user.Telephone),
 		Expires:  time.Now().Add(10000 * time.Hour),
 		Secure:   false,
-		HttpOnly: false,
+		HttpOnly: true,
 	}
+
 	body, err := json.Marshal(map[string]string{"message": "Successful login."})
 	if err != nil {
 		logrus.Error(err)
@@ -59,6 +64,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
@@ -74,8 +80,9 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_tmpDB.DeleteSession(session.Value)
+	fmt.Println("LogoutHandler", session.Value)
 
-	body, err := json.Marshal("logout success")
+	body, err := json.Marshal(map[string]string{"message": "logout success"})
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
