@@ -32,7 +32,7 @@ func main() {
 
 	api := router.PathPrefix("/api/v1").Subrouter()
 	api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
-	api.HandleFunc("/product/{id}", _product.ProductIDHandler).Methods(http.MethodGet)
+	api.HandleFunc("/product/{id:[0-9]+}", _product.ProductIDHandler).Methods(http.MethodGet)
 	api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
 	api.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
 	api.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)

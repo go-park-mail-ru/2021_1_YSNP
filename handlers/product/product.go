@@ -7,12 +7,11 @@ import (
 	"errors"
 	"fmt"
 	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
-	"strings"
-
-	"github.com/sirupsen/logrus"
 )
 
 func JSONError(message string) []byte {
@@ -25,8 +24,8 @@ func JSONError(message string) []byte {
 }
 
 func ProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	productID := strings.TrimPrefix(r.URL.Path, "/api/v1/product/")
-
+	vars := mux.Vars(r)
+	productID := vars["id"]
 	product, err := _tmpDB.GetProduct(productID)
 	if err != nil {
 		logrus.Error(err)
