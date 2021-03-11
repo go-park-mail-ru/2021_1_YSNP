@@ -126,7 +126,7 @@ func TestLogoutHandler_LogoutHandlerSucces(t *testing.T) {
 	_tmpDB.InitDB()
 
 	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	LogoutHandler(w, r)

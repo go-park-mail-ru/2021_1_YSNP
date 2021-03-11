@@ -13,6 +13,7 @@ import (
 var newDB map[string]map[string]interface{}
 
 const Url = "http://89.208.199.170:8080"
+
 //const Url = "http://localhost:8080"
 
 var mtx sync.Mutex
