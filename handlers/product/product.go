@@ -56,44 +56,44 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		defer r.Body.Close()
-		productData := models.ProductData{}
-		err := json.NewDecoder(r.Body).Decode(&productData)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		fmt.Println("ProductCreateHandler", session.Value)
-
-		err = _tmpDB.NewProduct(&productData, session.Value)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		body, err := json.Marshal(map[string]string{"message": "Successful creation."})
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-	} else {
+	if !authorized {
 		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	defer r.Body.Close()
+	productData := models.ProductData{}
+	err = json.NewDecoder(r.Body).Decode(&productData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	fmt.Println("ProductCreateHandler", session.Value)
+
+	err = _tmpDB.NewProduct(&productData, session.Value)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	body, err := json.Marshal(map[string]string{"message": "Successful creation."})
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
@@ -103,9 +103,30 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
-		err := r.ParseMultipartForm(10 * 1024 * 1024)
+	if !authorized {
+		err = errors.New("user not authorised or not found")
+		logrus.Error(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
+	err = r.ParseMultipartForm(10 * 1024 * 1024)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	fmt.Println("UploadPhotoHandler")
+
+	files := r.MultipartForm.File["photos"]
+	imgs := make(map[string][]string)
+	for i, _ := range files {
+		file, err := files[i].Open()
+		defer file.Close()
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -113,68 +134,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		fmt.Println("UploadPhotoHandler")
-
-		files := r.MultipartForm.File["photos"]
-		imgs := make(map[string][]string)
-		for i, _ := range files {
-			file, err := files[i].Open()
-			defer file.Close()
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(JSONError(err.Error()))
-				return
-			}
-
-			str, err := os.Getwd()
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(JSONError(err.Error()))
-				return
-			}
-
-			photoPath := "static/product/"
-			os.Chdir(photoPath)
-
-			photoID, err := uuid.NewRandom()
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(JSONError(err.Error()))
-				return
-			}
-
-			f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusInternalServerError)
-				w.Write(JSONError(err.Error()))
-				return
-			}
-			defer f.Close()
-
-			os.Chdir(str)
-
-			_, err = io.Copy(f, file)
-			if err != nil {
-				logrus.Error(err)
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write(JSONError(err.Error()))
-				return
-			}
-
-			imgs["linkImages"] = append(imgs["linkImages"], _tmpDB.Url+"/static/product/"+photoID.String()+".jpg")
-		}
-
-		if len(imgs) == 0 {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(errors.New("http: no such file").Error()))
-			return
-		}
-		body, err := json.Marshal(imgs)
+		str, err := os.Getwd()
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -182,13 +142,53 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-	} else {
-		err = errors.New("user not authorised or not found")
+		photoPath := "static/product/"
+		os.Chdir(photoPath)
+
+		photoID, err := uuid.NewRandom()
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+
+		f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+		defer f.Close()
+
+		os.Chdir(str)
+
+		_, err = io.Copy(f, file)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(JSONError(err.Error()))
+			return
+		}
+
+		imgs["linkImages"] = append(imgs["linkImages"], _tmpDB.Url+"/static/product/"+photoID.String()+".jpg")
+	}
+
+	if len(imgs) == 0 {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(errors.New("http: no such file").Error()))
+		return
+	}
+	body, err := json.Marshal(imgs)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
