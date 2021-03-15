@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 )
 
 func JSONError(message string) []byte {
@@ -126,13 +127,14 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	imgs := make(map[string][]string)
 	for i, _ := range files {
 		file, err := files[i].Open()
-		defer file.Close()
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(JSONError(err.Error()))
 			return
 		}
+		defer file.Close()
+		extension := filepath.Ext(files[i].Filename)
 
 		str, err := os.Getwd()
 		if err != nil {
@@ -153,7 +155,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
+		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			logrus.Error(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -172,7 +174,7 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		imgs["linkImages"] = append(imgs["linkImages"], _tmpDB.Url+"/static/product/"+photoID.String()+".jpg")
+		imgs["linkImages"] = append(imgs["linkImages"], _tmpDB.Url+"/static/product/"+photoID.String()+extension)
 	}
 
 	if len(imgs) == 0 {
