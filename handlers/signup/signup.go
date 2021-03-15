@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -93,7 +94,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("UploadAvatarHandler")
 
-	file, _, err := r.FormFile("file-upload")
+	file, handler, err := r.FormFile("file-upload")
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -101,6 +102,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer file.Close()
+	extension := filepath.Ext(handler.Filename)
 
 	r.FormValue("file-upload")
 
@@ -124,7 +126,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
+	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -144,7 +146,7 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var avatar []string
-	avatar = append(avatar, _tmpDB.Url+"/static/avatar/"+photoID.String()+".jpg")
+	avatar = append(avatar, _tmpDB.Url+"/static/avatar/"+photoID.String()+extension)
 	_tmpDB.SetUserAvatar(session.Value, avatar)
 
 	body, err := json.Marshal(avatar)
