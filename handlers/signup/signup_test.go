@@ -186,3 +186,33 @@ func TestUploadAvatarHandler_UploadAvatarHandlerNoFile(t *testing.T) {
 		t.Errorf("expected: [%s], got: [%s]", expectedJSON, string(bytes))
 	}
 }
+
+func TestUploadAvatarHandler_UploadAvatarHandlerNotAuth(t *testing.T) {
+	path := "../../static/avatar/test-avatar.jpg"
+	body := new(bytes.Buffer)
+
+	writer := multipart.NewWriter(body)
+	part, err := writer.CreateFormFile("file-upload", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sample, err := os.Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	text, _ := ioutil.ReadAll(sample)
+	part.Write(text)
+	writer.Close()
+	sample.Close()
+
+	r := httptest.NewRequest("POST", "/api/v1/upload", body)
+
+	r.Header.Add("Content-Type", writer.FormDataContentType())
+	w := httptest.NewRecorder()
+
+	UploadAvatarHandler(w, r)
+
+	if w.Code != http.StatusUnauthorized {
+		t.Error("Status is not 401")
+	}
+}
