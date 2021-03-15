@@ -27,30 +27,29 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		userInfo := _tmpDB.GetUserBySession(session.Value)
-		userInfo.Password = ""
-
-		fmt.Println("GetProfileHandler", session.Value)
-
-		body, err := json.Marshal(userInfo)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-
-	} else {
+	if !authorized {
 		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	userInfo := _tmpDB.GetUserBySession(session.Value)
+	userInfo.Password = ""
+
+	fmt.Println("GetProfileHandler", session.Value)
+
+	body, err := json.Marshal(userInfo)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -60,44 +59,43 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		signUpData := models.SignUpData{}
-		err := json.NewDecoder(r.Body).Decode(&signUpData)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		fmt.Println("ChangeProfileHandler", session.Value)
-
-		err = _tmpDB.ChangeUserData(session.Value, &signUpData)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		body, err := json.Marshal(map[string]string{"message": "Successful change."})
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-
-	} else {
+	if !authorized {
 		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	signUpData := models.SignUpData{}
+	err = json.NewDecoder(r.Body).Decode(&signUpData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	fmt.Println("ChangeProfileHandler", session.Value)
+
+	err = _tmpDB.ChangeUserData(session.Value, &signUpData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	body, err := json.Marshal(map[string]string{"message": "Successful change."})
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -107,42 +105,41 @@ func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		passwordData := models.PasswordChange{}
-		err := json.NewDecoder(r.Body).Decode(&passwordData)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		fmt.Println("ChangeProfilePasswordHandler", session.Value)
-
-		err = _tmpDB.ChangeUserPassword(session.Value, &passwordData)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		body, err := json.Marshal(map[string]string{"message": "Successful change."})
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-
-	} else {
+	if !authorized {
 		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	passwordData := models.PasswordChange{}
+	err = json.NewDecoder(r.Body).Decode(&passwordData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	fmt.Println("ChangeProfilePasswordHandler", session.Value)
+
+	err = _tmpDB.ChangeUserPassword(session.Value, &passwordData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	body, err := json.Marshal(map[string]string{"message": "Successful change."})
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }

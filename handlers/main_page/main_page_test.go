@@ -7,7 +7,6 @@ import (
 	"testing"
 )
 
-
 func TestMainPageHandler_MainPageHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 

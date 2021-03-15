@@ -34,7 +34,7 @@ func TestGetProfileHandler_GetProfileHandlerSuccess(t *testing.T) {
 	_tmpDB.InitDB()
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 
 	var expectedJSON = `{"id":0,"name":"Sergey","surname":"Alehin","sex":"male","email":"alehin@mail.ru","telephone":"+79990009900","dateBirth":"1991-11-11","linkImages":["http://89.208.199.170:8080/static/avatar/test-avatar.jpg"]}`
 
@@ -81,7 +81,7 @@ func TestChangeProfileHandler_ChangeProfileHandlerWrongRequest(t *testing.T) {
 		}`))
 
 	r := httptest.NewRequest("POST", "/api/v1/setting", byteData)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ChangeProfileHandler(w, r)
@@ -105,7 +105,7 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerWrongPass(t *t
 		}`))
 
 	r := httptest.NewRequest("POST", "/api/v1/setting/password", byteData)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ChangeProfilePasswordHandler(w, r)
@@ -147,7 +147,7 @@ func TestChangeProfilePasswordHandler_ChangeProfilePasswordHandlerSuccess(t *tes
 		}`))
 
 	r := httptest.NewRequest("POST", "/api/v1/setting/password", byteData)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ChangeProfilePasswordHandler(w, r)
@@ -177,7 +177,7 @@ func TestChangeProfileHandler_ChangeProfileHandlerSuccess(t *testing.T) {
 	}`))
 
 	r := httptest.NewRequest("POST", "/api/v1/setting", byteData)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	ChangeProfileHandler(w, r)

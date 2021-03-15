@@ -100,7 +100,7 @@ func TestUploadAvatarHandler_UploadAvatarHandlerWrongContentType(t *testing.T) {
 	expectedJSON := `{"message":"request Content-Type isn't multipart/form-data"}`
 
 	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadAvatarHandler(w, r)
@@ -121,11 +121,11 @@ func TestUploadAvatarHandler_UploadAvatarHandlerSucces(t *testing.T) {
 
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file-upload", path)
-	if err != nil{
+	if err != nil {
 		t.Fatal(err)
 	}
 	sample, err := os.Open(path)
-	if err != nil{
+	if err != nil {
 		t.Fatal(err)
 	}
 	text, _ := ioutil.ReadAll(sample)
@@ -136,7 +136,7 @@ func TestUploadAvatarHandler_UploadAvatarHandlerSucces(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/upload", body)
 
 	r.Header.Add("Content-Type", writer.FormDataContentType())
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadAvatarHandler(w, r)
@@ -154,15 +154,15 @@ func TestUploadAvatarHandler_UploadAvatarHandlerNoFile(t *testing.T) {
 
 	writer := multipart.NewWriter(body)
 	part, err := writer.CreateFormFile("file", path)
-	if err != nil{
+	if err != nil {
 		t.Error(err)
 	}
 	sample, err := os.Open(path)
-	if err != nil{
+	if err != nil {
 		t.Error(err)
 	}
 	text, err := ioutil.ReadAll(sample)
-	if err != nil{
+	if err != nil {
 		t.Error(err)
 	}
 	part.Write(text)
@@ -172,7 +172,7 @@ func TestUploadAvatarHandler_UploadAvatarHandlerNoFile(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/upload", body)
 
 	r.Header.Add("Content-Type", writer.FormDataContentType())
-	r.AddCookie(&http.Cookie{Name:"session_id", Value: _tmpDB.NewSession("+79990009900")})
+	r.AddCookie(&http.Cookie{Name: "session_id", Value: _tmpDB.NewSession("+79990009900")})
 	w := httptest.NewRecorder()
 
 	UploadAvatarHandler(w, r)

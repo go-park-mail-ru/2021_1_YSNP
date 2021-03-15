@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/google/uuid"
@@ -74,87 +75,88 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 		authorized = _tmpDB.CheckSession(session.Value)
 	}
 
-	if authorized {
-		r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
-		err := r.ParseMultipartForm(10 * 1024 * 1024)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		fmt.Println("UploadAvatarHandler")
-
-		file, _, err := r.FormFile("file-upload")
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-		defer file.Close()
-
-		r.FormValue("file-upload")
-
-		str, err := os.Getwd()
-
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		photoPath := "static/avatar/"
-		os.Chdir(photoPath)
-
-		photoID, err := uuid.NewRandom()
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		f, err := os.OpenFile(photoID.String()+".jpg", os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-		defer f.Close()
-
-		os.Chdir(str)
-
-		_, err = io.Copy(f, file)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusBadRequest)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		var avatar []string
-		avatar = append(avatar, _tmpDB.Url+"/static/avatar/"+photoID.String()+".jpg")
-		_tmpDB.SetUserAvatar(session.Value, avatar)
-
-		body, err := json.Marshal(avatar)
-		if err != nil {
-			logrus.Error(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write(JSONError(err.Error()))
-			return
-		}
-
-		w.WriteHeader(http.StatusOK)
-		w.Write(body)
-	} else {
+	if !authorized {
 		err = errors.New("user not authorised or not found")
 		logrus.Error(err)
 		w.WriteHeader(http.StatusUnauthorized)
 		w.Write(JSONError(err.Error()))
 		return
 	}
+
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
+	err = r.ParseMultipartForm(10 * 1024 * 1024)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	fmt.Println("UploadAvatarHandler")
+
+	file, handler, err := r.FormFile("file-upload")
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+	defer file.Close()
+	extension := filepath.Ext(handler.Filename)
+
+	r.FormValue("file-upload")
+
+	str, err := os.Getwd()
+
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	photoPath := "static/avatar/"
+	os.Chdir(photoPath)
+
+	photoID, err := uuid.NewRandom()
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+	defer f.Close()
+
+	os.Chdir(str)
+
+	_, err = io.Copy(f, file)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	var avatar []string
+	avatar = append(avatar, _tmpDB.Url+"/static/avatar/"+photoID.String()+extension)
+	_tmpDB.SetUserAvatar(session.Value, avatar)
+
+	body, err := json.Marshal(avatar)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
