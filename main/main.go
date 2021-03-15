@@ -8,6 +8,7 @@ import (
 	_signUp "2021_1_YSNP/handlers/signup"
 	"2021_1_YSNP/middleware"
 	_tmpDB "2021_1_YSNP/tmp_database"
+	"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
 	"time"
@@ -17,7 +18,27 @@ import (
 
 func main() {
 	_tmpDB.InitDB()
+
 	router := mux.NewRouter()
+
+	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
+	logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+		"host":   "89.208.199.170",
+		"port":   "8080",
+	}).Info("Starting server")
+
+	AccessLogOut := new(middleware.AccessLogger)
+
+	contextLogger := logrus.WithFields(logrus.Fields{
+		"mode":   "[access_log]",
+		"logger": "LOGRUS",
+	})
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	AccessLogOut.LogrusLogger = contextLogger
+
+	router.Use(AccessLogOut.AccessLogMiddleware)
+
 
 	router.Use(middleware.CorsControlMiddleware)
 
