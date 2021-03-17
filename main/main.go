@@ -39,7 +39,6 @@ func main() {
 
 	router.Use(AccessLogOut.AccessLogMiddleware)
 
-
 	router.Use(middleware.CorsControlMiddleware)
 
 	server := http.Server{
@@ -67,5 +66,6 @@ func main() {
 	err := server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
+		//TODO(Maxim) может logrus?
 	}
 }
