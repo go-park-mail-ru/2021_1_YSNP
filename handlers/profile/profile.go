@@ -5,7 +5,6 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"github.com/sirupsen/logrus"
@@ -37,8 +36,6 @@ func GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 
 	userInfo := _tmpDB.GetUserBySession(session.Value)
 	userInfo.Password = ""
-
-	fmt.Println("GetProfileHandler", session.Value)
 
 	body, err := json.Marshal(userInfo)
 	if err != nil {
@@ -75,8 +72,6 @@ func ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("ChangeProfileHandler", session.Value)
 
 	err = _tmpDB.ChangeUserData(session.Value, &signUpData)
 	if err != nil {
@@ -121,8 +116,6 @@ func ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("ChangeProfilePasswordHandler", session.Value)
 
 	err = _tmpDB.ChangeUserPassword(session.Value, &passwordData)
 	if err != nil {

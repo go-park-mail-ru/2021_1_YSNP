@@ -5,7 +5,6 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -44,8 +43,6 @@ func SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("SignUpHandler", signUpData)
 
 	cookie := &http.Cookie{
 		Name:     "session_id",
@@ -91,8 +88,6 @@ func UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("UploadAvatarHandler")
 
 	file, handler, err := r.FormFile("file-upload")
 	if err != nil {
