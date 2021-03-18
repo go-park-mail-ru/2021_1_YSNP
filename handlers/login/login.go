@@ -5,7 +5,6 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -32,12 +31,10 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("LoginHandler", signInData)
-
 	user, err := _tmpDB.GetUserByLogin(signInData.Telephone)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(JSONError(err.Error()))
 		return
 	}
@@ -80,7 +77,6 @@ func LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_tmpDB.DeleteSession(session.Value)
-	fmt.Println("LogoutHandler", session.Value)
 
 	body, err := json.Marshal(map[string]string{"message": "logout success"})
 	if err != nil {

@@ -5,7 +5,6 @@ import (
 	_tmpDB "2021_1_YSNP/tmp_database"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -34,8 +33,6 @@ func ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("ProductIDHandler", productID)
 
 	body, err := json.Marshal(product)
 	if err != nil {
@@ -74,8 +71,6 @@ func ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(JSONError(err.Error()))
 		return
 	}
-
-	fmt.Println("ProductCreateHandler", session.Value)
 
 	err = _tmpDB.NewProduct(&productData, session.Value)
 	if err != nil {
@@ -121,11 +116,9 @@ func UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("UploadPhotoHandler")
-
 	files := r.MultipartForm.File["photos"]
 	imgs := make(map[string][]string)
-	for i, _ := range files {
+	for i := range files {
 		file, err := files[i].Open()
 		if err != nil {
 			logrus.Error(err)
