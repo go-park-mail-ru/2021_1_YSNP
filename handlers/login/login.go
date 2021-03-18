@@ -34,7 +34,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	user, err := _tmpDB.GetUserByLogin(signInData.Telephone)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusNotFound)
+		w.WriteHeader(http.StatusBadRequest)
 		w.Write(JSONError(err.Error()))
 		return
 	}
