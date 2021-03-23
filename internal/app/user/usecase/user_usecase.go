@@ -32,7 +32,7 @@ func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData
 	panic("implement me")
 }
 
-func (uu *UserUsecase) UpdateAvatar(userID uint64, newAvatar string) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateAvatar(userID uint64, newAvatar []string) (*models.UserData, *errors.Error) {
 	panic("implement me")
 }
 
@@ -40,5 +40,7 @@ func (uu *UserUsecase) CheckPassword(user *models.UserData, password string) *er
 	panic("implement me")
 }
 
-
+func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.UserData, *errors.Error) {
+	panic("implement me")
+}
 
