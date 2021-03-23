@@ -52,6 +52,7 @@ func main() {
 		"port":   "8080",
 	}).Info("Starting server")
 
+
 	AccessLogOut := new(middleware.AccessLogger)
 
 	contextLogger := logrus.WithFields(logrus.Fields{
