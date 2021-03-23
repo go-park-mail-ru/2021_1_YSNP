@@ -1,9 +1,18 @@
 package http
 
 import (
+	"encoding/json"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
 )
 
 type ProductHandler struct {
@@ -24,18 +33,183 @@ func (ph *ProductHandler) Configure(r *mux.Router) {
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
+	page := models.Page{}
+	err := json.NewDecoder(r.Body).Decode(&page)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
 
+	products, err := ph.productUcase.ListLatest()
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 
+	product, error := ph.productUcase.GetByID(productID)
+	if error != nil {
+		logrus.Error(error)
+		w.WriteHeader(http.StatusNotFound)
+		w.Write(errors.JSONError(error.Error()))
+		return
+	}
+
+	body, err := json.Marshal(product)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
 
+	userID, ok := r.Context().Value("userID").(uint64)
+	if !ok {
+		err := errors.Error{Message: "user not authorised or not found"}
+		logrus.Error(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	productData := &models.ProductData{}
+	err := json.NewDecoder(r.Body).Decode(&productData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	productData.OwnerID = userID
+
+	err = ph.productUcase.Create(productData)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful creation."))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
+	_, ok := r.Context().Value("userID").(uint64)
+	if !ok {
+		err := errors.Error{Message: "user not authorised or not found"}
+		logrus.Error(err)
+		w.WriteHeader(http.StatusUnauthorized)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
+	err := r.ParseMultipartForm(10 * 1024 * 1024)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	files := r.MultipartForm.File["photos"]
+	imgs := make(map[string][]string)
+	for i := range files {
+		file, err := files[i].Open()
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(errors.JSONError(err.Error()))
+			return
+		}
+		defer file.Close()
+		extension := filepath.Ext(files[i].Filename)
+
+		str, err := os.Getwd()
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errors.JSONError(err.Error()))
+			return
+		}
+
+		photoPath := "static/product/"
+		os.Chdir(photoPath)
+
+		photoID, err := uuid.NewRandom()
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errors.JSONError(err.Error()))
+			return
+		}
+
+		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
+		if err != nil {
+			logrus.Error(err)
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write(errors.JSONError(err.Error()))
+			return
+		}
+		defer f.Close()
+
+		os.Chdir(str)
+
+		_, err = io.Copy(f, file)
+		if err != nil {
+			_ = os.Remove(photoID.String()+extension)
+			logrus.Error(err)
+			w.WriteHeader(http.StatusBadRequest)
+			w.Write(errors.JSONError(err.Error()))
+			return
+		}
+
+		imgs["linkImages"] = append(imgs["linkImages"], models.Url+"/static/product/"+photoID.String()+extension)
+	}
+
+	if len(imgs) == 0 {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(errors.Error{Message: "http: no such file"}.Error()))
+		return
+	}
+	body, err := json.Marshal(imgs)
+	if err != nil {
+		logrus.Error(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }
 
