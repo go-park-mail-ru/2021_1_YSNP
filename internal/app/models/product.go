@@ -28,15 +28,15 @@ type ProductListData struct {
 }
 
 type Content struct {
-	From uint64
-	Count uint64
+	From uint64 `json:"from"`
+	Count uint64 `json:"count"`
 }
 
 type OrderType struct {
-	Main bool
+	Main bool `json:"main"`
 }
 
 type Page struct {
-	Content Content
-	Order OrderType
+	Content Content `json:"content"`
+	Order OrderType `order:"order"`
 }

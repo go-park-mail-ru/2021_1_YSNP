@@ -9,7 +9,7 @@ type UserData struct {
 	Telephone  string   `json:"telephone"`
 	Password   string   `json:"password,omitempty"`
 	DateBirth  string   `json:"dateBirth"`
-	LinkImages []string `json:"linkImages"`
+	LinkImages string `json:"linkImages"`
 }
 
 type SignUpRequest struct {
@@ -21,7 +21,7 @@ type SignUpRequest struct {
 	Password1  string   `json:"password1"`
 	Password2  string	`json:"password2"`
 	DateBirth  string   `json:"dateBirth"`
-	LinkImages []string `json:"linkImages"`
+	LinkImages string `json:"linkImages"`
 }
 
 type PasswordChangeRequest struct {
