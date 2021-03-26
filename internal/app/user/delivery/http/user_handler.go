@@ -160,8 +160,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var avatar []string
-	avatar = append(avatar, models.Url+"/static/avatar/"+photoID.String()+extension)
+	avatar := models.Url+"/static/avatar/"+photoID.String()+extension
 
 	_, err = uh.userUcase.UpdateAvatar(userID, avatar)
 	if err != nil {
