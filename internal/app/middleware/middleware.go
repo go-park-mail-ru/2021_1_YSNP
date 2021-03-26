@@ -50,11 +50,13 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 		next.ServeHTTP(w, r)
-
+		logrus.SetFormatter(&logrus.JSONFormatter{})
 		m.LogrusLogger.WithFields(logrus.Fields{
 			"method":      r.Method,
 			"remote_addr": r.RemoteAddr,
 			"work_time":   time.Since(start),
+			"mode":   "[access_log]",
+			"logger": "LOGRUS",
 		}).Info(r.URL.Path)
 	})
 }
