@@ -2,21 +2,23 @@ package main
 
 import (
 	"database/sql"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/stdlib"
 
-	//userUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/usecase"
-	//userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
-	//userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
+	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
+	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
+	userUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/usecase"
+
+	sessionHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
+	sessionRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/repository/postgres"
+	sessionUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
+
+	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
+	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
+	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 
-	_login "github.com/go-park-mail-ru/2021_1_YSNP/handlers/login"
-	_mainPage "github.com/go-park-mail-ru/2021_1_YSNP/handlers/main_page"
-	_product "github.com/go-park-mail-ru/2021_1_YSNP/handlers/product"
-	_profile "github.com/go-park-mail-ru/2021_1_YSNP/handlers/profile"
-	_signUp "github.com/go-park-mail-ru/2021_1_YSNP/handlers/signup"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	_tmpDB "github.com/go-park-mail-ru/2021_1_YSNP/tmp_database"
 	"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
@@ -31,19 +33,28 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbConnection, err := sql.Open("postgres", configs.GetDBConfig())
+	dbConn, err := sql.Open("pgx", configs.GetDBConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dbConnection.Close()
+	defer dbConn.Close()
 
-	if err := dbConnection.Ping(); err != nil {
+	if err := dbConn.Ping(); err != nil {
 		log.Fatal(err)
 	}
 
-	_tmpDB.InitDB()
-
 	router := mux.NewRouter()
+	//_tmpDB.InitDB()
+
+	userRepo := userRepo.NewUserRepository(dbConn)
+	sessRepo := sessionRepo.NewSessionRepository(dbConn)
+	prodRepo := productRepo.NewProductRepository(dbConn)
+
+	userUcase := userUsecase.NewUserUsecase(userRepo)
+	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo)
+
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
 
 	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
 	logrus.WithFields(logrus.Fields{
@@ -52,17 +63,7 @@ func main() {
 		"port":   "8080",
 	}).Info("Starting server")
 
-
-	AccessLogOut := new(middleware.AccessLogger)
-
-	contextLogger := logrus.WithFields(logrus.Fields{
-		"mode":   "[access_log]",
-		"logger": "LOGRUS",
-	})
-	logrus.SetFormatter(&logrus.JSONFormatter{})
-	AccessLogOut.LogrusLogger = contextLogger
-
-	router.Use(AccessLogOut.AccessLogMiddleware)
+	router.Use(mw.AccessLogMiddleware)
 
 	router.Use(middleware.CorsControlMiddleware)
 
@@ -74,19 +75,26 @@ func main() {
 	}
 
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-
 	api := router.PathPrefix("/api/v1").Subrouter()
-	api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
-	api.HandleFunc("/product/{id:[0-9]+}", _product.ProductIDHandler).Methods(http.MethodGet)
-	api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
-	api.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
-	api.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
-	api.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
-	api.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
-	api.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
-	api.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
-	api.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
-	api.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
+
+	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
+	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
+	prodHandler := productHandler.NewProductHandler(prodUcase)
+
+	userHandler.Configure(api)
+	sessHandler.Configure(api)
+	prodHandler.Configure(api)
+	//api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
+	//api.HandleFunc("/product/{id:[0-9]+}", _product.ProductIDHandler).Methods(http.MethodGet)
+	//api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
+	//api.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
+	//api.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
 
 	err = server.ListenAndServe()
 	if err != nil {
