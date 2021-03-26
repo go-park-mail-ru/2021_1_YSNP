@@ -17,13 +17,28 @@ func NewProductUsecase(repo product.ProductRepository) product.ProductUsecase {
 }
 
 func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
-	panic("implement me")
+	err := pu.productRepo.Insert(product)
+	if err != nil {
+		//TODO: создать ошибку
+	}
+
+	return nil
 }
 
 func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *errors.Error) {
-	panic("implement me")
+	product, err := pu.productRepo.SelectByID(productID)
+	if err != nil {
+		//TODO: создать ошибку
+	}
+
+	return product, nil
 }
 
 func (pu *ProductUsecase) ListLatest() ([]*models.ProductListData, *errors.Error) {
-	panic("implement me")
+	products, err := pu.productRepo.SelectLatest()
+	if err != nil {
+		//TODO: создать ошибку
+	}
+
+	return products, nil
 }
