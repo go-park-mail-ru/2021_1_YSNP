@@ -2,14 +2,17 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+
 	_ "github.com/jackc/pgx/stdlib"
+	tarantool "github.com/tarantool/go-tarantool"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
 	userUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/usecase"
 
 	sessionHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
-	sessionRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/repository/postgres"
+	sessionRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/repository/tarantool"
 	sessionUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
 
 	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
@@ -18,11 +21,12 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/sirupsen/logrus"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/sirupsen/logrus"
 
 	"github.com/gorilla/mux"
 )
@@ -33,28 +37,37 @@ func main() {
 		log.Fatal(err)
 	}
 
-	dbConn, err := sql.Open("pgx", configs.GetDBConfig())
+	sqlConn, err := sql.Open("pgx", configs.GetDBConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer dbConn.Close()
+	defer sqlConn.Close()
 
-	if err := dbConn.Ping(); err != nil {
+	if err := sqlConn.Ping(); err != nil {
 		log.Fatal(err)
+	}
+
+	opts := tarantool.Opts{
+		User: "admin",
+		Pass: "pass",
+	}
+	tarConn, err := tarantool.Connect("127.0.0.1:3301", opts)
+
+	if err != nil {
+		fmt.Println("baa: Connection refused:", err)
+		return
 	}
 
 	router := mux.NewRouter()
 	//_tmpDB.InitDB()
 
-	userRepo := userRepo.NewUserRepository(dbConn)
-	sessRepo := sessionRepo.NewSessionRepository(dbConn)
-	prodRepo := productRepo.NewProductRepository(dbConn)
+	userRepo := userRepo.NewUserRepository(sqlConn)
+	sessRepo := sessionRepo.NewSessionRepository(tarConn)
+	prodRepo := productRepo.NewProductRepository(sqlConn)
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
-
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
 
 	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
 	logrus.WithFields(logrus.Fields{
@@ -62,6 +75,15 @@ func main() {
 		"host":   "89.208.199.170",
 		"port":   "8080",
 	}).Info("Starting server")
+
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
+
+	contextLogger := logrus.WithFields(logrus.Fields{
+		"mode":   "[access_log]",
+		"logger": "LOGRUS",
+	})
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+	mw.LogrusLogger = contextLogger
 
 	router.Use(mw.AccessLogMiddleware)
 
@@ -81,9 +103,9 @@ func main() {
 	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 
-	userHandler.Configure(api)
-	sessHandler.Configure(api)
-	prodHandler.Configure(api)
+	userHandler.Configure(api, mw)
+	sessHandler.Configure(api, mw)
+	prodHandler.Configure(api, mw)
 	//api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
 	//api.HandleFunc("/product/{id:[0-9]+}", _product.ProductIDHandler).Methods(http.MethodGet)
 	//api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
