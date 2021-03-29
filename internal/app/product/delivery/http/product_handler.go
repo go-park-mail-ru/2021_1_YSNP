@@ -2,34 +2,36 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+	"strconv"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
-	"strconv"
 )
 
 type ProductHandler struct {
 	productUcase product.ProductUsecase
 }
 
-func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler{
+func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 	return &ProductHandler{
 		productUcase: productUcase,
 	}
 }
 
-func (ph *ProductHandler) Configure(r *mux.Router) {
+func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
-	r.HandleFunc("/product/create", ph.ProductCreateHandler).Methods(http.MethodPost)
-	r.HandleFunc("/product/upload", ph.UploadPhotoHandler).Methods(http.MethodPost)
+	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -42,7 +44,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	products, err := ph.productUcase.ListLatest()
+	products, err := ph.productUcase.ListLatest(&page.Content)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
@@ -109,11 +111,11 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 
 	productData.OwnerID = userID
 
-	err = ph.productUcase.Create(productData)
-	if err != nil {
-		logrus.Error(err)
+	errE := ph.productUcase.Create(productData)
+	if errE != nil {
+		logrus.Error(errE)
 		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		w.Write(errors.JSONError(errE.Error()))
 		return
 	}
 
@@ -122,6 +124,9 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+
 	_, ok := r.Context().Value("userID").(uint64)
 	if !ok {
 		err := errors.Error{Message: "user not authorised or not found"}
@@ -185,7 +190,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 		_, err = io.Copy(f, file)
 		if err != nil {
-			_ = os.Remove(photoID.String()+extension)
+			_ = os.Remove(photoID.String() + extension)
 			logrus.Error(err)
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write(errors.JSONError(err.Error()))
@@ -201,6 +206,15 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		w.Write(errors.JSONError(errors.Error{Message: "http: no such file"}.Error()))
 		return
 	}
+
+	_, errE := ph.productUcase.UpdatePhoto(productID, imgs["linkImages"])
+	if errE != nil {
+		logrus.Error(errE)
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write(errors.JSONError(err.Error()))
+		return
+	}
+
 	body, err := json.Marshal(imgs)
 	if err != nil {
 		logrus.Error(err)
@@ -212,4 +226,3 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
-
