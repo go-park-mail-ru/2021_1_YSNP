@@ -52,9 +52,13 @@ func (sr *SessionRepository) SelectByValue(sessValue string) (*models.Session, e
 		return nil, errors.New("cannot cast data")
 	}
 
+	if sessionDataSlice[0] == nil {
+		return nil, errors.New("session not exist")
+	}
+
 	sessionData, ok := sessionDataSlice[1].(string)
 	if !ok {
-		return nil, errors.New("cannot cast")
+		return nil, errors.New("cannot cast to string")
 	}
 
 	sess := &models.Session{}

@@ -37,33 +37,34 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
-	user, err := sh.userUcase.GetByTelephone(login.Telephone)
-	if err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
-	err = sh.userUcase.CheckPassword(user, login.Password)
-	if  err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	errE = sh.userUcase.CheckPassword(user, login.Password)
+	if  errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	session := models.CreateSession(user.ID)
-	err = sh.sessUcase.Create(session)
-	if  err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	errE = sh.sessUcase.Create(session)
+	if  errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -83,17 +84,18 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	session, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.Cause(errors.UserUnauthorized)
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
-	err = sh.sessUcase.Delete(session.Value)
-	if  err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	errE := sh.sessUcase.Delete(session.Value)
+	if  errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 

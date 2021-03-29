@@ -21,8 +21,7 @@ func NewSessionUsecase(repo session.SessionRepository) session.SessionUsecase {
 func (su *SessionUsecase) Create(sess *models.Session) *errors.Error {
 	err := su.sessRepo.Insert(sess)
 	if err != nil {
-		//TODO: создать ошибку
-		return &errors.Error{Message: err.Error()}
+		return errors.UnexpectedInternal(err)
 	}
 	return nil
 }
@@ -30,22 +29,19 @@ func (su *SessionUsecase) Create(sess *models.Session) *errors.Error {
 func (su *SessionUsecase) Get(sessValue string) (*models.Session, *errors.Error) {
 	sess, err := su.sessRepo.SelectByValue(sessValue)
 	if err != nil {
-		//TODO: создать ошибку
-		return nil, &errors.Error{Message: err.Error()}
+		return nil, errors.Cause(errors.SessionNotExist)
 	}
 	return sess, nil
 }
 
 func (su *SessionUsecase) Delete(sessionValue string) *errors.Error {
 	if _, err := su.Get(sessionValue); err != nil {
-		//TODO: создать ошибку
-		return &errors.Error{Message: err.Error()}
+		return errors.Cause(errors.SessionNotExist)
 	}
 
 	err := su.sessRepo.DeleteByValue(sessionValue)
 	if err != nil {
-		//TODO: создать ошибку
-		return &errors.Error{Message: err.Error()}
+		return errors.UnexpectedInternal(err)
 	}
 	return nil
 }
@@ -53,18 +49,15 @@ func (su *SessionUsecase) Delete(sessionValue string) *errors.Error {
 func (su *SessionUsecase) Check(sessValue string) (*models.Session, *errors.Error) {
 	sess, err := su.Get(sessValue)
 	if err != nil {
-		//TODO: создать ошибку
-		return nil, &errors.Error{Message: err.Error()}
+		return nil, errors.Cause(errors.SessionNotExist)
 	}
 
 	if sess.ExpiresAt.Before(time.Now()) {
-		err := su.Delete(sessValue)
-		if err != nil {
-			//TODO: создать ошибку
-			return nil, &errors.Error{Message: err.Error()}
+		errE := su.Delete(sessValue)
+		if errE != nil {
+			return nil, errE
 		}
-		//TODO: создать ошибку
-		return nil, &errors.Error{Message: "fff"} //созданная ошибка
+		return nil, errors.Cause(errors.SessionExpired)
 	}
 
 	return sess, nil
