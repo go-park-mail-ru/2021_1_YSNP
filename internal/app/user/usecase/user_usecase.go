@@ -1,11 +1,12 @@
 package usecase
 
-import(
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
+import (
+	"os"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 	"golang.org/x/crypto/bcrypt"
-	"os"
 )
 
 type UserUsecase struct {
@@ -14,7 +15,7 @@ type UserUsecase struct {
 
 func NewUserUsecase(repo user.UserRepository) user.UserUsecase {
 	return &UserUsecase{
-			userRepo: repo,
+		userRepo: repo,
 	}
 }
 
@@ -22,6 +23,7 @@ func (uu *UserUsecase) Create(user *models.UserData) *errors.Error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		//TODO: создать ошибку
+		return &errors.Error{Message: err.Error()}
 	}
 
 	user.Password = string(hashedPassword)
@@ -29,8 +31,8 @@ func (uu *UserUsecase) Create(user *models.UserData) *errors.Error {
 	err = uu.userRepo.Insert(user)
 	if err != nil {
 		//TODO: создать ошибку
+		return &errors.Error{Message: err.Error()}
 	}
-
 	return nil
 }
 
@@ -38,6 +40,7 @@ func (uu *UserUsecase) GetByTelephone(telephone string) (*models.UserData, *erro
 	user, err := uu.userRepo.SelectByTelephone(telephone)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	return user, nil
@@ -47,6 +50,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.UserData, *errors.Error) 
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	return user, nil
@@ -63,6 +67,7 @@ func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData
 	err := uu.userRepo.Update(newUserData)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	return newUserData, nil
@@ -72,6 +77,7 @@ func (uu *UserUsecase) UpdateAvatar(userID uint64, newAvatar string) (*models.Us
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	oldAvatar := user.LinkImages
@@ -79,12 +85,14 @@ func (uu *UserUsecase) UpdateAvatar(userID uint64, newAvatar string) (*models.Us
 	err = uu.userRepo.Update(user)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
-	if len(oldAvatar) != 0 {
+	if oldAvatar != "" {
 		err := os.Remove(oldAvatar)
 		if err != nil {
 			//TODO: создать ошибку
+			return nil, &errors.Error{Message: err.Error()}
 		}
 	}
 
@@ -95,6 +103,7 @@ func (uu *UserUsecase) CheckPassword(user *models.UserData, password string) *er
 	err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
 	if err != nil {
 		//TODO: создать ошибку
+		return &errors.Error{Message: err.Error()}
 	}
 	return nil
 }
@@ -103,11 +112,13 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	newHashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	user.Password = string(newHashedPassword)
@@ -115,8 +126,8 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	err = uu.userRepo.Update(user)
 	if err != nil {
 		//TODO: создать ошибку
+		return nil, &errors.Error{Message: err.Error()}
 	}
 
 	return user, nil
 }
-

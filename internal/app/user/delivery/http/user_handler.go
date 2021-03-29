@@ -2,6 +2,12 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"io"
+	"net/http"
+	"os"
+	"path/filepath"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
@@ -9,10 +15,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"io"
-	"net/http"
-	"os"
-	"path/filepath"
 )
 
 type UserHandler struct {
@@ -22,17 +24,17 @@ type UserHandler struct {
 
 func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase) *UserHandler {
 	return &UserHandler{
-			userUcase: userUcase,
-			sessUcase: sessUcase,
+		userUcase: userUcase,
+		sessUcase: sessUcase,
 	}
 }
 
-func (uh *UserHandler) Configure(r *mux.Router) {
+func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost)
-	r.HandleFunc("/upload", uh.UploadAvatarHandler).Methods(http.MethodPost)
-	r.HandleFunc("/me", uh.GetProfileHandler).Methods(http.MethodGet)
-	r.HandleFunc("/settings", uh.ChangeProfileHandler).Methods(http.MethodPost)
-	r.HandleFunc("/settings/password", uh.ChangeProfilePasswordHandler).Methods(http.MethodPost)
+	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
 
 }
 
@@ -58,19 +60,18 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		DateBirth:  signUp.DateBirth,
 		LinkImages: signUp.LinkImages,
 	}
-
-	err = uh.userUcase.Create(user)
-	if err != nil {
-		logrus.Error(err)
+	errQ := uh.userUcase.Create(user)
+	if errQ != nil {
+		logrus.Error(errQ)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(errors.JSONError(err.Error()))
 		return
 	}
 
 	session := models.CreateSession(user.ID)
-	err = uh.sessUcase.Create(session)
-	if  err != nil {
-		logrus.Error(err)
+	errT := uh.sessUcase.Create(session)
+	if errT != nil {
+		logrus.Error(errT)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(errors.JSONError(err.Error()))
 		return
@@ -153,18 +154,18 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	_, err = io.Copy(f, file)
 	if err != nil {
-		_ = os.Remove(photoID.String()+extension)
+		_ = os.Remove(photoID.String() + extension)
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(errors.JSONError(err.Error()))
 		return
 	}
 
-	avatar := models.Url+"/static/avatar/"+photoID.String()+extension
+	avatar := "/static/avatar/" + photoID.String() + extension
 
-	_, err = uh.userUcase.UpdateAvatar(userID, avatar)
-	if err != nil {
-		logrus.Error(err)
+	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
+	if errE != nil {
+		logrus.Error(errE)
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write(errors.JSONError(err.Error()))
 		return
@@ -273,7 +274,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 		return
 	}
 
-	_, err =uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
+	_, err = uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
 	if err != nil {
 		logrus.Error(err)
 		w.WriteHeader(http.StatusBadRequest)
