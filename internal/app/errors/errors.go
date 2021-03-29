@@ -11,7 +11,7 @@ type Success struct {
 }
 
 func (e Error) Error() string {
-	panic("implement me")
+	return e.Message
 }
 
 func JSONError(message string) []byte {
