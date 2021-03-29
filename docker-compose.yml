@@ -1,0 +1,26 @@
+version: '3'
+
+# docker rm $(docker ps -a -q) && docker volume prune -f
+
+services:
+  postgres:
+    image: postgres:13.2
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ysnpkoyadb
+    ports:
+      - '5432:5432'
+    volumes:
+      - './configs/sql/:/docker-entrypoint-initdb.d/'
+  tarantool:
+    image: tarantool/tarantool:latest
+    environment:
+      TARANTOOL_USER_NAME: admin
+      TARANTOOL_USER_PASSWORD: pass
+    ports:
+      - '3301:3301'
+    command: tarantool /opt/tarantool/app.lua
+
