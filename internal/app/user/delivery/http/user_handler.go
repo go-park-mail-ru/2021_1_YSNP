@@ -45,8 +45,9 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&signUp)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -60,20 +61,20 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		DateBirth:  signUp.DateBirth,
 		LinkImages: signUp.LinkImages,
 	}
-	errQ := uh.userUcase.Create(user)
-	if errQ != nil {
-		logrus.Error(errQ)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	errE := uh.userUcase.Create(user)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	session := models.CreateSession(user.ID)
-	errT := uh.sessUcase.Create(session)
-	if errT != nil {
-		logrus.Error(errT)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	errE = uh.sessUcase.Create(session)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -93,10 +94,10 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(uint64)
 	if !ok {
-		err := errors.Error{Message: "user not authorised or not found"}
-		logrus.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.Cause(errors.UserUnauthorized)
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -104,16 +105,18 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	file, handler, err := r.FormFile("file-upload")
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	defer file.Close()
@@ -122,11 +125,11 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	r.FormValue("file-upload")
 
 	str, err := os.Getwd()
-
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -136,16 +139,18 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	photoID, err := uuid.NewRandom()
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	defer f.Close()
@@ -156,8 +161,9 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	if err != nil {
 		_ = os.Remove(photoID.String() + extension)
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -165,17 +171,18 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
 	if errE != nil {
-		logrus.Error(errE)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	body, err := json.Marshal(avatar)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -186,26 +193,27 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(uint64)
 	if !ok {
-		err := errors.Error{Message: "user not authorised or not found"}
-		logrus.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.Cause(errors.UserUnauthorized)
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
-	user, error := uh.userUcase.GetByID(userID)
-	if error != nil {
-		logrus.Error(error)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(error.Error()))
+	user, errE := uh.userUcase.GetByID(userID)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	body, err := json.Marshal(user)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -216,10 +224,10 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(uint64)
 	if !ok {
-		err := errors.Error{Message: "user not authorised or not found"}
-		logrus.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.Cause(errors.UserUnauthorized)
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -227,8 +235,9 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	err := json.NewDecoder(r.Body).Decode(&changeData)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -243,11 +252,11 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		LinkImages: changeData.LinkImages,
 	}
 
-	_, err = uh.userUcase.UpdateProfile(userID, user)
-	if err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	_, errE := uh.userUcase.UpdateProfile(userID, user)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -258,10 +267,10 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	userID, ok := r.Context().Value("userID").(uint64)
 	if !ok {
-		err := errors.Error{Message: "user not authorised or not found"}
-		logrus.Error(err)
-		w.WriteHeader(http.StatusUnauthorized)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.Cause(errors.UserUnauthorized)
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -269,16 +278,17 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	err := json.NewDecoder(r.Body).Decode(&passwordData)
 	if err != nil {
 		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
-	_, err = uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
-	if err != nil {
-		logrus.Error(err)
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write(errors.JSONError(err.Error()))
+	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
+	if errE != nil {
+		logrus.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
