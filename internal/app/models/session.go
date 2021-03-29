@@ -1,12 +1,12 @@
 package models
 
 import (
-	"github.com/google/uuid"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Session struct {
-	ID        uint64
 	Value     string
 	UserID    uint64
 	ExpiresAt time.Time

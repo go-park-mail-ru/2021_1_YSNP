@@ -3,6 +3,7 @@ package delivery
 import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
@@ -24,9 +25,9 @@ func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsec
 		}
 }
 
-func (sh *SessionHandler) Configure(r *mux.Router) {
+func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost)
-	r.HandleFunc("/logout", sh.LogoutHandler).Methods(http.MethodPost)
+	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost)
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
