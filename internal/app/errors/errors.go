@@ -1,21 +1,42 @@
 package errors
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+)
+
+type ErrorType uint8
+
+const (
+	InternalError ErrorType = iota
+	BadRequest
+	UserNotExist
+	WrongPassword
+	TelephoneAlreadyExists
+	SessionNotExist
+	SessionExpired
+	WrongErrorCode
+	UserUnauthorized
+	EmptyContext
+	ProductNotExist
+)
 
 type Error struct {
-	Message string `json:"message"`
+	ErrorCode   ErrorType	`json:"code"`
+	HttpError	int			`json:"-"`
+	Message 	string 		`json:"message"`
 }
 
 type Success struct {
 	Message string `json:"message"`
 }
 
-func (e Error) Error() string {
-	return e.Message
-}
+//func (e Error) Error() string {
+//	return e.Message
+//}
 
-func JSONError(message string) []byte {
-	jsonError, err := json.Marshal(Error{Message: message})
+func JSONError(error *Error) []byte {
+	jsonError, err := json.Marshal(error)
 	if err != nil {
 		return []byte("")
 	}
@@ -28,4 +49,84 @@ func JSONSuccess(message string) []byte {
 		return []byte("")
 	}
 	return jsonSucc
+}
+
+var CustomErrors = map[ErrorType]*Error{
+	InternalError: {
+		ErrorCode: InternalError,
+		HttpError: http.StatusInternalServerError,
+		Message: "somthing wrong",
+	},
+	BadRequest: {
+		ErrorCode: BadRequest,
+		HttpError: http.StatusBadRequest,
+		Message: "wrong request",
+	},
+	UserNotExist: {
+		ErrorCode: UserNotExist,
+		HttpError: http.StatusBadRequest,
+		Message: "user with this telephone doesn't exist",
+	},
+	WrongPassword: {
+		ErrorCode: WrongPassword,
+		HttpError: http.StatusBadRequest,
+		Message: "wrong password",
+	},
+	TelephoneAlreadyExists: {
+		ErrorCode: TelephoneAlreadyExists,
+		HttpError: http.StatusBadRequest,
+		Message: "user with this telephone already exists",
+	},
+	SessionNotExist: {
+		ErrorCode: SessionNotExist,
+		HttpError: http.StatusBadRequest,
+		Message: "user session doesn't exists",
+	},
+	SessionExpired: {
+		ErrorCode: SessionExpired,
+		HttpError: http.StatusUnauthorized,
+		Message: "user session expired",
+	},
+	WrongErrorCode: {
+		ErrorCode: WrongErrorCode,
+		HttpError: http.StatusInternalServerError,
+		Message: "can't specify error",
+	},
+	UserUnauthorized: {
+		ErrorCode: UserUnauthorized,
+		HttpError: http.StatusUnauthorized,
+		Message: "user unauthorized",
+	},
+	EmptyContext: {
+		ErrorCode: EmptyContext,
+		HttpError: http.StatusInternalServerError,
+		Message: "empty context",
+	},
+	ProductNotExist: {
+		ErrorCode: ProductNotExist,
+		HttpError: http.StatusNotFound,
+		Message: "product doesn't exist",
+	},
+}
+
+func Cause(code ErrorType) *Error {
+	err, ok := CustomErrors[code]
+	if !ok {
+		return CustomErrors[WrongErrorCode]
+	}
+	return err
+}
+
+func UnexpectedInternal(err error) *Error {
+	unexpErr := CustomErrors[InternalError]
+	unexpErr.Message = err.Error()
+
+	return unexpErr
+}
+
+func UnexpectedBadRequest(err error) *Error {
+	unexpErr := CustomErrors[BadRequest]
+	unexpErr.Message = err.Error()
+
+	return unexpErr
 }
