@@ -1,9 +1,5 @@
 package models
 
-const Url = "http://89.208.199.170:8080"
-
-//const Url = "http://localhost:8080"
-
 type ProductData struct {
 	ID           uint64   `json:"id"`
 	Name         string   `json:"name"`
@@ -28,7 +24,7 @@ type ProductListData struct {
 }
 
 type Content struct {
-	From uint64 `json:"from"`
+	From  uint64 `json:"from"`
 	Count uint64 `json:"count"`
 }
 
@@ -37,6 +33,6 @@ type OrderType struct {
 }
 
 type Page struct {
-	Content Content `json:"content"`
-	Order OrderType `order:"order"`
+	Content Content   `json:"content"`
+	Order   OrderType `json:"order"`
 }

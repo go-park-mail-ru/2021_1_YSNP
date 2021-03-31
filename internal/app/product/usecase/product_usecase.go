@@ -70,7 +70,8 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*mod
 
 	if len(oldPhotos) != 0 {
 		for _, photo := range oldPhotos {
-			err := os.Remove(photo)
+			origWd, _ := os.Getwd()
+			err := os.Remove(origWd + photo)
 			if err != nil {
 				return nil, errors.UnexpectedInternal(err)
 			}
@@ -79,4 +80,3 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*mod
 
 	return product, nil
 }
-

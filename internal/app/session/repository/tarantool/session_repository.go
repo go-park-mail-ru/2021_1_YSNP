@@ -3,7 +3,6 @@ package repository
 import (
 	"encoding/json"
 	"errors"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/tarantool/go-tarantool"
@@ -71,6 +70,10 @@ func (sr *SessionRepository) SelectByValue(sessValue string) (*models.Session, e
 }
 
 func (sr *SessionRepository) DeleteByValue(sessionValue string) error {
-	// panic("implement me")
+	_, err := sr.dbConn.Delete("sessions", "primary", []interface{}{sessionValue})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }

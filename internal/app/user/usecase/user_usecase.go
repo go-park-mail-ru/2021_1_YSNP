@@ -64,12 +64,13 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.UserData, *errors.Error) 
 }
 
 func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData) (*models.UserData, *errors.Error) {
-	_, err := uu.userRepo.SelectByID(userID)
+	oldUser, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)
 	}
 
 	newUserData.ID = userID
+	newUserData.Password = oldUser.Password
 
 	err = uu.userRepo.Update(newUserData)
 	if err != nil {

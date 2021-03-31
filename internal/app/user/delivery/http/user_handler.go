@@ -242,14 +242,12 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	}
 
 	user := &models.UserData{
-		Name:       changeData.Name,
-		Surname:    changeData.Surname,
-		Sex:        changeData.Sex,
-		Email:      changeData.Email,
-		Telephone:  changeData.Telephone,
-		Password:   changeData.Password1,
-		DateBirth:  changeData.DateBirth,
-		LinkImages: changeData.LinkImages,
+		Name:      changeData.Name,
+		Surname:   changeData.Surname,
+		Sex:       changeData.Sex,
+		Email:     changeData.Email,
+		Telephone: changeData.Telephone,
+		DateBirth: changeData.DateBirth,
 	}
 
 	_, errE := uh.userUcase.UpdateProfile(userID, user)

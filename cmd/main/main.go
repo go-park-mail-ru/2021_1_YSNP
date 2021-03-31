@@ -59,7 +59,6 @@ func main() {
 	}
 
 	router := mux.NewRouter()
-	//_tmpDB.InitDB()
 
 	userRepo := userRepo.NewUserRepository(sqlConn)
 	sessRepo := sessionRepo.NewSessionRepository(tarConn)
@@ -106,17 +105,6 @@ func main() {
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, mw)
-	//api.HandleFunc("/product/list", _mainPage.MainPageHandler).Methods(http.MethodGet)
-	//api.HandleFunc("/product/{id:[0-9]+}", _product.ProductIDHandler).Methods(http.MethodGet)
-	//api.HandleFunc("/product/create", _product.ProductCreateHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/product/upload", _product.UploadPhotoHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/login", _login.LoginHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/logout", _login.LogoutHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/signup", _signUp.SignUpHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/upload", _signUp.UploadAvatarHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/me", _profile.GetProfileHandler).Methods(http.MethodGet)
-	//api.HandleFunc("/settings", _profile.ChangeProfileHandler).Methods(http.MethodPost)
-	//api.HandleFunc("/settings/password", _profile.ChangeProfilePasswordHandler).Methods(http.MethodPost)
 
 	err = server.ListenAndServe()
 	if err != nil {

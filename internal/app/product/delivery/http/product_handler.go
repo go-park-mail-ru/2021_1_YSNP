@@ -28,7 +28,7 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 }
 
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodGet)
+	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodPost)
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
@@ -129,7 +129,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
 
 	_, ok := r.Context().Value("userID").(uint64)
 	if !ok {
@@ -207,7 +207,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 
-		imgs["linkImages"] = append(imgs["linkImages"], models.Url+"/static/product/"+photoID.String()+extension)
+		imgs["linkImages"] = append(imgs["linkImages"], "/static/product/"+photoID.String()+extension)
 	}
 
 	//if len(imgs) == 0 {

@@ -22,9 +22,9 @@ const (
 )
 
 type Error struct {
-	ErrorCode   ErrorType	`json:"code"`
-	HttpError	int			`json:"-"`
-	Message 	string 		`json:"message"`
+	ErrorCode ErrorType `json:"code"`
+	HttpError int       `json:"-"`
+	Message   string    `json:"message"`
 }
 
 type Success struct {
@@ -55,57 +55,57 @@ var CustomErrors = map[ErrorType]*Error{
 	InternalError: {
 		ErrorCode: InternalError,
 		HttpError: http.StatusInternalServerError,
-		Message: "somthing wrong",
+		Message:   "somthing wrong",
 	},
 	BadRequest: {
 		ErrorCode: BadRequest,
 		HttpError: http.StatusBadRequest,
-		Message: "wrong request",
+		Message:   "wrong request",
 	},
 	UserNotExist: {
 		ErrorCode: UserNotExist,
 		HttpError: http.StatusBadRequest,
-		Message: "user with this telephone doesn't exist",
+		Message:   "user with this telephone doesn't exist",
 	},
 	WrongPassword: {
 		ErrorCode: WrongPassword,
 		HttpError: http.StatusBadRequest,
-		Message: "wrong password",
+		Message:   "wrong password",
 	},
 	TelephoneAlreadyExists: {
 		ErrorCode: TelephoneAlreadyExists,
 		HttpError: http.StatusBadRequest,
-		Message: "user with this telephone already exists",
+		Message:   "user with this telephone already exists",
 	},
 	SessionNotExist: {
 		ErrorCode: SessionNotExist,
 		HttpError: http.StatusBadRequest,
-		Message: "user session doesn't exists",
+		Message:   "user session doesn't exists",
 	},
 	SessionExpired: {
 		ErrorCode: SessionExpired,
 		HttpError: http.StatusUnauthorized,
-		Message: "user session expired",
+		Message:   "user session expired",
 	},
 	WrongErrorCode: {
 		ErrorCode: WrongErrorCode,
 		HttpError: http.StatusInternalServerError,
-		Message: "can't specify error",
+		Message:   "can't specify error",
 	},
 	UserUnauthorized: {
 		ErrorCode: UserUnauthorized,
 		HttpError: http.StatusUnauthorized,
-		Message: "user unauthorized",
+		Message:   "user unauthorized",
 	},
 	EmptyContext: {
 		ErrorCode: EmptyContext,
 		HttpError: http.StatusInternalServerError,
-		Message: "empty context",
+		Message:   "empty context",
 	},
 	ProductNotExist: {
 		ErrorCode: ProductNotExist,
 		HttpError: http.StatusNotFound,
-		Message: "product doesn't exist",
+		Message:   "product doesn't exist",
 	},
 }
 

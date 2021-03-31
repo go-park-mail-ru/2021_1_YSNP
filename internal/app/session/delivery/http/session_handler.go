@@ -20,9 +20,9 @@ type SessionHandler struct {
 
 func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *SessionHandler {
 	return &SessionHandler{
-			sessUcase: sessUcase,
-			userUcase: userUcase,
-		}
+		sessUcase: sessUcase,
+		userUcase: userUcase,
+	}
 }
 
 func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
@@ -52,7 +52,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	errE = sh.userUcase.CheckPassword(user, login.Password)
-	if  errE != nil {
+	if errE != nil {
 		logrus.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -61,7 +61,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	session := models.CreateSession(user.ID)
 	errE = sh.sessUcase.Create(session)
-	if  errE != nil {
+	if errE != nil {
 		logrus.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -92,7 +92,7 @@ func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	errE := sh.sessUcase.Delete(session.Value)
-	if  errE != nil {
+	if errE != nil {
 		logrus.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
