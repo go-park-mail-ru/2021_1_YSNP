@@ -19,6 +19,11 @@ import (
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
 
+
+	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
+	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
+	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 
 	"log"
@@ -63,10 +68,12 @@ func main() {
 	userRepo := userRepo.NewUserRepository(sqlConn)
 	sessRepo := sessionRepo.NewSessionRepository(tarConn)
 	prodRepo := productRepo.NewProductRepository(sqlConn)
+	searchRepo := searchRepo.NewProductRepository(sqlConn)
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
+	searchUcase := searchUsecase.NewSessionUsecase(searchRepo)
 
 	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
 	logrus.WithFields(logrus.Fields{
@@ -101,10 +108,12 @@ func main() {
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
+	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, mw)
+	searchHandler.Configure(api, mw)
 
 	err = server.ListenAndServe()
 	if err != nil {
