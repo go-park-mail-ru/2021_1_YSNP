@@ -16,7 +16,7 @@ func NewSessionUsecase(repo search.SearchRepository) search.SearchUsecase {
 	}
 }
 
-func (su *SearchUsecase) SelectByFilter(data *models.Search) ([]*models.ProductData, *errors.Error) {
+func (su *SearchUsecase) SelectByFilter(data *models.Search) ([]*models.ProductListData, *errors.Error) {
 	res, _ := su.searchRepo.SelectByFilter(data)
 	return res, nil
 }

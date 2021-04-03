@@ -6,5 +6,5 @@ import (
 )
 
 type SearchUsecase interface {
-	SelectByFilter(data *models.Search) ([]*models.ProductData, *errors.Error)
+	SelectByFilter(data *models.Search) ([]*models.ProductListData, *errors.Error)
 }
