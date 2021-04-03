@@ -16,11 +16,13 @@ services:
     volumes:
       - './configs/sql/:/docker-entrypoint-initdb.d/'
   tarantool:
-    image: tarantool/tarantool:latest
+    image: tarantool/tarantool:2.6.0
     environment:
       TARANTOOL_USER_NAME: admin
       TARANTOOL_USER_PASSWORD: pass
     ports:
       - '3301:3301'
+    volumes:
+      - './configs/lua/:/opt/tarantool/'
     command: tarantool /opt/tarantool/app.lua
 

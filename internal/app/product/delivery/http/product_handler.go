@@ -124,7 +124,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful creation."))
+	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {

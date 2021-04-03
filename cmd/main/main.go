@@ -95,7 +95,7 @@ func main() {
 		WriteTimeout: 60 * time.Second,
 	}
 
-	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
+	//router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	api := router.PathPrefix("/api/v1").Subrouter()
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
