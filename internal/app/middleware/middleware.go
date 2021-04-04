@@ -17,6 +17,17 @@ type Middleware struct {
 	userUcase    user.UserUsecase
 }
 
+type contextKey string
+
+func (c contextKey) String() string {
+	return string(c)
+}
+
+const (
+	ContextUserID = contextKey("userID")
+	ContextLogger = contextKey("logger")
+)
+
 func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
 	return &Middleware{
 		sessUcase: sessUcase,
@@ -82,7 +93,7 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "userID", session.UserID)
+		ctx = context.WithValue(ctx, ContextUserID, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

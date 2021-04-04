@@ -100,7 +100,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
 
-	userID, ok := r.Context().Value("userID").(uint64)
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -204,7 +204,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
 
-	userID, ok := r.Context().Value("userID").(uint64)
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -239,7 +239,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
 
-	userID, ok := r.Context().Value("userID").(uint64)
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -285,7 +285,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
 
-	userID, ok := r.Context().Value("userID").(uint64)
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
