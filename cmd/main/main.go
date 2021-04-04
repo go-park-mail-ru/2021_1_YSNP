@@ -67,7 +67,10 @@ func main() {
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 
-	logrus.SetFormatter(&logrus.TextFormatter{})
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "02-01-2006 15:04:05",
+	})
 	logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 		"host":   "89.208.199.170",

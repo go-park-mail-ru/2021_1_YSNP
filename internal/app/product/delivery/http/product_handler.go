@@ -36,6 +36,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
+
 	page := models.Page{}
 	err := json.NewDecoder(r.Body).Decode(&page)
 	if err != nil {
@@ -45,6 +46,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("page ", page)
 
 	products, errE := ph.productUcase.ListLatest(&page.Content)
 	if errE != nil {
@@ -68,8 +70,10 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
+
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("product id ", productID)
 
 	product, errE := ph.productUcase.GetByID(productID)
 	if errE != nil {
@@ -78,6 +82,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("product by id ", product)
 
 	body, err := json.Marshal(product)
 	if err != nil {
@@ -105,6 +110,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("user id ", userID)
 
 	productData := &models.ProductData{}
 	err := json.NewDecoder(r.Body).Decode(&productData)
@@ -115,6 +121,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("product data ", productData)
 
 	productData.OwnerID = userID
 
@@ -132,10 +139,12 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value("logger").(*logrus.Entry)
+
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
+	logger.Info("product id ", productID)
 
-	_, ok := r.Context().Value("userID").(uint64)
+	userId, ok := r.Context().Value("userID").(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -143,6 +152,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("user id ", userId)
 
 	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
@@ -165,6 +175,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 			w.Write(errors.JSONError(errE))
 			return
 		}
+		logger.Debug("photo ", files[i].Header)
 		defer file.Close()
 		extension := filepath.Ext(files[i].Filename)
 
@@ -188,6 +199,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 			w.Write(errors.JSONError(errE))
 			return
 		}
+		logger.Debug("new photo name ", photoID)
 
 		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {

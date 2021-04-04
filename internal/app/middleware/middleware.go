@@ -50,12 +50,11 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.LogrusLogger = m.LogrusLogger.WithFields(logrus.Fields{
+			"method":  r.Method,
+			"path":    r.URL.Path,
 			"work_id": uuid.New(),
 		})
-
-		m.LogrusLogger.WithFields(logrus.Fields{
-			"path": r.URL.Path,
-		}).Info("Get connection")
+		m.LogrusLogger.Info("Get connection")
 
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, "logger", m.LogrusLogger)
@@ -63,7 +62,6 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 		m.LogrusLogger.WithFields(logrus.Fields{
-			"path":      r.URL.Path,
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
 	})
