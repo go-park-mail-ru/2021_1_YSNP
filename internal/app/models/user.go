@@ -1,30 +1,30 @@
 package models
 
 type UserData struct {
-	ID         uint64 `json:"id"`
-	Name       string `json:"name"`
-	Surname    string `json:"surname"`
-	Sex        string `json:"sex"`
-	Email      string `json:"email"`
-	Telephone  string `json:"telephone"`
-	Password   string `json:"password,omitempty"`
-	DateBirth  string `json:"dateBirth"`
-	LinkImages string `json:"linkImages"`
+	ID         uint64 `json:"id" valid:"numeric"`
+	Name       string `json:"name" valid:"stringlength(5|30)"`
+	Surname    string `json:"surname" valid:"stringlength(5|30)"`
+	Sex        string `json:"sex" valid:"in(male|female)"`
+	Email      string `json:"email" valid:"email"`
+	Telephone  string `json:"telephone" valid:"stringlength(|)"`
+	Password   string `json:"password,omitempty" valid:"stringlength(|))"`
+	DateBirth  string `json:"dateBirth" valid:"-"`
+	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
 type SignUpRequest struct {
-	Name       string `json:"name"`
-	Surname    string `json:"surname"`
-	Sex        string `json:"sex"`
-	Email      string `json:"email"`
-	Telephone  string `json:"telephone"`
-	Password1  string `json:"password1"`
-	Password2  string `json:"password2"`
-	DateBirth  string `json:"dateBirth"`
-	LinkImages string `json:"linkImages"`
+	Name       string `json:"name" valid:"stringlength(5|30)"`
+	Surname    string `json:"surname" valid:"stringlength(5|30)"`
+	Sex        string `json:"sex" valid:"in(male|female)"`
+	Email      string `json:"email" valid:"email"`
+	Telephone  string `json:"telephone" valid:"stringlength(10|13)"`
+	Password1  string `json:"password1" valid:"stringlength(6|30)"`
+	Password2  string `json:"password2" valid:"stringlength(6|30)"`
+	DateBirth  string `json:"dateBirth" valid:"-"`
+	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
 type PasswordChangeRequest struct {
-	OldPassword string `json:"oldPassword"`
-	NewPassword string `json:"newPassword"`
+	OldPassword string `json:"oldPassword" valid:"stringlength(6|30)"`
+	NewPassword string `json:"newPassword" valid:"stringlength(6|30)"`
 }
