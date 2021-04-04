@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
 	_ "github.com/jackc/pgx/stdlib"
 	tarantool "github.com/tarantool/go-tarantool"
 
@@ -68,7 +67,10 @@ func main() {
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 
-	logrus.SetFormatter(&logrus.TextFormatter{})
+	logrus.SetFormatter(&logrus.TextFormatter{
+		FullTimestamp:   true,
+		TimestampFormat: "02-01-2006 15:04:05",
+	})
 	logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 		"host":   "89.208.199.170",
@@ -76,12 +78,11 @@ func main() {
 	}).Info("Starting server")
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
-
 	contextLogger := logrus.WithFields(logrus.Fields{
-		"mode":   "[access_log]",
 		"logger": "LOGRUS",
 	})
 	mw.LogrusLogger = contextLogger
+	logrus.SetLevel(logrus.DebugLevel)
 
 	router.Use(mw.AccessLogMiddleware)
 
