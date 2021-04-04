@@ -68,7 +68,7 @@ func main() {
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 
-	logrus.SetFormatter(&logrus.TextFormatter{DisableColors: true})
+	logrus.SetFormatter(&logrus.TextFormatter{})
 	logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 		"host":   "89.208.199.170",
@@ -81,7 +81,6 @@ func main() {
 		"mode":   "[access_log]",
 		"logger": "LOGRUS",
 	})
-	logrus.SetFormatter(&logrus.JSONFormatter{})
 	mw.LogrusLogger = contextLogger
 
 	router.Use(mw.AccessLogMiddleware)
