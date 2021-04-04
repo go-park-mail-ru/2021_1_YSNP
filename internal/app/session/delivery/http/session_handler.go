@@ -72,7 +72,8 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    session.Value,
 		Expires:  session.ExpiresAt,
-		Secure:   false,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	}
 

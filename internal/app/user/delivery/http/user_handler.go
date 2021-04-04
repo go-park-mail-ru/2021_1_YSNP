@@ -35,7 +35,6 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
-
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -82,7 +81,8 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    session.Value,
 		Expires:  session.ExpiresAt,
-		Secure:   false,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	}
 
@@ -101,8 +101,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
-	err := r.ParseMultipartForm(10 * 1024 * 1024)
+	r.Body = http.MaxBytesReader(w, r.Body, 3*1024*1024)
+	err := r.ParseMultipartForm(3 * 1024 * 1024)
 	if err != nil {
 		logrus.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
