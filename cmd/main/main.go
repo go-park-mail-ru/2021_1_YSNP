@@ -3,7 +3,6 @@ package main
 import (
 	"database/sql"
 	"fmt"
-
 	_ "github.com/jackc/pgx/stdlib"
 	tarantool "github.com/tarantool/go-tarantool"
 
@@ -76,12 +75,11 @@ func main() {
 	}).Info("Starting server")
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
-
 	contextLogger := logrus.WithFields(logrus.Fields{
-		"mode":   "[access_log]",
 		"logger": "LOGRUS",
 	})
 	mw.LogrusLogger = contextLogger
+	logrus.SetLevel(logrus.DebugLevel)
 
 	router.Use(mw.AccessLogMiddleware)
 

@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 
@@ -48,13 +49,23 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		next.ServeHTTP(w, r)
+		m.LogrusLogger = m.LogrusLogger.WithFields(logrus.Fields{
+			"work_id": uuid.New(),
+		})
+
 		m.LogrusLogger.WithFields(logrus.Fields{
-			"method":      r.Method,
-			"remote_addr": r.RemoteAddr,
-			"work_time":   time.Since(start),
-		}).Info(r.URL.Path)
+			"path": r.URL.Path,
+		}).Info("Get connection")
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, "logger", m.LogrusLogger)
+		start := time.Now()
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+		m.LogrusLogger.WithFields(logrus.Fields{
+			"path":      r.URL.Path,
+			"work_time": time.Since(start),
+		}).Info("Fulfilled connection")
 	})
 }
 

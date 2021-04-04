@@ -3,6 +3,7 @@ package http
 import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
@@ -14,7 +15,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 )
 
 type ProductHandler struct {
@@ -35,10 +35,11 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value("logger").(*logrus.Entry)
 	page := models.Page{}
 	err := json.NewDecoder(r.Body).Decode(&page)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -47,7 +48,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 
 	products, errE := ph.productUcase.ListLatest(&page.Content)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -57,7 +58,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	w.Header().Set("Content-Type", "application/json")
 	err = json.NewEncoder(w).Encode(products)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -66,12 +67,13 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value("logger").(*logrus.Entry)
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 
 	product, errE := ph.productUcase.GetByID(productID)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -79,7 +81,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 
 	body, err := json.Marshal(product)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -92,12 +94,13 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value("logger").(*logrus.Entry)
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value("userID").(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -106,7 +109,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	productData := &models.ProductData{}
 	err := json.NewDecoder(r.Body).Decode(&productData)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -117,7 +120,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 
 	errE := ph.productUcase.Create(productData)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -128,13 +131,14 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value("logger").(*logrus.Entry)
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
 
 	_, ok := r.Context().Value("userID").(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -143,7 +147,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -155,7 +159,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	for i := range files {
 		file, err := files[i].Open()
 		if err != nil {
-			logrus.Error(err)
+			logger.Error(err)
 			errE := errors.UnexpectedBadRequest(err)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -166,7 +170,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 		str, err := os.Getwd()
 		if err != nil {
-			logrus.Error(err)
+			logger.Error(err)
 			errE := errors.UnexpectedInternal(err)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -178,7 +182,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 		photoID, err := uuid.NewRandom()
 		if err != nil {
-			logrus.Error(err)
+			logger.Error(err)
 			errE := errors.UnexpectedInternal(err)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -187,7 +191,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
-			logrus.Error(err)
+			logger.Error(err)
 			errE := errors.UnexpectedInternal(err)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -200,7 +204,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		_, err = io.Copy(f, file)
 		if err != nil {
 			_ = os.Remove(photoID.String() + extension)
-			logrus.Error(err)
+			logger.Error(err)
 			errE := errors.UnexpectedInternal(err)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -211,7 +215,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	//if len(imgs) == 0 {
-	//	logrus.Error(err)
+	//	logger.Error(err)
 	//	w.WriteHeader(http.StatusBadRequest)
 	//	w.Write(errors.JSONError(errors.Error{Message: "http: no such file"}.Error()))
 	//	return
@@ -219,7 +223,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 	_, errE := ph.productUcase.UpdatePhoto(productID, imgs["linkImages"])
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -227,7 +231,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 	body, err := json.Marshal(imgs)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
