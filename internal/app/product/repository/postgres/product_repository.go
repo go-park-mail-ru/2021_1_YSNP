@@ -30,12 +30,12 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 				INSERT INTO product(name, date, amount, description, category, owner_id)
 				VALUES ($1, $2, $3, $4, $5, $6)
 				RETURNING id`,
-				product.Name,
-				product.Date,
-				product.Amount,
-				product.Description,
-				product.Category,
-				product.OwnerID)
+		product.Name,
+		product.Date,
+		product.Amount,
+		product.Description,
+		product.Category,
+		product.OwnerID)
 
 	err = query.Scan(&product.ID)
 	if err != nil {
@@ -64,23 +64,23 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
 				GROUP BY p.id, u.name, u.surname`,
-				productID)
+		productID)
 
 	var linkStr string
 
 	err := query.Scan(
-			&product.ID,
-			&product.Name,
-			&product.Date,
-			&product.Amount,
-			&product.Description,
-			&product.Category,
-			&product.OwnerID,
-			&product.OwnerName,
-			&product.OwnerSurname,
-			&product.Likes,
-			&product.Views,
-			&linkStr)
+		&product.ID,
+		&product.Name,
+		&product.Date,
+		&product.Amount,
+		&product.Description,
+		&product.Category,
+		&product.OwnerID,
+		&product.OwnerName,
+		&product.OwnerSurname,
+		&product.Likes,
+		&product.Views,
+		&linkStr)
 	if err != nil {
 		return nil, err
 	}
@@ -102,8 +102,8 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 				GROUP BY p.id
 				ORDER BY p.date DESC 
 				LIMIT $1 OFFSET $2`,
-				content.Count,
-				content.From)
+		content.Count,
+		content.From)
 	if err != nil {
 		return nil, err
 	}
@@ -116,11 +116,11 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 		product := &models.ProductListData{}
 
 		err := query.Scan(
-				&product.ID,
-				&product.Name,
-				&product.Date,
-				&product.Amount,
-				&linkStr)
+			&product.ID,
+			&product.Name,
+			&product.Date,
+			&product.Amount,
+			&linkStr)
 		if err != nil {
 			return nil, err
 		}
@@ -147,7 +147,7 @@ func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
 
 	_, err = tx.Exec(
 		`DELETE FROM product_images WHERE product_id=$1`,
-				content.ID)
+		content.ID)
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
