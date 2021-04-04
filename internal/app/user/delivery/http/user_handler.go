@@ -64,6 +64,13 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if signUp.Password1 != signUp.Password2 {
+		errE := errors.Cause(errors.WrongPassword)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
 	user := &models.UserData{
 		Name:       signUp.Name,
 		Surname:    signUp.Surname,
@@ -74,6 +81,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		DateBirth:  signUp.DateBirth,
 		LinkImages: signUp.LinkImages,
 	}
+
 	errE := uh.userUcase.Create(user)
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -97,8 +105,8 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    session.Value,
 		Expires:  session.ExpiresAt,
-		//Secure:   true,
-		//SameSite: http.SameSiteLaxMode,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	}
 	logger.Debug("cookie ", cookie)
