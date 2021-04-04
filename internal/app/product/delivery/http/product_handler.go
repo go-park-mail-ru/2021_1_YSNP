@@ -94,7 +94,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value("userID").(uint64)
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logrus.Error(errE.Message)
@@ -131,7 +131,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
 
-	_, ok := r.Context().Value("userID").(uint64)
+	_, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logrus.Error(errE.Message)
