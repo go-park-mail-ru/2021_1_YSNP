@@ -38,7 +38,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	defer r.Body.Close()
 
@@ -98,7 +98,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -202,7 +202,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -237,7 +237,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -283,7 +283,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {

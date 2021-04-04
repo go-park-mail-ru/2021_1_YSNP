@@ -31,7 +31,7 @@ func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	defer r.Body.Close()
 
@@ -89,7 +89,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	session, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {

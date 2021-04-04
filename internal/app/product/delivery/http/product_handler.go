@@ -35,7 +35,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	page := models.Page{}
 	err := json.NewDecoder(r.Body).Decode(&page)
@@ -69,7 +69,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
@@ -99,7 +99,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
@@ -138,7 +138,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value("logger").(*logrus.Entry)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)

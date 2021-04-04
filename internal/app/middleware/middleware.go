@@ -68,7 +68,7 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		m.LogrusLogger.Info("Get connection")
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "logger", m.LogrusLogger)
+		ctx = context.WithValue(ctx, ContextLogger, m.LogrusLogger)
 		start := time.Now()
 		next.ServeHTTP(w, r.WithContext(ctx))
 
