@@ -25,7 +25,7 @@ type SignUpRequest struct {
 }
 
 type PasswordChangeRequest struct {
-	OldPassword string `json:"oldPassword" valid:"stringlength(6|30)"`
-	NewPassword string `json:"newPassword" valid:"stringlength(6|30)"`
-	//NewPassword2 string `json:"newPassword2" valid:"stringlength(6|30)"`
+	OldPassword  string `json:"oldPassword" valid:"password"`
+	NewPassword1 string `json:"newPassword1" valid:"password"`
+	NewPassword2 string `json:"newPassword2" valid:"password"`
 }

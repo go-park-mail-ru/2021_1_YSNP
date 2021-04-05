@@ -359,7 +359,14 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 		}
 	}
 
-	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
+	if passwordData.NewPassword1 != passwordData.NewPassword2 {
+		errE := errors.Cause(errors.WrongPassword)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
