@@ -30,14 +30,14 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 				INSERT INTO users(email, telephone, password, name, surname, sex, birthdate, avatar)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 				RETURNING id`,
-				user.Email,
-				user.Telephone,
-				user.Password,
-				user.Name,
-				user.Surname,
-				user.Sex,
-				user.DateBirth,
-				user.LinkImages)
+		user.Email,
+		user.Telephone,
+		user.Password,
+		user.Name,
+		user.Surname,
+		user.Sex,
+		user.DateBirth,
+		user.LinkImages)
 
 	err = query.Scan(&user.ID)
 	if err != nil {
@@ -64,7 +64,7 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
 				FROM users
 				WHERE telephone=$1`,
-				telephone)
+		telephone)
 
 	var date time.Time
 
@@ -95,7 +95,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
 				FROM users
 				WHERE id=$1`,
-				userID)
+		userID)
 
 	var date time.Time
 
@@ -129,15 +129,15 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 				UPDATE users
 				SET email = $2, telephone = $3, password = $4, name = $5, surname = $6, sex = $7, birthdate = $8, avatar = $9
 				WHERE id = $1;`,
-				user.ID,
-				user.Email,
-				user.Telephone,
-				user.Password,
-				user.Name,
-				user.Surname,
-				user.Sex,
-				user.DateBirth,
-				user.LinkImages)
+		user.ID,
+		user.Email,
+		user.Telephone,
+		user.Password,
+		user.Name,
+		user.Surname,
+		user.Sex,
+		user.DateBirth,
+		user.LinkImages)
 
 	if err != nil {
 		rollbackErr := tx.Rollback()
