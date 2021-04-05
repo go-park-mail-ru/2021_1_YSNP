@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
@@ -51,6 +52,17 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	login.Telephone = sanitizer.Sanitize(login.Telephone)
 	login.Password = sanitizer.Sanitize(login.Password)
 	logger.Debug("sanitize user data ", login)
+
+	_, err = govalidator.ValidateStruct(login)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
 
 	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
 	if errE != nil {

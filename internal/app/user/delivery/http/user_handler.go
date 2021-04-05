@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/microcosm-cc/bluemonday"
 	"io"
@@ -64,6 +65,17 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	signUp.Password2 = sanitizer.Sanitize(signUp.Password2)
 	signUp.DateBirth = sanitizer.Sanitize(signUp.DateBirth)
 	logger.Debug("sanitize user data ", signUp)
+  
+	_, err = govalidator.ValidateStruct(signUp)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
 
 	user := &models.UserData{
 		Name:       signUp.Name,
@@ -75,6 +87,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		DateBirth:  signUp.DateBirth,
 		LinkImages: signUp.LinkImages,
 	}
+
 	errE := uh.userUcase.Create(user)
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -226,6 +239,17 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	}
 	logger.Info("user id ", userID)
 
+	_, err := govalidator.ValidateStruct(userID)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+
 	user, errE := uh.userUcase.GetByID(userID)
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -281,6 +305,17 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	changeData.DateBirth = sanitizer.Sanitize(changeData.DateBirth)
 	logger.Debug("sanitize user data ", changeData)
 
+	_, err = govalidator.ValidateStruct(changeData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+
 	user := &models.UserData{
 		Name:      changeData.Name,
 		Surname:   changeData.Surname,
@@ -332,7 +367,18 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	passwordData.OldPassword = sanitizer.Sanitize(passwordData.OldPassword)
 	logger.Debug("sanitize user data ", passwordData)
 
-	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
+	_, err = govalidator.ValidateStruct(passwordData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+  
+	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

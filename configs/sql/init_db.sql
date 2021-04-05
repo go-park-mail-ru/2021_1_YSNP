@@ -22,6 +22,7 @@ create table if not exists users
     avatar    varchar(128)       NOT NULL DEFAULT ''
 );
 
+
 CREATE TABLE IF NOT EXISTS product
 (
     id          serial PRIMARY KEY,
@@ -31,6 +32,9 @@ CREATE TABLE IF NOT EXISTS product
     description text         NOT NULL,
     category    varchar(64)  not null,
     owner_id    int          not null,
+    address varchar(128),
+    longitude varchar(64),
+    latitude varchar(64),
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
 

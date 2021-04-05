@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
@@ -48,6 +49,17 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 	logger.Info("page ", page)
+
+	_, err = govalidator.ValidateStruct(page)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
 
 	products, errE := ph.productUcase.ListLatest(&page.Content)
 	if errE != nil {
@@ -130,6 +142,17 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	productData.Description = sanitizer.Sanitize(productData.Description)
 	productData.Category = sanitizer.Sanitize(productData.Category)
 	logger.Debug("sanitize user data ", productData)
+
+	_, err = govalidator.ValidateStruct(productData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
 
 	errE := ph.productUcase.Create(productData)
 	if errE != nil {
