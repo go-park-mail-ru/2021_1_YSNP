@@ -8,6 +8,9 @@ type ProductData struct {
 	LinkImages   []string `json:"linkImages"`
 	Description  string   `json:"description"`
 	Category     string   `json:"category"`
+	Address		 string	  `json:"address"`
+	Longitude    string   `json:"longitude"`
+	Latitude     string   `json:"latitude"`
 	OwnerID      uint64   `json:"ownerId"`
 	OwnerName    string   `json:"ownerName"`
 	OwnerSurname string   `json:"ownerSurname"`

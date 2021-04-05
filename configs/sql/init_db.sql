@@ -28,6 +28,9 @@ CREATE TABLE IF NOT EXISTS product (
                                        amount int not null,
                                        description text NOT NULL,
                                        category varchar(64) not null,
+                                       address varchar(128),
+                                       longitude varchar(64),
+                                       latitude varchar(64),
                                        owner_id int not null,
                                        likes int DEFAULT 0, -- триггер на каждый лайк/дизлайк
                                        views int DEFAULT 0,
