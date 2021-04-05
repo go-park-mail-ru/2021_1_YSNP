@@ -57,6 +57,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = govalidator.ValidateStruct(signUp)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -236,6 +237,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	_, err := govalidator.ValidateStruct(userID)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -292,6 +294,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	_, err = govalidator.ValidateStruct(changeData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -348,6 +351,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	_, err = govalidator.ValidateStruct(passwordData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))

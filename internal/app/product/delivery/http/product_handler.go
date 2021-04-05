@@ -52,6 +52,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	_, err = govalidator.ValidateStruct(page)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))
@@ -139,6 +140,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	_, err = govalidator.ValidateStruct(productData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))

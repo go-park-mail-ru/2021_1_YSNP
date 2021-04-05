@@ -13,8 +13,8 @@ type Session struct {
 }
 
 type LoginRequest struct {
-	Telephone string `json:"telephone" valid:"stringlength(10|13)"`
-	Password  string `json:"password" valid:"stringlength(6|30)"`
+	Telephone string `json:"telephone" valid:"phoneNumber"`
+	Password  string `json:"password" valid:"password"`
 }
 
 func CreateSession(userID uint64) *Session {

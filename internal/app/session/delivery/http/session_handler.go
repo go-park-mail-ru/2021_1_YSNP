@@ -50,6 +50,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	_, err = govalidator.ValidateStruct(login)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
 			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
 			w.Write(errors.JSONError(errE))

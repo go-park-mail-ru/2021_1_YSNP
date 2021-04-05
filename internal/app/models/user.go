@@ -6,8 +6,8 @@ type UserData struct {
 	Surname    string `json:"surname" valid:"stringlength(5|30)"`
 	Sex        string `json:"sex" valid:"in(male|female)"`
 	Email      string `json:"email" valid:"email"`
-	Telephone  string `json:"telephone" valid:"stringlength(|)"`
-	Password   string `json:"password,omitempty" valid:"stringlength(|))"`
+	Telephone  string `json:"telephone" valid:"phoneNumber"`
+	Password   string `json:"password,omitempty" valid:"password"`
 	DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
@@ -17,9 +17,9 @@ type SignUpRequest struct {
 	Surname    string `json:"surname" valid:"stringlength(5|30)"`
 	Sex        string `json:"sex" valid:"in(male|female)"`
 	Email      string `json:"email" valid:"email"`
-	Telephone  string `json:"telephone" valid:"stringlength(10|13)"`
-	Password1  string `json:"password1" valid:"stringlength(6|30)"`
-	Password2  string `json:"password2" valid:"stringlength(6|30)"`
+	Telephone  string `json:"telephone" valid:"phoneNumber"`
+	Password1  string `json:"password1" valid:"password"`
+	Password2  string `json:"password2" valid:"password"`
 	DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
@@ -27,4 +27,5 @@ type SignUpRequest struct {
 type PasswordChangeRequest struct {
 	OldPassword string `json:"oldPassword" valid:"stringlength(6|30)"`
 	NewPassword string `json:"newPassword" valid:"stringlength(6|30)"`
+	//NewPassword2 string `json:"newPassword2" valid:"stringlength(6|30)"`
 }

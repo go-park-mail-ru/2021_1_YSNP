@@ -6,11 +6,11 @@ type ProductData struct {
 	Date         string   `json:"date" valid:"-"`
 	Amount       int      `json:"amount" valid:"numeric"`
 	LinkImages   []string `json:"linkImages" valid:"stringArray"`
-	Description  string   `json:"description" valid:"minstringlength(10)"`
+	Description  string   `json:"description" valid:"stringlength(10|4000)"`
 	Category     string   `json:"category" valid:"type(string)"`
 	OwnerID      uint64   `json:"ownerId" valid:"numeric"`
-	OwnerName    string   `json:"ownerName" valid:"type(string)"`
-	OwnerSurname string   `json:"ownerSurname" valid:"type(string)"`
+	OwnerName    string   `json:"ownerName" valid:"stringlength(5|30)"`
+	OwnerSurname string   `json:"ownerSurname" valid:"stringlength(5|30)"`
 	Views        int      `json:"views" valid:"numeric"`
 	Likes        int      `json:"likes" valid:"numeric"`
 }
