@@ -43,8 +43,8 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 		case "http://localhost:3000":
 			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 
-		case "http://89.208.199.170:3000":
-			w.Header().Set("Access-Control-Allow-Origin", "http://89.208.199.170:3000")
+		case "https://ykoya.ru":
+			w.Header().Set("Access-Control-Allow-Origin", "https://ykoya.ru")
 		}
 
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
