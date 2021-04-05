@@ -363,8 +363,9 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	logger.Info("user password ", passwordData)
 
 	sanitizer := bluemonday.UGCPolicy()
-	passwordData.NewPassword = sanitizer.Sanitize(passwordData.NewPassword)
 	passwordData.OldPassword = sanitizer.Sanitize(passwordData.OldPassword)
+	passwordData.NewPassword1 = sanitizer.Sanitize(passwordData.NewPassword1)
+	passwordData.NewPassword2 = sanitizer.Sanitize(passwordData.NewPassword2)
 	logger.Debug("sanitize user data ", passwordData)
 
 	_, err = govalidator.ValidateStruct(passwordData)
