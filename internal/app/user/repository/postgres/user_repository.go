@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
@@ -65,6 +66,8 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				WHERE telephone=$1`,
 				telephone)
 
+	var date time.Time
+
 	err := query.Scan(
 				&user.ID,
 				&user.Email,
@@ -73,11 +76,13 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				&user.Name,
 				&user.Surname,
 				&user.Sex,
-				&user.DateBirth,
+				&date,
 				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }
@@ -92,6 +97,8 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				WHERE id=$1`,
 				userID)
 
+	var date time.Time
+
 	err := query.Scan(
 				&user.ID,
 				&user.Email,
@@ -100,11 +107,13 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				&user.Name,
 				&user.Surname,
 				&user.Sex,
-				&user.DateBirth,
+				&date,
 				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }

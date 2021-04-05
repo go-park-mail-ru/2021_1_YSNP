@@ -12,6 +12,16 @@ type UserData struct {
 	LinkImages string `json:"linkImages"`
 }
 
+type ProfileData struct {
+	Name       string `json:"name"`
+	Surname    string `json:"surname"`
+	Sex        string `json:"sex"`
+	Email      string `json:"email"`
+	Telephone  string `json:"telephone"`
+	DateBirth  string `json:"dateBirth"`
+	LinkImages string `json:"linkImages"`
+}
+
 type SignUpRequest struct {
 	Name       string `json:"name"`
 	Surname    string `json:"surname"`

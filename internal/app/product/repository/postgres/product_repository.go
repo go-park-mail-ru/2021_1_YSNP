@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"strings"
+	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
@@ -67,11 +68,12 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 				productID)
 
 	var linkStr string
+	var date time.Time
 
 	err := query.Scan(
 			&product.ID,
 			&product.Name,
-			&product.Date,
+			&date,
 			&product.Amount,
 			&product.Description,
 			&product.Category,
@@ -84,6 +86,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	if err != nil {
 		return nil, err
 	}
+	product.Date = date.Format("2006-01-02")
 	linkStr = linkStr[1 : len(linkStr)-1]
 	if linkStr != "NULL" {
 		product.LinkImages = strings.Split(linkStr, ",")
@@ -111,6 +114,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 	defer query.Close()
 
 	var linkStr string
+	var date time.Time
 
 	for query.Next() {
 		product := &models.ProductListData{}
@@ -118,18 +122,19 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 		err := query.Scan(
 				&product.ID,
 				&product.Name,
-				&product.Date,
+				&date,
 				&product.Amount,
 				&linkStr)
 		if err != nil {
 			return nil, err
 		}
 
+		product.Date = date.Format("2006-01-02")
 		linkStr = linkStr[1 : len(linkStr)-1]
 		if linkStr != "NULL" {
 			product.LinkImages = strings.Split(linkStr, ",")
-			products = append(products, product)
 		}
+		products = append(products, product)
 	}
 
 	if err := query.Err(); err != nil {
