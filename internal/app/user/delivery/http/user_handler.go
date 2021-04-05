@@ -65,13 +65,6 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	if signUp.Password1 != signUp.Password2 {
-		errE := errors.Cause(errors.WrongPassword)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
 	user := &models.UserData{
 		Name:       signUp.Name,
 		Surname:    signUp.Surname,
@@ -357,13 +350,6 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 			w.Write(errors.JSONError(errE))
 			return
 		}
-	}
-
-	if passwordData.NewPassword1 != passwordData.NewPassword2 {
-		errE := errors.Cause(errors.WrongPassword)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
 	}
 
 	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)

@@ -18,14 +18,14 @@ type SignUpRequest struct {
 	Sex        string `json:"sex" valid:"in(male|female)"`
 	Email      string `json:"email" valid:"email"`
 	Telephone  string `json:"telephone" valid:"phoneNumber"`
-	Password1  string `json:"password1" valid:"password"`
-	Password2  string `json:"password2" valid:"password"`
+	Password1  string `json:"password1" valid:"password, password1"`
+	Password2  string `json:"password2" valid:"password, password2"`
 	DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
 type PasswordChangeRequest struct {
 	OldPassword  string `json:"oldPassword" valid:"password"`
-	NewPassword1 string `json:"newPassword1" valid:"password"`
-	NewPassword2 string `json:"newPassword2" valid:"password"`
+	NewPassword1 string `json:"newPassword1" valid:"password, password1"`
+	NewPassword2 string `json:"newPassword2" valid:"password, password2"`
 }

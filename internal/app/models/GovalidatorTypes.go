@@ -56,4 +56,14 @@ func init() {
 			return ok
 		}),
 	)
+
+	var password1 = ""
+	govalidator.TagMap["password1"] = govalidator.Validator(func(str string) bool {
+		password1 = str
+		return true
+	})
+
+	govalidator.TagMap["password2"] = govalidator.Validator(func(str string) bool {
+		return password1 == str
+	})
 }
