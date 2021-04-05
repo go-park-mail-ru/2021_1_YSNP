@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
 	"io"
 	"net/http"
 	"os"
@@ -54,6 +55,17 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	logger.Info("user data ", signUp)
 
+	sanitizer := bluemonday.UGCPolicy()
+	signUp.Name = sanitizer.Sanitize(signUp.Name)
+	signUp.Surname = sanitizer.Sanitize(signUp.Surname)
+	signUp.Sex = sanitizer.Sanitize(signUp.Sex)
+	signUp.Email = sanitizer.Sanitize(signUp.Email)
+	signUp.Telephone = sanitizer.Sanitize(signUp.Telephone)
+	signUp.Password1 = sanitizer.Sanitize(signUp.Password1)
+	signUp.Password2 = sanitizer.Sanitize(signUp.Password2)
+	signUp.DateBirth = sanitizer.Sanitize(signUp.DateBirth)
+	logger.Debug("sanitize user data ", signUp)
+  
 	_, err = govalidator.ValidateStruct(signUp)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
@@ -284,6 +296,15 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	}
 	logger.Info("user data ", changeData)
 
+	sanitizer := bluemonday.UGCPolicy()
+	changeData.Name = sanitizer.Sanitize(changeData.Name)
+	changeData.Surname = sanitizer.Sanitize(changeData.Surname)
+	changeData.Sex = sanitizer.Sanitize(changeData.Sex)
+	changeData.Email = sanitizer.Sanitize(changeData.Email)
+	changeData.Telephone = sanitizer.Sanitize(changeData.Telephone)
+	changeData.DateBirth = sanitizer.Sanitize(changeData.DateBirth)
+	logger.Debug("sanitize user data ", changeData)
+
 	_, err = govalidator.ValidateStruct(changeData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
@@ -341,6 +362,11 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	}
 	logger.Info("user password ", passwordData)
 
+	sanitizer := bluemonday.UGCPolicy()
+	passwordData.NewPassword = sanitizer.Sanitize(passwordData.NewPassword)
+	passwordData.OldPassword = sanitizer.Sanitize(passwordData.OldPassword)
+	logger.Debug("sanitize user data ", passwordData)
+
 	_, err = govalidator.ValidateStruct(passwordData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
@@ -351,7 +377,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 			return
 		}
 	}
-
+  
 	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)
 	if errE != nil {
 		logger.Error(errE.Message)

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
@@ -134,8 +135,13 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	logger.Info("product data ", productData)
-
 	productData.OwnerID = userID
+
+	sanitizer := bluemonday.UGCPolicy()
+	productData.Name = sanitizer.Sanitize(productData.Name)
+	productData.Description = sanitizer.Sanitize(productData.Description)
+	productData.Category = sanitizer.Sanitize(productData.Category)
+	logger.Debug("sanitize user data ", productData)
 
 	_, err = govalidator.ValidateStruct(productData)
 	if err != nil {
