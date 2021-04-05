@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 	"github.com/gorilla/mux"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 	"net/http"
 	"time"
@@ -45,6 +46,11 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	logger.Info("user data ", login)
+
+	sanitizer := bluemonday.UGCPolicy()
+	login.Telephone = sanitizer.Sanitize(login.Telephone)
+	login.Password = sanitizer.Sanitize(login.Password)
+	logger.Debug("sanitize user data ", login)
 
 	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
 	if errE != nil {
