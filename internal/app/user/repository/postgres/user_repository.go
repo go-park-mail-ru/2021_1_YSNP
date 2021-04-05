@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
@@ -65,19 +66,23 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				WHERE telephone=$1`,
 		telephone)
 
+	var date time.Time
+
 	err := query.Scan(
-		&user.ID,
-		&user.Email,
-		&user.Telephone,
-		&user.Password,
-		&user.Name,
-		&user.Surname,
-		&user.Sex,
-		&user.DateBirth,
-		&user.LinkImages)
+				&user.ID,
+				&user.Email,
+				&user.Telephone,
+				&user.Password,
+				&user.Name,
+				&user.Surname,
+				&user.Sex,
+				&date,
+				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }
@@ -92,19 +97,23 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				WHERE id=$1`,
 		userID)
 
+	var date time.Time
+
 	err := query.Scan(
-		&user.ID,
-		&user.Email,
-		&user.Telephone,
-		&user.Password,
-		&user.Name,
-		&user.Surname,
-		&user.Sex,
-		&user.DateBirth,
-		&user.LinkImages)
+				&user.ID,
+				&user.Email,
+				&user.Telephone,
+				&user.Password,
+				&user.Name,
+				&user.Surname,
+				&user.Sex,
+				&date,
+				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }
