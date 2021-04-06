@@ -34,7 +34,7 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost)
 	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
 }
