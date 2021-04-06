@@ -56,9 +56,12 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 }
 
 func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, error) {
-	product := &models.ProductData{}
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
 
-	query := pr.dbConn.QueryRow(
+	query := tx.QueryRow(
 		`
 				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, array_agg(pi.img_link)
 				FROM product AS p
@@ -67,10 +70,11 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 				GROUP BY p.id, u.name, u.surname`,
 		productID)
 
+	product := &models.ProductData{}
 	var linkStr string
 	var date time.Time
 
-	err := query.Scan(
+	err = query.Scan(
 		&product.ID,
 		&product.Name,
 		&date,
@@ -83,10 +87,33 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&product.Likes,
 		&product.Views,
 		&linkStr)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
 
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET views=views + 1
+                WHERE product.id = $1`,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
+
 	product.Date = date.Format("2006-01-02")
 	linkStr = linkStr[1 : len(linkStr)-1]
 	if linkStr != "NULL" {

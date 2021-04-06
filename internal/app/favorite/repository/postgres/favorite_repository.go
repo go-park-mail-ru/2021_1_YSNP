@@ -40,6 +40,20 @@ func (pr *FavoriteRepository) InsertProduct(userID uint64, productID uint64) err
 		return err
 	}
 
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET likes=likes + 1
+                WHERE product.id = $1`,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return err
@@ -59,6 +73,20 @@ func (pr *FavoriteRepository) DeleteProduct(userID uint64, productID uint64) err
 				DELETE from user_favorite
                 where user_id=$1 and product_id=$2`,
 		userID,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET likes=likes - 1
+                WHERE product.id = $1`,
 		productID)
 	if err != nil {
 		rollbackErr := tx.Rollback()
