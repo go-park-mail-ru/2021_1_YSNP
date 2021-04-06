@@ -31,7 +31,7 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 }
 
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodGet)
+	r.HandleFunc("/product/list", mw.CheckAuthMiddleware(ph.MainPageHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
@@ -65,7 +65,16 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	products, errE := ph.productUcase.ListLatest(page)
+	var products []*models.ProductListData
+	var errE *errors.Error
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		products, errE = ph.productUcase.ListLatest(page)
+	} else {
+		products, errE = ph.productUcase.ListAuthLatest(userID, page)
+	}
+	logger.Info("user id ", userID)
+
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -289,7 +298,6 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
-	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {

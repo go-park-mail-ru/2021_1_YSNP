@@ -34,9 +34,9 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost)
 	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
-	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -65,7 +65,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	signUp.Password2 = sanitizer.Sanitize(signUp.Password2)
 	signUp.DateBirth = sanitizer.Sanitize(signUp.DateBirth)
 	logger.Debug("sanitize user data ", signUp)
-  
+
 	_, err = govalidator.ValidateStruct(signUp)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
@@ -378,7 +378,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 			return
 		}
 	}
-  
+
 	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)
 	if errE != nil {
 		logger.Error(errE.Message)

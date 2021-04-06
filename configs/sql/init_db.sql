@@ -32,9 +32,9 @@ CREATE TABLE IF NOT EXISTS product
     description text         NOT NULL,
     category    varchar(64)  not null,
     owner_id    int          not null,
-    address varchar(128),
-    longitude varchar(64),
-    latitude varchar(64),
+    address     varchar(128),
+    longitude   varchar(64),
+    latitude    varchar(64),
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
 
@@ -46,5 +46,14 @@ CREATE TABLE IF NOT EXISTS product_images
     product_id int                 NOT NULL,
     img_link   varchar(128) unique NOT NULL,
 
+    FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS user_favorite
+(
+    user_id    int        NOT NULL,
+    product_id int unique NOT NULL,
+
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
 );

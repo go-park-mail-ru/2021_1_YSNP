@@ -107,7 +107,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 				ORDER BY p.date DESC 
 				LIMIT $1 OFFSET $2`,
 		content.Count,
-		content.From)
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -131,6 +131,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 			return nil, err
 		}
 
+		product.UserLiked = false
 		product.Date = date.Format("2006-01-02")
 		linkStr = linkStr[1 : len(linkStr)-1]
 		if linkStr != "NULL" {
@@ -143,7 +144,64 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 		return nil, err
 	}
 	return products, err
+}
 
+func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Page) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+
+	query, err := pr.dbConn.Query(
+		`
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id
+				FROM product as p
+				left join product_images as pi on pi.product_id=p.id
+				left join user_favorite uf on p.id = uf.product_id
+				GROUP BY p.id, uf.user_id
+				ORDER BY p.date DESC 
+				LIMIT $1 OFFSET $2`,
+		content.Count,
+		content.From*content.Count)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	var linkStr string
+	var date time.Time
+
+	for query.Next() {
+		product := &models.ProductListData{}
+		var user sql.NullInt64
+
+		err := query.Scan(
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr,
+			&user)
+
+		if err != nil {
+			return nil, err
+		}
+
+		product.UserLiked = false
+		if user.Valid && uint64(user.Int64) == userID {
+			product.UserLiked = true
+		}
+
+		product.Date = date.Format("2006-01-02")
+		linkStr = linkStr[1 : len(linkStr)-1]
+		if linkStr != "NULL" {
+			product.LinkImages = strings.Split(linkStr, ",")
+		}
+		products = append(products, product)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+	return products, err
 }
 
 func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) ([]*models.ProductListData, error) {
@@ -160,7 +218,7 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 				LIMIT $2 OFFSET $3`,
 		userId,
 		content.Count,
-		content.From)
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}

@@ -19,6 +19,7 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	ProductAlreadyLiked
 )
 
 type Error struct {
@@ -114,6 +115,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductNotExist,
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
+	},
+	ProductAlreadyLiked: {
+		ErrorCode: ProductAlreadyLiked,
+		HttpError: http.StatusBadRequest,
+		Message:   "product already liked",
 	},
 }
 

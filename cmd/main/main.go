@@ -18,6 +18,10 @@ import (
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
 
+	favoriteHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/favorite/delivery/http"
+	favoriteRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/favorite/repository/postgres"
+	favoriteUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/favorite/usecase"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 
 	"log"
@@ -62,10 +66,12 @@ func main() {
 	userRepo := userRepo.NewUserRepository(sqlConn)
 	sessRepo := sessionRepo.NewSessionRepository(tarConn)
 	prodRepo := productRepo.NewProductRepository(sqlConn)
+	favoRepo := favoriteRepo.NewFavoriteRepository(sqlConn)
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
+	favoUcase := favoriteUsecase.NewFavoriteUsecase(favoRepo)
 
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp:   true,
@@ -101,10 +107,12 @@ func main() {
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
+	favoHandler := favoriteHandler.NewFavoriteHandler(favoUcase)
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, mw)
+	favoHandler.Configure(api, mw)
 
 	err = server.ListenAndServe()
 	if err != nil {
