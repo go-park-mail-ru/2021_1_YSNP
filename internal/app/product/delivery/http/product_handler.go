@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/gorilla/schema"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 	"io"
@@ -30,17 +31,20 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 }
 
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodPost)
+	r.HandleFunc("/product/list", ph.MainPageHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/user/ad/list", mw.CheckAuthMiddleware(ph.UserAdHandler)).Methods(http.MethodGet)
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
-	page := models.Page{}
-	err := json.NewDecoder(r.Body).Decode(&page)
+	page := &models.Page{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
@@ -61,7 +65,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	products, errE := ph.productUcase.ListLatest(&page.Content)
+	products, errE := ph.productUcase.ListLatest(page)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -281,4 +285,62 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+}
+
+func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	defer r.Body.Close()
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	page := &models.Page{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("page ", page)
+
+	_, err = govalidator.ValidateStruct(page)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+
+	products, errE := ph.productUcase.UserAdList(userID, page)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
 }

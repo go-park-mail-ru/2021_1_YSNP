@@ -26,16 +26,7 @@ type ProductListData struct {
 	LinkImages []string `json:"linkImages" valid:"stringArray"`
 }
 
-type Content struct {
-	From  uint64 `json:"from" valid:"numeric"`
-	Count uint64 `json:"count" valid:"numeric"`
-}
-
-type OrderType struct {
-	Main bool `json:"main" valid:"type(bool)"`
-}
-
 type Page struct {
-	Content Content   `json:"content" valid:"-"`
-	Order   OrderType `json:"order" valid:"-"`
+	From  uint64 `valid:"numeric"`
+	Count uint64 `valid:"numeric"`
 }

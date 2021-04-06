@@ -71,18 +71,18 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	var date time.Time
 
 	err := query.Scan(
-			&product.ID,
-			&product.Name,
-			&date,
-			&product.Amount,
-			&product.Description,
-			&product.Category,
-			&product.OwnerID,
-			&product.OwnerName,
-			&product.OwnerSurname,
-			&product.Likes,
-			&product.Views,
-			&linkStr)
+		&product.ID,
+		&product.Name,
+		&date,
+		&product.Amount,
+		&product.Description,
+		&product.Category,
+		&product.OwnerID,
+		&product.OwnerName,
+		&product.OwnerSurname,
+		&product.Likes,
+		&product.Views,
+		&linkStr)
 
 	if err != nil {
 		return nil, err
@@ -95,7 +95,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	return product, nil
 }
 
-func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.ProductListData, error) {
+func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 
 	query, err := pr.dbConn.Query(
@@ -121,11 +121,11 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 		product := &models.ProductListData{}
 
 		err := query.Scan(
-				&product.ID,
-				&product.Name,
-				&date,
-				&product.Amount,
-				&linkStr)
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr)
 
 		if err != nil {
 			return nil, err
@@ -144,6 +144,58 @@ func (pr *ProductRepository) SelectLatest(content *models.Content) ([]*models.Pr
 	}
 	return products, err
 
+}
+
+func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+
+	query, err := pr.dbConn.Query(
+		`
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+				FROM product as p
+				left join product_images as pi on pi.product_id=p.id
+				WHERE owner_id=$1
+				GROUP BY p.id
+				ORDER BY p.date DESC
+				LIMIT $2 OFFSET $3`,
+		userId,
+		content.Count,
+		content.From)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	var linkStr string
+	var date time.Time
+
+	for query.Next() {
+		product := &models.ProductListData{}
+
+		err := query.Scan(
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr)
+
+		if err != nil {
+			return nil, err
+		}
+
+		product.Date = date.Format("2006-01-02")
+		linkStr = linkStr[1 : len(linkStr)-1]
+		if linkStr != "NULL" {
+			product.LinkImages = strings.Split(linkStr, ",")
+		}
+		products = append(products, product)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+	return products, err
 }
 
 func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
