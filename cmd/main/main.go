@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	_ "github.com/jackc/pgx/stdlib"
 	tarantool "github.com/tarantool/go-tarantool"
 
@@ -25,8 +26,6 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/sirupsen/logrus"
-
 	"github.com/gorilla/mux"
 )
 
@@ -67,25 +66,11 @@ func main() {
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "02-01-2006 15:04:05",
-	})
-	logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-		"host":   "89.208.199.170",
-		"port":   "8080",
-	}).Info("Starting server")
+	logger := logger.NewLogger()
+	logger.StartServerLog("89.208.199.170", "8080")
 
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
-	contextLogger := logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-	})
-	mw.LogrusLogger = contextLogger
-	logrus.SetLevel(logrus.DebugLevel)
-
+	mw := middleware.NewMiddleware(sessUcase, userUcase, logger.GetLogger())
 	router.Use(mw.AccessLogMiddleware)
-
 	router.Use(middleware.CorsControlMiddleware)
 
 	server := http.Server{

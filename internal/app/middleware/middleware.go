@@ -12,7 +12,7 @@ import (
 )
 
 type Middleware struct {
-	LogrusLogger *logrus.Entry
+	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
 }
@@ -28,10 +28,11 @@ const (
 	ContextLogger = contextKey("logger")
 )
 
-func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
+func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase, logger *logrus.Entry) *Middleware {
 	return &Middleware{
-		sessUcase: sessUcase,
-		userUcase: userUcase,
+		sessUcase:    sessUcase,
+		userUcase:    userUcase,
+		logrusLogger: logger,
 	}
 }
 
@@ -60,19 +61,19 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		m.LogrusLogger = m.LogrusLogger.WithFields(logrus.Fields{
+		m.logrusLogger = m.logrusLogger.WithFields(logrus.Fields{
 			"method":  r.Method,
 			"path":    r.URL.Path,
 			"work_id": uuid.New(),
 		})
-		m.LogrusLogger.Info("Get connection")
+		m.logrusLogger.Info("Get connection")
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, ContextLogger, m.LogrusLogger)
+		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
 		next.ServeHTTP(w, r.WithContext(ctx))
 
-		m.LogrusLogger.WithFields(logrus.Fields{
+		m.logrusLogger.WithFields(logrus.Fields{
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
 	})
