@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	standartErr "errors"
 	"io"
 	"net/http"
 	"os"
@@ -300,33 +299,37 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	}
 
 	label := r.PostFormValue("label")
-	logger.Print(label)
 	if label == "" {
-		err = standartErr.New("Пустое значение label")
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors.Cause(errors.PromoteEmptyLabel)
+		logger.Error(errE)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug(label)
+
 	data := strings.Split(label, ",")
-	productID, err := strconv.Atoi(data[0])
+	productID, err := strconv.ParseUint(data[0], 10, 64)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info(productID)
+
 	tariff, err := strconv.Atoi(data[1])
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	errE := ph.productUcase.SetTariff(uint64(productID), tariff)
+	logger.Info(tariff)
+
+	errE := ph.productUcase.SetTariff(productID, tariff)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -334,15 +337,6 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	body, err := json.Marshal(map[string]string{"message": "Successful payment."})
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors.JSONSuccess("Successful promotion."))
 }

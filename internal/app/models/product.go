@@ -16,7 +16,7 @@ type ProductData struct {
 	OwnerSurname string   `json:"ownerSurname" valid:"stringlength(5|30)"`
 	Views        int      `json:"views" valid:"numeric"`
 	Likes        int      `json:"likes" valid:"numeric"`
-	Tariff	   int 		`json:"tariff" valid:"numeric"`
+	Tariff       int      `json:"tariff" valid:"numeric"`
 }
 
 type ProductListData struct {
@@ -25,7 +25,7 @@ type ProductListData struct {
 	Date       string   `json:"date" valid:"-"`
 	Amount     int      `json:"amount" valid:"numeric"`
 	LinkImages []string `json:"linkImages" valid:"stringArray"`
-	Tariff	   int 		`json:"tariff" valid:"numeric"`
+	Tariff     int      `json:"tariff" valid:"numeric"`
 }
 
 type Content struct {
