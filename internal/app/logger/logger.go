@@ -8,9 +8,16 @@ type Logger struct {
 	logrusLogger *logrus.Entry
 }
 
-func NewLogger() *Logger {
-	setFormatter()
-	setLevel()
+func NewLogger(mode string) *Logger {
+	switch mode {
+	case "production":
+		setProductionFormatter()
+		setProductionLevel()
+
+	case "development":
+		setDevelopmentFormatter()
+		setDevelopmentLevel()
+	}
 
 	return &Logger{
 		logrusLogger: logrus.WithFields(logrus.Fields{
@@ -30,13 +37,21 @@ func (l *Logger) StartServerLog(host string, port string) {
 	}).Info("Starting server")
 }
 
-func setFormatter() {
+func setProductionFormatter() {
+	logrus.SetFormatter(&logrus.JSONFormatter{})
+}
+
+func setDevelopmentFormatter() {
 	logrus.SetFormatter(&logrus.TextFormatter{
 		FullTimestamp:   true,
 		TimestampFormat: "02-01-2006 15:04:05",
 	})
 }
 
-func setLevel() {
+func setProductionLevel() {
+	logrus.SetLevel(logrus.InfoLevel)
+}
+
+func setDevelopmentLevel() {
 	logrus.SetLevel(logrus.DebugLevel)
 }

@@ -5,5 +5,12 @@
     "name": "ysnpkoyadb",
     "host": "localhost",
     "port": 5432
+  },
+  "logger": {
+    "mode": "development"
+  },
+  "server": {
+    "host": "89.208.199.170",
+    "port": "8080"
   }
 }

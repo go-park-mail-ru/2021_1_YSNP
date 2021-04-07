@@ -66,15 +66,15 @@ func main() {
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 
-	logger := logger.NewLogger()
-	logger.StartServerLog("89.208.199.170", "8080")
+	logger := logger.NewLogger(configs.GetLoggerConfig())
+	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase, logger.GetLogger())
 	router.Use(mw.AccessLogMiddleware)
 	router.Use(middleware.CorsControlMiddleware)
 
 	server := http.Server{
-		Addr:         ":8080",
+		Addr:         fmt.Sprint(":", configs.GetServerPort()),
 		Handler:      router,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,
