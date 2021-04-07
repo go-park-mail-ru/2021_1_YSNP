@@ -45,6 +45,7 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 		if rollbackErr != nil {
 			return rollbackErr
 		}
+
 		return err
 	}
 
@@ -69,15 +70,15 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 	var date time.Time
 
 	err := query.Scan(
-				&user.ID,
-				&user.Email,
-				&user.Telephone,
-				&user.Password,
-				&user.Name,
-				&user.Surname,
-				&user.Sex,
-				&date,
-				&user.LinkImages)
+		&user.ID,
+		&user.Email,
+		&user.Telephone,
+		&user.Password,
+		&user.Name,
+		&user.Surname,
+		&user.Sex,
+		&date,
+		&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
@@ -100,15 +101,15 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 	var date time.Time
 
 	err := query.Scan(
-				&user.ID,
-				&user.Email,
-				&user.Telephone,
-				&user.Password,
-				&user.Name,
-				&user.Surname,
-				&user.Sex,
-				&date,
-				&user.LinkImages)
+		&user.ID,
+		&user.Email,
+		&user.Telephone,
+		&user.Password,
+		&user.Name,
+		&user.Surname,
+		&user.Sex,
+		&date,
+		&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}

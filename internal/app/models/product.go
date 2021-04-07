@@ -24,6 +24,7 @@ type ProductListData struct {
 	Date       string   `json:"date" valid:"-"`
 	Amount     int      `json:"amount" valid:"numeric"`
 	LinkImages []string `json:"linkImages" valid:"stringArray"`
+	UserLiked  bool     `json:"userLiked" valid:"type(bool)"`
 }
 
 type Page struct {

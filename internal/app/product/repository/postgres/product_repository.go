@@ -44,6 +44,7 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 		if rollbackErr != nil {
 			return rollbackErr
 		}
+
 		return err
 	}
 
@@ -55,10 +56,55 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 	return nil
 }
 
-func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, error) {
-	product := &models.ProductData{}
+func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
 
-	query := pr.dbConn.QueryRow(
+	_, err = tx.Exec(
+		`DELETE FROM product_images 
+                WHERE product_id=$1`,
+		content.ID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	for _, photo := range content.LinkImages {
+		_, err = tx.Exec(
+			`INSERT INTO product_images(product_id, img_link)
+		            VALUES ($1, $2)`,
+			content.ID,
+			photo)
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return rollbackErr
+			}
+
+			return err
+		}
+	}
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, error) {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	query := tx.QueryRow(
 		`
 				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, array_agg(pi.img_link)
 				FROM product AS p
@@ -67,10 +113,11 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 				GROUP BY p.id, u.name, u.surname`,
 		productID)
 
+	product := &models.ProductData{}
 	var linkStr string
 	var date time.Time
 
-	err := query.Scan(
+	err = query.Scan(
 		&product.ID,
 		&product.Name,
 		&date,
@@ -83,15 +130,41 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&product.Likes,
 		&product.Views,
 		&linkStr)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
 
+		return nil, err
+	}
+
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET views=views + 1
+                WHERE product.id = $1`,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+
+		return nil, err
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return nil, err
 	}
+
 	product.Date = date.Format("2006-01-02")
 	linkStr = linkStr[1 : len(linkStr)-1]
 	if linkStr != "NULL" {
 		product.LinkImages = strings.Split(linkStr, ",")
 	}
+
 	return product, nil
 }
 
@@ -107,7 +180,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 				ORDER BY p.date DESC 
 				LIMIT $1 OFFSET $2`,
 		content.Count,
-		content.From)
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -131,11 +204,73 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 			return nil, err
 		}
 
+		product.UserLiked = false
 		product.Date = date.Format("2006-01-02")
 		linkStr = linkStr[1 : len(linkStr)-1]
 		if linkStr != "NULL" {
 			product.LinkImages = strings.Split(linkStr, ",")
 		}
+
+		products = append(products, product)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, err
+}
+
+func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Page) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+
+	query, err := pr.dbConn.Query(
+		`
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id
+				FROM product as p
+				left join product_images as pi on pi.product_id=p.id
+				left join user_favorite uf on p.id = uf.product_id
+				GROUP BY p.id, uf.user_id
+				ORDER BY p.date DESC 
+				LIMIT $1 OFFSET $2`,
+		content.Count,
+		content.From*content.Count)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	var linkStr string
+	var date time.Time
+
+	for query.Next() {
+		product := &models.ProductListData{}
+		var user sql.NullInt64
+
+		err := query.Scan(
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr,
+			&user)
+
+		if err != nil {
+			return nil, err
+		}
+
+		product.UserLiked = false
+		if user.Valid && uint64(user.Int64) == userID {
+			product.UserLiked = true
+		}
+
+		product.Date = date.Format("2006-01-02")
+		linkStr = linkStr[1 : len(linkStr)-1]
+		if linkStr != "NULL" {
+			product.LinkImages = strings.Split(linkStr, ",")
+		}
+
 		products = append(products, product)
 	}
 
@@ -143,7 +278,6 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 		return nil, err
 	}
 	return products, err
-
 }
 
 func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) ([]*models.ProductListData, error) {
@@ -160,7 +294,7 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 				LIMIT $2 OFFSET $3`,
 		userId,
 		content.Count,
-		content.From)
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -189,46 +323,153 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 		if linkStr != "NULL" {
 			product.LinkImages = strings.Split(linkStr, ",")
 		}
+
 		products = append(products, product)
 	}
 
 	if err := query.Err(); err != nil {
 		return nil, err
 	}
+
 	return products, err
 }
 
-func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
+func (pr *ProductRepository) SelectUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+
+	query, err := pr.dbConn.Query(
+		`
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+                FROM user_favorite
+                JOIN product p ON p.id = user_favorite.product_id
+                LEFT JOIN product_images AS pi ON pi.product_id = p.id
+                WHERE user_id=$1
+                GROUP BY p.id
+                ORDER BY p.date DESC
+                LIMIT $2 OFFSET $3`,
+		userID,
+		content.Count,
+		content.From*content.Count)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	var linkStr string
+	var date time.Time
+
+	for query.Next() {
+		product := &models.ProductListData{}
+
+		err := query.Scan(
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr)
+
+		if err != nil {
+			return nil, err
+		}
+
+		product.Date = date.Format("2006-01-02")
+		linkStr = linkStr[1 : len(linkStr)-1]
+		if linkStr != "NULL" {
+			product.LinkImages = strings.Split(linkStr, ",")
+		}
+
+		products = append(products, product)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	return products, err
+}
+
+func (pr *ProductRepository) InsertProductLike(userID uint64, productID uint64) error {
 	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
 
 	_, err = tx.Exec(
-		`DELETE FROM product_images WHERE product_id=$1`,
-		content.ID)
+		`
+				INSERT INTO user_favorite
+                (user_id, product_id)
+                VALUES ($1, $2) `,
+		userID,
+		productID)
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
 			return rollbackErr
 		}
+
 		return err
 	}
 
-	for _, photo := range content.LinkImages {
-		_, err = tx.Exec(
-			`INSERT INTO product_images(product_id, img_link)
-		VALUES ($1, $2)`,
-			content.ID, photo)
-
-		if err != nil {
-			rollbackErr := tx.Rollback()
-			if rollbackErr != nil {
-				return rollbackErr
-			}
-			return err
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET likes=likes + 1
+                WHERE product.id = $1`,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
 		}
+
+		return err
 	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository) DeleteProductLike(userID uint64, productID uint64) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				DELETE from user_favorite
+                where user_id=$1 and product_id=$2`,
+		userID,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET likes=likes - 1
+                WHERE product.id = $1`,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return err
