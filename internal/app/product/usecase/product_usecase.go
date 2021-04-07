@@ -2,11 +2,12 @@ package usecase
 
 import (
 	"database/sql"
+	"os"
+	"time"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
-	"os"
-	"time"
 )
 
 type ProductUsecase struct {

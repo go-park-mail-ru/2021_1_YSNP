@@ -2,17 +2,18 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
+	standartErr "errors"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
-	standartErr "errors"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
@@ -310,8 +311,15 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	}
 	data := strings.Split(label, ",")
 	productID, err := strconv.Atoi(data[0])
-	tariff, err2 := strconv.Atoi(data[1])
-	if err != nil || err2 != nil {
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	tariff, err := strconv.Atoi(data[1])
+	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
