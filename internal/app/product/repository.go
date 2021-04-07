@@ -7,4 +7,5 @@ type ProductRepository interface {
 	SelectByID(productID uint64) (*models.ProductData, error)
 	SelectLatest(content *models.Content) ([]*models.ProductListData, error)
 	InsertPhoto(content *models.ProductData) error
+	UpdateTariff(productID uint64, tariff int) error
 }

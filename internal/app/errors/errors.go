@@ -19,6 +19,7 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	PromoteEmptyLabel
 )
 
 type Error struct {
@@ -114,6 +115,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductNotExist,
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
+	},
+	PromoteEmptyLabel: {
+		ErrorCode: PromoteEmptyLabel,
+		HttpError: http.StatusBadRequest,
+		Message:   "promote label doesn't exist",
 	},
 }
 

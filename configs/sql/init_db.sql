@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS product
     latitude varchar(64),
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
+    tariff      int                   DEFAULT 0,
 
     FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
 );

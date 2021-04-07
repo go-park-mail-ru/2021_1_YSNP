@@ -2,15 +2,17 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
@@ -34,6 +36,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -281,4 +284,59 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
+}
+
+func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	err := r.ParseForm()
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	label := r.PostFormValue("label")
+	if label == "" {
+		errE := errors.Cause(errors.PromoteEmptyLabel)
+		logger.Error(errE)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Debug(label)
+
+	data := strings.Split(label, ",")
+	productID, err := strconv.ParseUint(data[0], 10, 64)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info(productID)
+
+	tariff, err := strconv.Atoi(data[1])
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info(tariff)
+
+	errE := ph.productUcase.SetTariff(productID, tariff)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful promotion."))
 }
