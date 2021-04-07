@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+	standartErr "errors"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
@@ -34,6 +36,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
@@ -271,6 +274,59 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	body, err := json.Marshal(imgs)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+}
+
+func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	err := r.ParseForm()
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	label := r.PostFormValue("label")
+	logger.Print(label)
+	if label == "" {
+		err = standartErr.New("Пустое значение label")
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	data := strings.Split(label, ",")
+	productID, err := strconv.Atoi(data[0])
+	tariff, err2 := strconv.Atoi(data[1])
+	if err != nil || err2 != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	errE := ph.productUcase.SetTariff(uint64(productID), tariff)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	body, err := json.Marshal(map[string]string{"message": "Successful payment."})
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)

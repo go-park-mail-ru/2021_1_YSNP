@@ -10,4 +10,5 @@ type ProductUsecase interface {
 	GetByID(productID uint64) (*models.ProductData, *errors.Error)
 	ListLatest(content *models.Content) ([]*models.ProductListData, *errors.Error)
 	UpdatePhoto(productID uint64, newAvatar []string) (*models.ProductData, *errors.Error)
+	SetTariff(productID uint64, tariff int) *errors.Error
 }

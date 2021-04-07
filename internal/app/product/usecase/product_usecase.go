@@ -80,3 +80,12 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*mod
 
 	return product, nil
 }
+
+func (pu *ProductUsecase) SetTariff(productID uint64, tariff int) *errors.Error {
+	err := pu.productRepo.UpdateTariff(productID, tariff)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
+}
