@@ -12,8 +12,8 @@ type ProductData struct {
 	Longitude    string   `json:"longitude" valid:"longitude"`
 	Latitude     string   `json:"latitude" valid:"latitude"`
 	OwnerID      uint64   `json:"ownerId" valid:"numeric"`
-	OwnerName    string   `json:"ownerName" valid:"stringlength(5|30)"`
-	OwnerSurname string   `json:"ownerSurname" valid:"stringlength(5|30)"`
+	OwnerName    string   `json:"ownerName" valid:"stringlength(1|30)"`
+	OwnerSurname string   `json:"ownerSurname" valid:"stringlength(1|30)"`
 	Views        int      `json:"views" valid:"numeric"`
 	Likes        int      `json:"likes" valid:"numeric"`
 	Tariff       int      `json:"tariff" valid:"numeric"`

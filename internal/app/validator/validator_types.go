@@ -1,11 +1,11 @@
-package models
+package validator
 
 import (
 	"github.com/asaskevich/govalidator"
 	"regexp"
 )
 
-func init() {
+func Init() {
 	govalidator.CustomTypeTagMap.Set(
 		"stringArray",
 		govalidator.CustomTypeValidator(func(i interface{}, o interface{}) bool {
