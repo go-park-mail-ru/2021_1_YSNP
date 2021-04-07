@@ -41,7 +41,6 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
-
 	defer r.Body.Close()
 
 	signUp := models.SignUpRequest{}
@@ -124,6 +123,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -239,17 +239,6 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	}
 	logger.Info("user id ", userID)
 
-	_, err := govalidator.ValidateStruct(userID)
-	if err != nil {
-		if allErrs, ok := err.(govalidator.Errors); ok {
-			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-	}
-
 	user, errE := uh.userUcase.GetByID(userID)
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -274,6 +263,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -340,6 +330,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
