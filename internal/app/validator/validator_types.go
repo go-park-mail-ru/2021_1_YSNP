@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func Init() {
+func init() {
 	govalidator.CustomTypeTagMap.Set(
 		"stringArray",
 		govalidator.CustomTypeValidator(func(i interface{}, o interface{}) bool {

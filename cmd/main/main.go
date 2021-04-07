@@ -12,7 +12,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
@@ -28,8 +28,6 @@ import (
 )
 
 func main() {
-	validator.Init()
-
 	configs, err := configs.LoadConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
