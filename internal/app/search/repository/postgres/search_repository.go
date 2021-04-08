@@ -57,7 +57,7 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
-				WHERE name LIKE $1 AND
+				WHERE LOWER(name) LIKE LOWER($1) AND
 				      category LIKE $2  AND
 				      amount BETWEEN $3 AND $4   `
 	values = append(values, "%" + data.Search + "%", "%" + data.Category + "%", minAmount, maxAmount)
