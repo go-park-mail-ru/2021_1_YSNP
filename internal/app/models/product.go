@@ -36,3 +36,7 @@ type Page struct {
 	Content Content   `json:"content"`
 	Order   OrderType `json:"order"`
 }
+
+type Category struct {
+	Title string   `json:"title"`
+}
