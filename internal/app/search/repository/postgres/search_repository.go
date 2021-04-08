@@ -2,26 +2,58 @@ package repository
 
 import (
 	"database/sql"
+	"math"
+	"reflect"
+	"regexp"
+	"strings"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
-	"math"
-	"strings"
 )
 
 type SearchRepository struct {
 	dbConn *sql.DB
 }
 
-func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.ProductListData, error) {
-	var products []*models.ProductListData
-
-	minAmount := data.FromAmount
+func getMaxMinAmount(data *models.Search) (int, int) {
 	maxAmount := data.ToAmount
 
 	if maxAmount == 0 {
 		maxAmount = math.MaxInt32
 	}
+	return  data.FromAmount, maxAmount
 
+}
+
+func getDateSorting(data *models.Search) string {
+	switch data.Date {
+		case "За 24 часа":
+			return "AND date BETWEEN now() - INTERVAL '1 DAY' AND now()"
+		case "За 7 дней":
+			return "AND date BETWEEN now() - INTERVAL '7 DAY' AND now()"
+		default:
+			return ""
+	}
+}
+
+func getOrderQuery(data *models.Search) string {
+	switch data.Sorting {
+	case "По возрастанию цены":
+		return "ORDER BY amount "
+	case "По убыванию цены":
+		return "ORDER BY amount DESC"
+	case "По имени":
+		return "ORDER BY name"
+	case "По дате добавления":
+		return "ORDER BY date"
+	default:
+		return ""
+	}
+}
+
+func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+	minAmount, maxAmount := getMaxMinAmount(data);
 	var values []interface{}
 	selectQuery := `
 				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
@@ -31,32 +63,12 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 				      category LIKE $2  AND
 				      amount BETWEEN $3 AND $4   `
 	values = append(values, "%" + data.Search + "%", "%" + data.Category + "%", minAmount, maxAmount)
-	var pgntQuery string
-	switch data.Date {
-		case "За 24 часа":
-			pgntQuery = "AND date BETWEEN now() - INTERVAL '1 DAY' AND now()"
-		case "За 7 дней":
-			pgntQuery = "AND date BETWEEN now() - INTERVAL '7 DAY' AND now()"
-		default:
-			break
-	}
+	dateQuery := getDateSorting(data)
 	var orderQuery string
-	orderQuery += "GROUP BY p.id "
-	switch data.Sorting {
-	case "По возрастанию цены":
-		orderQuery += "ORDER BY amount "
-	case "По убыванию цены":
-		orderQuery += "ORDER BY amount DESC"
-	case "По имени":
-		orderQuery += "ORDER BY name"
-	case "По дате добавления":
-		orderQuery += "ORDER BY date"
-	default:
-		break
-	}
+	orderQuery += "GROUP BY p.id " + getOrderQuery(data)
 	resultQuery := strings.Join([]string{
 		selectQuery,
-		pgntQuery,
+		dateQuery,
 		orderQuery,
 	}, " ")
 	query, err := s.dbConn.Query(resultQuery, values...)
@@ -66,8 +78,6 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 	}
 
 	defer query.Close()
-
-	//var linkStr string
 
 	var linkStr string
 	for query.Next() {
