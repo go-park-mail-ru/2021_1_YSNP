@@ -19,6 +19,10 @@ create table if not exists users
     sex       varchar(12)        not null,
     birthdate date,
     reg_date  timestamp,
+    latitude  float                       DEFAULT 55.753808,
+    longitude float                       DEFAULT 37.620017,
+    radius    int                         DEFAULT 0,
+    address   varchar(128)                DEFAULT 'Москва',
     avatar    varchar(128)       NOT NULL DEFAULT ''
 );
 
@@ -32,9 +36,9 @@ CREATE TABLE IF NOT EXISTS product
     description text         NOT NULL,
     category    varchar(64)  not null,
     owner_id    int          not null,
-    address varchar(128),
-    longitude varchar(64),
-    latitude varchar(64),
+    address     varchar(128),
+    longitude   varchar(64),
+    latitude    varchar(64),
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
