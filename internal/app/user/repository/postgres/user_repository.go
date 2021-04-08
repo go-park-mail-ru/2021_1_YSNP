@@ -127,11 +127,10 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 	_, err = tx.Exec(
 		`
 				UPDATE users
-				SET email = $2, telephone = $3, password = $4, name = $5, surname = $6, sex = $7, birthdate = $8, avatar = $9
+				SET email = $2, password = $3, name = $4, surname = $5, sex = $6, birthdate = $7, avatar = $8
 				WHERE id = $1;`,
 		user.ID,
 		user.Email,
-		user.Telephone,
 		user.Password,
 		user.Name,
 		user.Surname,
