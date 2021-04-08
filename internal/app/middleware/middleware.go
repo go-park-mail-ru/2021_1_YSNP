@@ -28,12 +28,15 @@ const (
 	ContextLogger = contextKey("logger")
 )
 
-func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase, logger *logrus.Entry) *Middleware {
+func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
 	return &Middleware{
-		sessUcase:    sessUcase,
-		userUcase:    userUcase,
-		logrusLogger: logger,
+		sessUcase: sessUcase,
+		userUcase: userUcase,
 	}
+}
+
+func (m *Middleware) NewLogger(logger *logrus.Entry) {
+	m.logrusLogger = logger
 }
 
 func CorsControlMiddleware(next http.Handler) http.Handler {

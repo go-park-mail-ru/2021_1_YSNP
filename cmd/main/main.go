@@ -61,7 +61,8 @@ func main() {
 
 	router := mux.NewRouter()
 
-	mw := middleware.NewMiddleware(sessUcase, userUcase, logger.GetLogger())
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw.NewLogger(logger.GetLogger())
 	router.Use(mw.AccessLogMiddleware)
 	router.Use(middleware.CorsControlMiddleware)
 
