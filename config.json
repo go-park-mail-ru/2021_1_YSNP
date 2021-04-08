@@ -1,9 +1,22 @@
 {
-  "database": {
+  "server": {
+    "host": "89.208.199.170",
+    "port": "8080"
+  },
+  "logger": {
+    "mode": "development"
+  },
+  "postgres": {
     "user": "postgres",
     "password": "postgres",
     "name": "ysnpkoyadb",
     "host": "localhost",
     "port": 5432
+  },
+  "tarantool": {
+    "user": "admin",
+    "password": "pass",
+    "host": "localhost",
+    "port": 3301
   }
 }
