@@ -9,6 +9,12 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 )
 
+func NewProductRepository(conn *sql.DB) search.SearchRepository {
+	return & SearchRepository{
+		dbConn: conn,
+	}
+}
+
 type SearchRepository struct {
 	dbConn *sql.DB
 }
@@ -88,6 +94,7 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 			&product.Amount,
 			&linkStr,
 			)
+
 		if err != nil {
 			return nil, err
 		}
@@ -101,13 +108,9 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 	}
 
 	if err := query.Err(); err != nil {
+		
 		return nil, err
 	}
+	
 	return products, err
-}
-
-func NewProductRepository(conn *sql.DB) search.SearchRepository {
-	return & SearchRepository{
-		dbConn: conn,
-	}
 }
