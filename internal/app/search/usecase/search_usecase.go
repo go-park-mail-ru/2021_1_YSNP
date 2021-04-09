@@ -1,8 +1,6 @@
 package usecase
 
 import (
-	"fmt"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
@@ -23,6 +21,10 @@ func (su *SearchUsecase) SelectByFilter(data *models.Search) ([]*models.ProductL
 
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
+	}
+	
+	if len(res) == 0 {
+		return nil, errors.Cause(errors.EmptySearch)
 	}
 	return res, nil
 }

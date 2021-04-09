@@ -19,6 +19,7 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	EmptySearch
 )
 
 type Error struct {
@@ -106,6 +107,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductNotExist,
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
+	},
+	EmptySearch: {
+		ErrorCode: EmptySearch,
+		HttpError: http.StatusNotFound,
+		Message:   "searching products dont't exist",
 	},
 }
 

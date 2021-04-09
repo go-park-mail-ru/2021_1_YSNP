@@ -4,7 +4,6 @@ import (
 	"database/sql"
 	"math"
 	"strings"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 )
@@ -108,9 +107,8 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 	}
 
 	if err := query.Err(); err != nil {
-		
 		return nil, err
 	}
-	
+
 	return products, err
 }
