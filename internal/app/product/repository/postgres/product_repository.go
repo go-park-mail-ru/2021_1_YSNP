@@ -28,15 +28,18 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 
 	query := tx.QueryRow(
 		`
-				INSERT INTO product(name, date, amount, description, category, owner_id)
-				VALUES ($1, $2, $3, $4, $5, $6)
+				INSERT INTO product(name, date, amount, description, category, owner_id, longitude, latitude, address)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 				RETURNING id`,
 		product.Name,
 		product.Date,
 		product.Amount,
 		product.Description,
 		product.Category,
-		product.OwnerID)
+		product.OwnerID,
+		product.Longitude,
+		product.Latitude, 
+		product.Address)
 
 	err = query.Scan(&product.ID)
 	if err != nil {
@@ -60,7 +63,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 
 	query := pr.dbConn.QueryRow(
 		`
-				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, array_agg(pi.img_link), p.tariff
+				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff
 				FROM product AS p
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
@@ -82,6 +85,9 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 			&product.OwnerSurname,
 			&product.Likes,
 			&product.Views,
+			&product.Longitude,
+			&product.Latitude,
+			&product.Address,
 			&linkStr,
 			&product.Tariff)
 

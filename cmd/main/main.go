@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -46,11 +45,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// opts := tarantool.Opts{
+    //     User: "admin",
+    //     Pass: "pass",
+    // }
+    // tarConn, err := tarantool.Connect("127.0.0.1:3301", opts)
 
-	userRepo := userRepo.NewUserRepository(sqlConn)
-	sessRepo := sessionRepo.NewSessionRepository(tarConn)
-	prodRepo := productRepo.NewProductRepository(sqlConn)
-	searchRepo := searchRepo.NewProductRepository(sqlConn)
+    // if err != nil {
+    //     fmt.Println("baa: Connection refused:", err)
+    //     return
+    // }
+
+	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
+	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
+	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
+	searchRepo := searchRepo.NewProductRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
