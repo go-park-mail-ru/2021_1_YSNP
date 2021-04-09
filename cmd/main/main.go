@@ -45,16 +45,6 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// opts := tarantool.Opts{
-    //     User: "admin",
-    //     Pass: "pass",
-    // }
-    // tarConn, err := tarantool.Connect("127.0.0.1:3301", opts)
-
-    // if err != nil {
-    //     fmt.Println("baa: Connection refused:", err)
-    //     return
-    // }
 
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
 	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
