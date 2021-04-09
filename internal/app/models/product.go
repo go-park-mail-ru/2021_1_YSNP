@@ -41,3 +41,7 @@ type Page struct {
 	Content Content   `json:"content" valid:"-"`
 	Order   OrderType `json:"order" valid:"-"`
 }
+
+type Category struct {
+	Title string   `json:"title"`
+}
