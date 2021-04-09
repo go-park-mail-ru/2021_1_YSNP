@@ -19,6 +19,7 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	PromoteEmptyLabel
 	EmptySearch
 )
 
@@ -30,6 +31,7 @@ type Error struct {
 
 type Success struct {
 	Message string `json:"message"`
+	ID      uint64 `json:"id,omitempty"`
 }
 
 //func (e Error) Error() string {
@@ -44,8 +46,15 @@ func JSONError(error *Error) []byte {
 	return jsonError
 }
 
-func JSONSuccess(message string) []byte {
-	jsonSucc, err := json.Marshal(Success{Message: message})
+func JSONSuccess(message ...interface{}) []byte {
+	if len(message) > 1 {
+		jsonSucc, err := json.Marshal(Success{Message: message[0].(string), ID: message[1].(uint64)})
+		if err != nil {
+			return []byte("")
+		}
+		return jsonSucc
+	}
+	jsonSucc, err := json.Marshal(Success{Message: message[0].(string)})
 	if err != nil {
 		return []byte("")
 	}
@@ -112,6 +121,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: EmptySearch,
 		HttpError: http.StatusNotFound,
 		Message:   "searching products dont't exist",
+  },
+	PromoteEmptyLabel: {
+		ErrorCode: PromoteEmptyLabel,
+		HttpError: http.StatusBadRequest,
+		Message:   "promote label doesn't exist",
 	},
 }
 

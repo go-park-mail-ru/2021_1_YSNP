@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
@@ -29,14 +30,14 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 				INSERT INTO users(email, telephone, password, name, surname, sex, birthdate, avatar)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 				RETURNING id`,
-				user.Email,
-				user.Telephone,
-				user.Password,
-				user.Name,
-				user.Surname,
-				user.Sex,
-				user.DateBirth,
-				user.LinkImages)
+		user.Email,
+		user.Telephone,
+		user.Password,
+		user.Name,
+		user.Surname,
+		user.Sex,
+		user.DateBirth,
+		user.LinkImages)
 
 	err = query.Scan(&user.ID)
 	if err != nil {
@@ -63,7 +64,9 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
 				FROM users
 				WHERE telephone=$1`,
-				telephone)
+		telephone)
+
+	var date time.Time
 
 	err := query.Scan(
 				&user.ID,
@@ -73,11 +76,13 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				&user.Name,
 				&user.Surname,
 				&user.Sex,
-				&user.DateBirth,
+				&date,
 				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }
@@ -90,7 +95,9 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
 				FROM users
 				WHERE id=$1`,
-				userID)
+		userID)
+
+	var date time.Time
 
 	err := query.Scan(
 				&user.ID,
@@ -100,11 +107,13 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				&user.Name,
 				&user.Surname,
 				&user.Sex,
-				&user.DateBirth,
+				&date,
 				&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
+
+	user.DateBirth = date.Format("2006-01-02")
 
 	return user, nil
 }
@@ -118,17 +127,16 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 	_, err = tx.Exec(
 		`
 				UPDATE users
-				SET email = $2, telephone = $3, password = $4, name = $5, surname = $6, sex = $7, birthdate = $8, avatar = $9
+				SET email = $2, password = $3, name = $4, surname = $5, sex = $6, birthdate = $7, avatar = $8
 				WHERE id = $1;`,
-				user.ID,
-				user.Email,
-				user.Telephone,
-				user.Password,
-				user.Name,
-				user.Surname,
-				user.Sex,
-				user.DateBirth,
-				user.LinkImages)
+		user.ID,
+		user.Email,
+		user.Password,
+		user.Name,
+		user.Surname,
+		user.Sex,
+		user.DateBirth,
+		user.LinkImages)
 
 	if err != nil {
 		rollbackErr := tx.Rollback()

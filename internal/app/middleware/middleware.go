@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"context"
+	"github.com/google/uuid"
 	"net/http"
 	"time"
 
@@ -11,16 +12,31 @@ import (
 )
 
 type Middleware struct {
-	LogrusLogger *logrus.Entry
+	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
 }
+
+type contextKey string
+
+func (c contextKey) String() string {
+	return string(c)
+}
+
+const (
+	ContextUserID = contextKey("userID")
+	ContextLogger = contextKey("logger")
+)
 
 func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
 	return &Middleware{
 		sessUcase: sessUcase,
 		userUcase: userUcase,
 	}
+}
+
+func (m *Middleware) NewLogger(logger *logrus.Entry) {
+	m.logrusLogger = logger
 }
 
 func CorsControlMiddleware(next http.Handler) http.Handler {
@@ -31,8 +47,8 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 		case "http://localhost:3000":
 			w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 
-		case "http://89.208.199.170:3000":
-			w.Header().Set("Access-Control-Allow-Origin", "http://89.208.199.170:3000")
+		case "https://ykoya.ru":
+			w.Header().Set("Access-Control-Allow-Origin", "https://ykoya.ru")
 		}
 
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
@@ -48,13 +64,21 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		m.logrusLogger = m.logrusLogger.WithFields(logrus.Fields{
+			"method":  r.Method,
+			"path":    r.URL.Path,
+			"work_id": uuid.New(),
+		})
+		m.logrusLogger.Info("Get connection")
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
-		next.ServeHTTP(w, r)
-		m.LogrusLogger.WithFields(logrus.Fields{
-			"method":      r.Method,
-			"remote_addr": r.RemoteAddr,
-			"work_time":   time.Since(start),
-		}).Info(r.URL.Path)
+		next.ServeHTTP(w, r.WithContext(ctx))
+
+		m.logrusLogger.WithFields(logrus.Fields{
+			"work_time": time.Since(start),
+		}).Info("Fulfilled connection")
 	})
 }
 
@@ -73,7 +97,7 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 		}
 
 		ctx := r.Context()
-		ctx = context.WithValue(ctx, "userID", session.UserID)
+		ctx = context.WithValue(ctx, ContextUserID, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 }

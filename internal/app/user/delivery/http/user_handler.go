@@ -2,7 +2,9 @@ package delivery
 
 import (
 	"encoding/json"
+	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
 	"io"
 	"net/http"
 	"os"
@@ -35,20 +37,44 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
-
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
 	defer r.Body.Close()
 
 	signUp := models.SignUpRequest{}
 	err := json.NewDecoder(r.Body).Decode(&signUp)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
+	}
+	logger.Info("user data ", signUp)
+
+	sanitizer := bluemonday.UGCPolicy()
+	signUp.Name = sanitizer.Sanitize(signUp.Name)
+	signUp.Surname = sanitizer.Sanitize(signUp.Surname)
+	signUp.Sex = sanitizer.Sanitize(signUp.Sex)
+	signUp.Email = sanitizer.Sanitize(signUp.Email)
+	signUp.Telephone = sanitizer.Sanitize(signUp.Telephone)
+	signUp.Password1 = sanitizer.Sanitize(signUp.Password1)
+	signUp.Password2 = sanitizer.Sanitize(signUp.Password2)
+	signUp.DateBirth = sanitizer.Sanitize(signUp.DateBirth)
+	logger.Debug("sanitize user data ", signUp)
+  
+	_, err = govalidator.ValidateStruct(signUp)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
 	}
 
 	user := &models.UserData{
@@ -61,30 +87,35 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		DateBirth:  signUp.DateBirth,
 		LinkImages: signUp.LinkImages,
 	}
+
 	errE := uh.userUcase.Create(user)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("user ", user)
 
 	session := models.CreateSession(user.ID)
 	errE = uh.sessUcase.Create(session)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
 		Name:     "session_id",
 		Value:    session.Value,
 		Expires:  session.ExpiresAt,
-		Secure:   false,
+		//Secure:   true,
+		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	}
+	logger.Debug("cookie ", cookie)
 
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
@@ -92,19 +123,22 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(uint64)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("user id ", userID)
 
-	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
-	err := r.ParseMultipartForm(10 * 1024 * 1024)
+	r.Body = http.MaxBytesReader(w, r.Body, 3*1024*1024)
+	err := r.ParseMultipartForm(3 * 1024 * 1024)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -113,12 +147,13 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	file, handler, err := r.FormFile("file-upload")
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("photo ", handler.Header)
 	defer file.Close()
 	extension := filepath.Ext(handler.Filename)
 
@@ -126,7 +161,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	str, err := os.Getwd()
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -138,16 +173,17 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	photoID, err := uuid.NewRandom()
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("new photo name ", photoID)
 
 	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -160,7 +196,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	_, err = io.Copy(f, file)
 	if err != nil {
 		_ = os.Remove(photoID.String() + extension)
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -171,7 +207,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -179,7 +215,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 	body, err := json.Marshal(avatar)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -191,26 +227,41 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(uint64)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
+	}
+	logger.Info("user id ", userID)
+
+	_, err := govalidator.ValidateStruct(userID)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
 	}
 
 	user, errE := uh.userUcase.GetByID(userID)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("user ", user)
 
 	body, err := json.Marshal(user)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
@@ -222,23 +273,47 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(uint64)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("user id ", userID)
 
 	changeData := models.SignUpRequest{}
 	err := json.NewDecoder(r.Body).Decode(&changeData)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
+	}
+	logger.Info("user data ", changeData)
+
+	sanitizer := bluemonday.UGCPolicy()
+	changeData.Name = sanitizer.Sanitize(changeData.Name)
+	changeData.Surname = sanitizer.Sanitize(changeData.Surname)
+	changeData.Sex = sanitizer.Sanitize(changeData.Sex)
+	changeData.Email = sanitizer.Sanitize(changeData.Email)
+	changeData.Telephone = sanitizer.Sanitize(changeData.Telephone)
+	changeData.DateBirth = sanitizer.Sanitize(changeData.DateBirth)
+	logger.Debug("sanitize user data ", changeData)
+
+	_, err = govalidator.ValidateStruct(changeData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
 	}
 
 	user := &models.UserData{
@@ -249,10 +324,11 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		Telephone: changeData.Telephone,
 		DateBirth: changeData.DateBirth,
 	}
+	logger.Debug("user ", user)
 
 	_, errE := uh.userUcase.UpdateProfile(userID, user)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
@@ -263,28 +339,49 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	userID, ok := r.Context().Value("userID").(uint64)
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("user id ", userID)
 
 	passwordData := models.PasswordChangeRequest{}
 	err := json.NewDecoder(r.Body).Decode(&passwordData)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Info("user password ", passwordData)
 
-	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword)
+	sanitizer := bluemonday.UGCPolicy()
+	passwordData.OldPassword = sanitizer.Sanitize(passwordData.OldPassword)
+	passwordData.NewPassword1 = sanitizer.Sanitize(passwordData.NewPassword1)
+	passwordData.NewPassword2 = sanitizer.Sanitize(passwordData.NewPassword2)
+	logger.Debug("sanitize user data ", passwordData)
+
+	_, err = govalidator.ValidateStruct(passwordData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+  
+	_, errE := uh.userUcase.UpdatePassword(userID, passwordData.NewPassword1)
 	if errE != nil {
-		logrus.Error(errE.Message)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return

@@ -2,12 +2,11 @@ package usecase
 
 import (
 	"database/sql"
-	"os"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 	"golang.org/x/crypto/bcrypt"
+	"os"
 )
 
 type UserUsecase struct {
@@ -51,7 +50,7 @@ func (uu *UserUsecase) GetByTelephone(telephone string) (*models.UserData, *erro
 	return user, nil
 }
 
-func (uu *UserUsecase) GetByID(userID uint64) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	switch {
 	case err == sql.ErrNoRows:
@@ -60,7 +59,17 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.UserData, *errors.Error) 
 		return nil, errors.UnexpectedInternal(err)
 	}
 
-	return user, nil
+	profile := &models.ProfileData{
+		Name:       user.Name,
+		Surname:    user.Surname,
+		Sex:        user.Sex,
+		Email:      user.Email,
+		Telephone:  user.Telephone,
+		DateBirth:  user.DateBirth,
+		LinkImages: user.LinkImages,
+	}
+
+	return profile, nil
 }
 
 func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData) (*models.UserData, *errors.Error) {
