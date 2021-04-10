@@ -19,6 +19,10 @@ create table if not exists users
     sex       varchar(12)        not null,
     birthdate date,
     reg_date  timestamp,
+    latitude  float                       DEFAULT 55.753808,
+    longitude float                       DEFAULT 37.620017,
+    radius    int                         DEFAULT 0,
+    address   varchar(128)                DEFAULT 'Москва',
     avatar    varchar(128)       NOT NULL DEFAULT ''
 );
 

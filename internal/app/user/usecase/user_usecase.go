@@ -66,6 +66,10 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 		Email:      user.Email,
 		Telephone:  user.Telephone,
 		DateBirth:  user.DateBirth,
+		Latitude:   user.Latitude,
+		Longitude:  user.Longitude,
+		Radius:     user.Radius,
+		Address:    user.Address,
 		LinkImages: user.LinkImages,
 	}
 
@@ -132,6 +136,25 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	}
 
 	user.Password = string(newHashedPassword)
+
+	err = uu.userRepo.Update(user)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	return user, nil
+}
+
+func (uu *UserUsecase) UpdatePosition(userID uint64, data *models.PositionData) (*models.UserData, *errors.Error) {
+	user, err := uu.userRepo.SelectByID(userID)
+	if err != nil {
+		return nil, errors.Cause(errors.UserNotExist)
+	}
+
+	user.Latitude = data.Latitude
+	user.Longitude = data.Longitude
+	user.Radius = data.Radius
+	user.Address = data.Address
 
 	err = uu.userRepo.Update(user)
 	if err != nil {
