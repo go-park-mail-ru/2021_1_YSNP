@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 	"github.com/sirupsen/logrus"
@@ -41,7 +42,7 @@ func (m *Middleware) NewLogger(logger *logrus.Entry) {
 
 func CorsControlMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Access-Control-Allow-Headers", "*")
+		w.Header().Set("Access-Control-Allow-Headers", "X-CSRF-Token")
 
 		switch req.Header.Get("Origin") {
 		case "http://localhost:3000":
@@ -51,6 +52,7 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 			w.Header().Set("Access-Control-Allow-Origin", "https://ykoya.ru")
 		}
 
+		w.Header().Set("Access-Control-Expose-Headers", "X-CSRF-Token")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 
@@ -89,6 +91,7 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 			next.ServeHTTP(w, r)
 			return
 		}
+		w.Header().Set("X-CSRF-Token", csrf.Token(r))
 
 		session, errE := m.sessUcase.Check(cookie.Value)
 		if errE != nil {

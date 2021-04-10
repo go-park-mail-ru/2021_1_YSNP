@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/asaskevich/govalidator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/gorilla/csrf"
 	"github.com/microcosm-cc/bluemonday"
 	"io"
 	"net/http"
@@ -32,11 +33,11 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 }
 
 func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost)
-	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
-	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -44,6 +45,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
+	w.Header().Set("X-CSRF-Token", csrf.Token(r))
 	signUp := models.SignUpRequest{}
 	err := json.NewDecoder(r.Body).Decode(&signUp)
 	if err != nil {
@@ -228,6 +230,7 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	w.Header().Set("X-CSRF-Token", csrf.Token(r))
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {

@@ -8,6 +8,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
@@ -28,14 +29,14 @@ func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsec
 }
 
 func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost)
-	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
-
 	defer r.Body.Close()
+	w.Header().Set("X-CSRF-Token", csrf.Token(r))
 
 	login := &models.LoginRequest{}
 	err := json.NewDecoder(r.Body).Decode(&login)

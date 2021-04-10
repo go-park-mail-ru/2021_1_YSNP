@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
-
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
+	"github.com/sirupsen/logrus"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
@@ -60,6 +62,16 @@ func main() {
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
+	csrfMiddleware := csrf.Protect([]byte("32-byte-long-auth-key"),
+		csrf.ErrorHandler(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				errE := errors.Cause(errors.InvalidCSRFToken)
+				logrus.Error(errE.Message)
+				w.WriteHeader(errE.HttpError)
+				w.Write(errors.JSONError(errE))
+				return
+			},
+		)))
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
 	mw.NewLogger(logger.GetLogger())
@@ -67,6 +79,7 @@ func main() {
 	router.Use(middleware.CorsControlMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
+	api.Use(csrfMiddleware)
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)

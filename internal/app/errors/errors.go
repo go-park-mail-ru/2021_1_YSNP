@@ -20,6 +20,7 @@ const (
 	EmptyContext
 	ProductNotExist
 	PromoteEmptyLabel
+	InvalidCSRFToken
 )
 
 type Error struct {
@@ -120,6 +121,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: PromoteEmptyLabel,
 		HttpError: http.StatusBadRequest,
 		Message:   "promote label doesn't exist",
+	},
+	InvalidCSRFToken: {
+		ErrorCode: InvalidCSRFToken,
+		HttpError: http.StatusForbidden,
+		Message:   "Forbidden - CSRF token invalid",
 	},
 }
 
