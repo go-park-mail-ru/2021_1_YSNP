@@ -12,6 +12,12 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
+
+	"github.com/asaskevich/govalidator"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
@@ -33,14 +39,17 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
-
-	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
+  r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
+  
+  r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/list", mw.CheckAuthMiddleware(ph.MainPageHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user/ad/list", mw.CheckAuthMiddleware(ph.UserAdHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user/favorite/list", mw.CheckAuthMiddleware(ph.UserFavoriteHandler)).Methods(http.MethodGet)
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost)
+
+	r.HandleFunc("/categories", ph.CategoriesHandler).Methods(http.MethodGet)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -214,6 +223,62 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
+
+func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
+	err := r.ParseForm()
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	label := r.PostFormValue("label")
+	if label == "" {
+		errE := errors.Cause(errors.PromoteEmptyLabel)
+		logger.Error(errE)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Debug(label)
+
+	data := strings.Split(label, ",")
+	productID, err := strconv.ParseUint(data[0], 10, 64)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info(productID)
+
+	tariff, err := strconv.Atoi(data[1])
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info(tariff)
+
+	errE := ph.productUcase.SetTariff(productID, tariff)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful promotion."))
+}
+
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
@@ -471,4 +536,23 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful dislike."))
+}
+  
+  
+  func (ph *ProductHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
+	
+	var categories []*models.Category
+	categories = append(categories, &models.Category {Title: "Транспорт"}, &models.Category {Title: "Недвижмость"}, &models.Category {Title: "Хобби и отдых"}, &models.Category {Title: "Работа"}, &models.Category {Title: "Для дома и дачи"}, &models.Category {Title: "Бытовая электрика"}, &models.Category {Title: "Личные вещи"}, &models.Category {Title: "Животные"})
+	body, err := json.Marshal(categories)
+	if err != nil {
+		logrus.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
 }

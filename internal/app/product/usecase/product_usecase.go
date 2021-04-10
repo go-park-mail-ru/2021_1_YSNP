@@ -2,6 +2,9 @@ package usecase
 
 import (
 	"database/sql"
+	"os"
+	"time"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
@@ -137,6 +140,15 @@ func (pu *ProductUsecase) LikeProduct(userID uint64, productID uint64) *errors.E
 
 func (pu *ProductUsecase) DislikeProduct(userID uint64, productID uint64) *errors.Error {
 	err := pu.productRepo.DeleteProductLike(userID, productID)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
+}
+
+func (pu *ProductUsecase) SetTariff(productID uint64, tariff int) *errors.Error {
+	err := pu.productRepo.UpdateTariff(productID, tariff)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}

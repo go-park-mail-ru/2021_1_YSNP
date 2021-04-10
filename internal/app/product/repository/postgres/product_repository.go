@@ -28,15 +28,18 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 
 	query := tx.QueryRow(
 		`
-				INSERT INTO product(name, date, amount, description, category, owner_id)
-				VALUES ($1, $2, $3, $4, $5, $6)
+				INSERT INTO product(name, date, amount, description, category, owner_id, longitude, latitude, address)
+				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 				RETURNING id`,
 		product.Name,
 		product.Date,
 		product.Amount,
 		product.Description,
 		product.Category,
-		product.OwnerID)
+		product.OwnerID,
+		product.Longitude,
+		product.Latitude, 
+		product.Address)
 
 	err = query.Scan(&product.ID)
 	if err != nil {
@@ -106,7 +109,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 
 	query := tx.QueryRow(
 		`
-				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, array_agg(pi.img_link)
+				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff
 				FROM product AS p
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
@@ -129,7 +132,11 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&product.OwnerSurname,
 		&product.Likes,
 		&product.Views,
-		&linkStr)
+		&product.Longitude,
+		&product.Latitude,
+		&product.Address,
+		&linkStr,
+		&product.Tariff)
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
@@ -173,7 +180,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 
 	query, err := pr.dbConn.Query(
 		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), p.tariff
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
 				GROUP BY p.id
@@ -198,7 +205,8 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 			&product.Name,
 			&date,
 			&product.Amount,
-			&linkStr)
+			&linkStr,
+      &product.Tariff)
 
 		if err != nil {
 			return nil, err
@@ -226,7 +234,7 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 
 	query, err := pr.dbConn.Query(
 		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
 				left join user_favorite uf on p.id = uf.product_id
@@ -254,6 +262,7 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 			&date,
 			&product.Amount,
 			&linkStr,
+      &product.Tariff,
 			&user)
 
 		if err != nil {
@@ -467,6 +476,32 @@ func (pr *ProductRepository) DeleteProductLike(userID uint64, productID uint64) 
 			return rollbackErr
 		}
 
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository) UpdateTariff(productID uint64, tariff int) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`UPDATE product SET tariff=$1 WHERE id=$2`,
+		tariff,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
 		return err
 	}
 
