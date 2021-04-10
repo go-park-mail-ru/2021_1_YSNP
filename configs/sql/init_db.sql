@@ -22,6 +22,11 @@ create table if not exists users
     avatar    varchar(128)       NOT NULL DEFAULT ''
 );
 
+create table if not exists category
+(
+    id        serial        primary key,
+    title     varchar(128)  unique not null
+);
 
 CREATE TABLE IF NOT EXISTS product
 (
@@ -30,16 +35,17 @@ CREATE TABLE IF NOT EXISTS product
     date        date         not null default '1970-1-1',
     amount      int          not null,
     description text         NOT NULL,
-    category    varchar(64)  not null,
+    category_id int          not null,
     owner_id    int          not null,
-    address varchar(128),
-    longitude float,
-    latitude  float,
+    address     varchar(128),
+    longitude   float,
+    latitude    float,
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
 
-    FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE
+    FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION
 );
 
 CREATE TABLE IF NOT EXISTS product_images
@@ -53,18 +59,28 @@ FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
 
 INSERT INTO users (email, telephone, password, name, surname, sex) VALUES ('asd', '123', '123', '123', '123', 'M');
 
-INSERT INTO product (name, amount, description, category, owner_id) VALUES
-    ('iPhone 10', 1000, 'hello', 'Электроника', 1),
-    ('iPhone 11', 1200, 'hello', 'Одежда', 1),
-    ('iPhone 12', 1300, 'hello', 'Хобби', 1),
-    ('iPhone 13', 1400, 'hello', 'Запчасти', 1),
-    ('iPhone 14', 1500, 'hello', 'Запчасти', 1),
-    ('iPhone 15', 1600, 'hello', 'Хобби', 1),
-    ('iPhone 16', 1700, 'hello', 'Одежда', 1),
-    ('iPhone 17', 1800, 'hello', 'Электроника', 1),
-    ('iPhone 18', 1900, 'hello', 'Электроника', 1),
-    ('iPhone 19', 2100, 'hello', 'Хобби', 1),
-    ('iPhone 20', 2400, 'hello', 'Электроника', 1);
+INSERT INTO category (title) VALUES 
+    ('Транспорт'),
+    ('Недвижмость'),
+    ('Хобби и отдых'),
+    ('Работа'),
+    ('Для дома и дачи'),
+    ('Бытовая электрика'),
+    ('Личные вещи'),
+    ('Животные');
+
+INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude) VALUES
+    ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 55.753808, 37.620017),
+    ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 55.753808, 37.620017);
 
 
     INSERT INTO product_images (product_id, img_link) VALUES 
