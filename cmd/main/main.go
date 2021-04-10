@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"time"
-
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -47,10 +46,10 @@ func main() {
 		log.Fatal(err)
 	}
 
-	userRepo := userRepo.NewUserRepository(sqlConn)
-	sessRepo := sessionRepo.NewSessionRepository(tarConn)
-	prodRepo := productRepo.NewProductRepository(sqlConn)
-	searchRepo := searchRepo.NewProductRepository(sqlConn)
+	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
+	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
+	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
+	searchRepo := searchRepo.NewProductRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)

@@ -33,8 +33,8 @@ CREATE TABLE IF NOT EXISTS product
     category    varchar(64)  not null,
     owner_id    int          not null,
     address varchar(128),
-    longitude varchar(64),
-    latitude varchar(64),
+    longitude float,
+    latitude  float,
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
@@ -65,4 +65,19 @@ INSERT INTO product (name, amount, description, category, owner_id) VALUES
     ('iPhone 18', 1900, 'hello', 'Электроника', 1),
     ('iPhone 19', 2100, 'hello', 'Хобби', 1),
     ('iPhone 20', 2400, 'hello', 'Электроника', 1);
+
+
+    INSERT INTO product_images (product_id, img_link) VALUES 
+    (1, 'asd2'),
+        (2, 'as3d'),
+            (3, 'as4d'),
+                (4, 'as5d'),
+                    (5, 'a6sd'),
+                        (6, 'as7d'),
+                            (7, 'as8d'),
+                                (8, 'as9d'),
+                    (9, 'a52sd'),
+                        (10, 'a32sd'),
+                            (11, 'as43d');
+
 
