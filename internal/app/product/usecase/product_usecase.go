@@ -9,8 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
 	"github.com/jackc/pgx"
-	"os"
-	"time"
 )
 
 type ProductUsecase struct {

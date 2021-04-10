@@ -37,7 +37,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
-  r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -108,9 +108,9 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:     "session_id",
-		Value:    session.Value,
-		Expires:  session.ExpiresAt,
+		Name:    "session_id",
+		Value:   session.Value,
+		Expires: session.ExpiresAt,
 		//Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,

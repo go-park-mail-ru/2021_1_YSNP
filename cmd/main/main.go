@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"time"
+
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -24,6 +25,7 @@ import (
 	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
+
 	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
 	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"

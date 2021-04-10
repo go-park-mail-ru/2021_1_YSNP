@@ -7,7 +7,7 @@ import "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 type ProductRepository interface {
 	Insert(product *models.ProductData) error
 	InsertPhoto(content *models.ProductData) error
-  UpdateTariff(productID uint64, tariff int) error
+	UpdateTariff(productID uint64, tariff int) error
 
 	SelectByID(productID uint64) (*models.ProductData, error)
 	SelectLatest(content *models.Page) ([]*models.ProductListData, error)

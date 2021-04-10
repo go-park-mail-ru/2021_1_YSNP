@@ -2,14 +2,14 @@ package repository
 
 import (
 	"database/sql"
-	"math"
-	"strings"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
+	"math"
+	"strings"
 )
 
 func NewProductRepository(conn *sql.DB) search.SearchRepository {
-	return & SearchRepository{
+	return &SearchRepository{
 		dbConn: conn,
 	}
 }
@@ -24,18 +24,18 @@ func getMaxMinAmount(data *models.Search) (int, int) {
 	if maxAmount == 0 {
 		maxAmount = math.MaxInt32
 	}
-	return  data.FromAmount, maxAmount
+	return data.FromAmount, maxAmount
 
 }
 
 func getDateSorting(data *models.Search) string {
 	switch data.Date {
-		case "За 24 часа":
-			return "AND date BETWEEN now() - INTERVAL '1 DAY' AND now()"
-		case "За 7 дней":
-			return "AND date BETWEEN now() - INTERVAL '7 DAY' AND now()"
-		default:
-			return ""
+	case "За 24 часа":
+		return "AND date BETWEEN now() - INTERVAL '1 DAY' AND now()"
+	case "За 7 дней":
+		return "AND date BETWEEN now() - INTERVAL '7 DAY' AND now()"
+	default:
+		return ""
 	}
 }
 
@@ -56,7 +56,7 @@ func getOrderQuery(data *models.Search) string {
 
 func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
-	minAmount, maxAmount := getMaxMinAmount(data);
+	minAmount, maxAmount := getMaxMinAmount(data)
 	var values []interface{}
 	selectQuery := `
 				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
@@ -65,7 +65,7 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 				WHERE LOWER(name) LIKE LOWER($1) AND
 				      category LIKE $2  AND
 				      amount BETWEEN $3 AND $4   `
-	values = append(values, "%" + data.Search + "%", "%" + data.Category + "%", minAmount, maxAmount)
+	values = append(values, "%"+data.Search+"%", "%"+data.Category+"%", minAmount, maxAmount)
 	dateQuery := getDateSorting(data)
 	var orderQuery string
 	orderQuery += "GROUP BY p.id " + getOrderQuery(data)
@@ -92,7 +92,7 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 			&product.Date,
 			&product.Amount,
 			&linkStr,
-			)
+		)
 
 		if err != nil {
 			return nil, err

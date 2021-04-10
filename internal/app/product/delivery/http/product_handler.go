@@ -14,11 +14,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
@@ -39,9 +34,9 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
-  r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
-  
-  r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
+	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
+
+	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
 	r.HandleFunc("/product/list", mw.CheckAuthMiddleware(ph.MainPageHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user/ad/list", mw.CheckAuthMiddleware(ph.UserAdHandler)).Methods(http.MethodGet)
 	r.HandleFunc("/user/favorite/list", mw.CheckAuthMiddleware(ph.UserFavoriteHandler)).Methods(http.MethodGet)
@@ -278,7 +273,6 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful promotion."))
 }
-
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
@@ -537,12 +531,11 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful dislike."))
 }
-  
-  
-  func (ph *ProductHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
-	
+
+func (ph *ProductHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
+
 	var categories []*models.Category
-	categories = append(categories, &models.Category {Title: "Транспорт"}, &models.Category {Title: "Недвижмость"}, &models.Category {Title: "Хобби и отдых"}, &models.Category {Title: "Работа"}, &models.Category {Title: "Для дома и дачи"}, &models.Category {Title: "Бытовая электрика"}, &models.Category {Title: "Личные вещи"}, &models.Category {Title: "Животные"})
+	categories = append(categories, &models.Category{Title: "Транспорт"}, &models.Category{Title: "Недвижмость"}, &models.Category{Title: "Хобби и отдых"}, &models.Category{Title: "Работа"}, &models.Category{Title: "Для дома и дачи"}, &models.Category{Title: "Бытовая электрика"}, &models.Category{Title: "Личные вещи"}, &models.Category{Title: "Животные"})
 	body, err := json.Marshal(categories)
 	if err != nil {
 		logrus.Error(err)

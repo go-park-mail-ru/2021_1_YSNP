@@ -10,7 +10,7 @@ import (
 type ProductUsecase interface {
 	Create(product *models.ProductData) *errors.Error
 	UpdatePhoto(productID uint64, newAvatar []string) (*models.ProductData, *errors.Error)
-  SetTariff(productID uint64, tariff int) *errors.Error
+	SetTariff(productID uint64, tariff int) *errors.Error
 
 	GetByID(productID uint64) (*models.ProductData, *errors.Error)
 	ListLatest(content *models.Page) ([]*models.ProductListData, *errors.Error)

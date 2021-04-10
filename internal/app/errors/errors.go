@@ -122,12 +122,12 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductAlreadyLiked,
 		HttpError: http.StatusBadRequest,
 		Message:   "product already liked",
-  },
+	},
 	EmptySearch: {
 		ErrorCode: EmptySearch,
 		HttpError: http.StatusNotFound,
 		Message:   "searching products dont't exist",
-  },
+	},
 	PromoteEmptyLabel: {
 		ErrorCode: PromoteEmptyLabel,
 		HttpError: http.StatusBadRequest,

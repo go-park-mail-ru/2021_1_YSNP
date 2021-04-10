@@ -38,7 +38,7 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 		product.Category,
 		product.OwnerID,
 		product.Longitude,
-		product.Latitude, 
+		product.Latitude,
 		product.Address)
 
 	err = query.Scan(&product.ID)
@@ -206,7 +206,7 @@ func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.Produ
 			&date,
 			&product.Amount,
 			&linkStr,
-      &product.Tariff)
+			&product.Tariff)
 
 		if err != nil {
 			return nil, err
@@ -262,8 +262,8 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 			&date,
 			&product.Amount,
 			&linkStr,
-      &product.Tariff,
-			&user)
+			&user,
+			&product.Tariff)
 
 		if err != nil {
 			return nil, err
