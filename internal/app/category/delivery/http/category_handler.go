@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
@@ -17,8 +16,8 @@ type CategoryHandler struct {
 	categoryUcase category.CategoryUsecase
 }
 
-func NewProductHandler(productUcase category.CategoryUsecase) *CategoryHandler {
-	return &CategoryUsecase {
+func NewCategoryHandler(productUcase category.CategoryUsecase) *CategoryHandler {
+	return &CategoryHandler {
 		categoryUcase: productUcase,
 	}
 }
@@ -28,12 +27,20 @@ func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) 
 }
 
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
-	
+	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+
 	var categories []*models.Category
-	categories = append(categories, &models.Category {Title: "Транспорт"}, &models.Category {Title: "Недвижмость"}, &models.Category {Title: "Хобби и отдых"}, &models.Category {Title: "Работа"}, &models.Category {Title: "Для дома и дачи"}, &models.Category {Title: "Бытовая электрика"}, &models.Category {Title: "Личные вещи"}, &models.Category {Title: "Животные"})
+	categories, errCategories := cat.categoryUcase.GetCategory()
+	if errCategories != nil {
+		logger.Error(errCategories.Message)
+		w.WriteHeader(errCategories.HttpError)
+		w.Write(errors.JSONError(errCategories))
+		return
+	}
+
 	body, err := json.Marshal(categories)
 	if err != nil {
-		logrus.Error(err)
+		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))

@@ -10,12 +10,17 @@ type CategoryUsecase struct {
 	categoryRepo category.CategoryRepository
 }
 
-func NewProductUsecase(repo category.CategoryUsecase) category.CategoryUsecase {
+func NewCategoryUsecase(repo category.CategoryRepository) category.CategoryUsecase {
 	return &CategoryUsecase{
 		categoryRepo: repo,
 	}
 }
 
 func(cat *CategoryUsecase) GetCategory() ([]*models.Category, *errors.Error) {
-	return nil, nil
+	categories, err := cat.categoryRepo.GetCategory()
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+	
+	return categories, nil
 }
