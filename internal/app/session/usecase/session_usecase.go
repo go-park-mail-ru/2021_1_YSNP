@@ -23,6 +23,7 @@ func (su *SessionUsecase) Create(sess *models.Session) *errors.Error {
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
+
 	return nil
 }
 
@@ -31,6 +32,7 @@ func (su *SessionUsecase) Get(sessValue string) (*models.Session, *errors.Error)
 	if err != nil {
 		return nil, errors.Cause(errors.SessionNotExist)
 	}
+
 	return sess, nil
 }
 
@@ -43,6 +45,7 @@ func (su *SessionUsecase) Delete(sessionValue string) *errors.Error {
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
+
 	return nil
 }
 
@@ -57,6 +60,7 @@ func (su *SessionUsecase) Check(sessValue string) (*models.Session, *errors.Erro
 		if errE != nil {
 			return nil, errE
 		}
+
 		return nil, errors.Cause(errors.SessionExpired)
 	}
 

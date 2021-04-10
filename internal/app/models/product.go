@@ -9,8 +9,8 @@ type ProductData struct {
 	Description  string   `json:"description" valid:"stringlength(10|4000)"`
 	Category     string   `json:"category" valid:"type(string)"`
 	Address      string   `json:"address" valid:"type(string)"`
-	Longitude    float32  `json:"longitude" valid:"longitude"`
-	Latitude     float32  `json:"latitude" valid:"latitude"`
+	Longitude    float64   `json:"longitude" valid:"longitude"`
+	Latitude     float64   `json:"latitude" valid:"latitude"`
 	OwnerID      uint64   `json:"ownerId" valid:"numeric"`
 	OwnerName    string   `json:"ownerName" valid:"stringlength(1|30)"`
 	OwnerSurname string   `json:"ownerSurname" valid:"stringlength(1|30)"`
@@ -25,23 +25,15 @@ type ProductListData struct {
 	Date       string   `json:"date" valid:"-"`
 	Amount     int      `json:"amount" valid:"numeric"`
 	LinkImages []string `json:"linkImages" valid:"stringArray"`
+	UserLiked  bool     `json:"userLiked" valid:"type(bool)"`
 	Tariff     int      `json:"tariff" valid:"numeric"`
 }
 
-type Content struct {
-	From  uint64 `json:"from" valid:"numeric"`
-	Count uint64 `json:"count" valid:"numeric"`
-}
-
-type OrderType struct {
-	Main bool `json:"main" valid:"type(bool)"`
-}
-
 type Page struct {
-	Content Content   `json:"content" valid:"-"`
-	Order   OrderType `json:"order" valid:"-"`
+	From  uint64 `valid:"numeric"`
+	Count uint64 `valid:"numeric"`
 }
 
 type Category struct {
-	Title string   `json:"title"`
+	Title string `json:"title"`
 }

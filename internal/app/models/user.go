@@ -9,8 +9,8 @@ type UserData struct {
 	Telephone  string  `json:"telephone" valid:"phoneNumber"`
 	Password   string  `json:"password,omitempty" valid:"password"`
 	DateBirth  string  `json:"dateBirth" valid:"-"`
-	Latitude   float64 `json:"latitude" valid:"latitude"`
-	Longitude  float64 `json:"longitude" valid:"longitude"`
+	Latitude   float64  `json:"latitude" valid:"latitude"`
+	Longitude  float64  `json:"longitude" valid:"longitude"`
 	Radius     uint64  `json:"radius" valid:"numeric"`
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
@@ -23,8 +23,8 @@ type ProfileData struct {
 	Email      string  `json:"email"`
 	Telephone  string  `json:"telephone"`
 	DateBirth  string  `json:"dateBirth"`
-	Latitude   float64 `json:"latitude" valid:"latitude"`
-	Longitude  float64 `json:"longitude" valid:"longitude"`
+	Latitude   float64  `json:"latitude" valid:"latitude"`
+	Longitude  float64  `json:"longitude" valid:"longitude"`
 	Radius     uint64  `json:"radius" valid:"numeric"`
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages"`

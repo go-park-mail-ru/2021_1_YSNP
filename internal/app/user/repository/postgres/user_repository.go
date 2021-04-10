@@ -45,6 +45,7 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 		if rollbackErr != nil {
 			return rollbackErr
 		}
+
 		return err
 	}
 
