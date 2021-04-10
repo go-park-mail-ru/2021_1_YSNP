@@ -1,4 +1,4 @@
-package models
+package validator
 
 import (
 	"github.com/asaskevich/govalidator"

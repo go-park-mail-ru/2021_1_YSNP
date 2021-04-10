@@ -1,10 +1,17 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
-	_ "github.com/jackc/pgx/stdlib"
-	tarantool "github.com/tarantool/go-tarantool"
+	"log"
+	"net/http"
+	"time"
+	"github.com/gorilla/mux"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
@@ -17,17 +24,9 @@ import (
 	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
-
-	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-
-	"log"
-	"net/http"
-	"time"
-
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/sirupsen/logrus"
-
-	"github.com/gorilla/mux"
+	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
+	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
+	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
 )
 
 func main() {
@@ -36,75 +35,55 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sqlConn, err := sql.Open("pgx", configs.GetDBConfig())
+	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer sqlConn.Close()
+	defer postgresDB.Close()
 
-	if err := sqlConn.Ping(); err != nil {
+	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	if err != nil {
 		log.Fatal(err)
 	}
 
-	opts := tarantool.Opts{
-		User: "admin",
-		Pass: "pass",
-	}
-	tarConn, err := tarantool.Connect("127.0.0.1:3301", opts)
-
-	if err != nil {
-		fmt.Println("baa: Connection refused:", err)
-		return
-	}
-
-	router := mux.NewRouter()
-
-	userRepo := userRepo.NewUserRepository(sqlConn)
-	sessRepo := sessionRepo.NewSessionRepository(tarConn)
-	prodRepo := productRepo.NewProductRepository(sqlConn)
+	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
+	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
+	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
+	searchRepo := searchRepo.NewProductRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
-
-	logrus.SetFormatter(&logrus.TextFormatter{
-		FullTimestamp:   true,
-		TimestampFormat: "02-01-2006 15:04:05",
-	})
-	logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-		"host":   "89.208.199.170",
-		"port":   "8080",
-	}).Info("Starting server")
-
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
-	contextLogger := logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-	})
-	mw.LogrusLogger = contextLogger
-	logrus.SetLevel(logrus.DebugLevel)
-
-	router.Use(mw.AccessLogMiddleware)
-
-	router.Use(middleware.CorsControlMiddleware)
-
-	server := http.Server{
-		Addr:         ":8080",
-		Handler:      router,
-		ReadTimeout:  60 * time.Second,
-		WriteTimeout: 60 * time.Second,
-	}
-
-	//router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
-	api := router.PathPrefix("/api/v1").Subrouter()
+	searchUcase := searchUsecase.NewSessionUsecase(searchRepo)
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
+	searchHandler := searchHandler.NewSearchHandler(searchUcase)
+
+	logger := logger.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+
+	router := mux.NewRouter()
+
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw.NewLogger(logger.GetLogger())
+	router.Use(mw.AccessLogMiddleware)
+	router.Use(middleware.CorsControlMiddleware)
+
+	api := router.PathPrefix("/api/v1").Subrouter()
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, mw)
+	searchHandler.Configure(api, mw)
+
+	server := http.Server{
+		Addr:         fmt.Sprint(":", configs.GetServerPort()),
+		Handler:      router,
+		ReadTimeout:  60 * time.Second,
+		WriteTimeout: 60 * time.Second,
+	}
 
 	err = server.ListenAndServe()
 	if err != nil {

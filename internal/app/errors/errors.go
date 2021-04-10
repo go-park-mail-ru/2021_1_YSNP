@@ -20,6 +20,7 @@ const (
 	EmptyContext
 	ProductNotExist
 	PromoteEmptyLabel
+	EmptySearch
 )
 
 type Error struct {
@@ -116,6 +117,11 @@ var CustomErrors = map[ErrorType]*Error{
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
 	},
+	EmptySearch: {
+		ErrorCode: EmptySearch,
+		HttpError: http.StatusNotFound,
+		Message:   "searching products dont't exist",
+  },
 	PromoteEmptyLabel: {
 		ErrorCode: PromoteEmptyLabel,
 		HttpError: http.StatusBadRequest,

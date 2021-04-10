@@ -147,7 +147,6 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 				WHERE id = $1;`,
 		user.ID,
 		user.Email,
-		user.Telephone,
 		user.Password,
 		user.Name,
 		user.Surname,
