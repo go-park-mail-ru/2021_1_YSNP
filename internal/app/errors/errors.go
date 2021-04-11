@@ -90,7 +90,7 @@ var CustomErrors = map[ErrorType]*Error{
 	},
 	SessionNotExist: {
 		ErrorCode: SessionNotExist,
-		HttpError: http.StatusBadRequest,
+		HttpError: http.StatusUnauthorized,
 		Message:   "user session doesn't exists",
 	},
 	SessionExpired: {
