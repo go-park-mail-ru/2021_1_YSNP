@@ -14,6 +14,12 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 
+
+
+	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
+	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
+	categoryUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/usecase"
+
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
 	userUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/usecase"
@@ -52,16 +58,19 @@ func main() {
 	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
 	searchRepo := searchRepo.NewProductRepository(postgresDB.GetDatabase())
+	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
 	searchUcase := searchUsecase.NewSessionUsecase(searchRepo)
+	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
+	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
@@ -79,6 +88,8 @@ func main() {
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, mw)
 	searchHandler.Configure(api, mw)
+	categoryHandler.Configure(api, mw)
+
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.GetServerPort()),

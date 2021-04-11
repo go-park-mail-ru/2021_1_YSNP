@@ -28,8 +28,8 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 
 	query := tx.QueryRow(
 		`
-				INSERT INTO product(name, date, amount, description, category, owner_id, longitude, latitude, address)
-				VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+				INSERT INTO product(name, date, amount, description, category_id, owner_id, longitude, latitude, address)
+				VALUES ($1, $2, $3, $4, (SELECT cat.id from category as cat where cat.title = $5), $6, $7, $8, $9)
 				RETURNING id`,
 		product.Name,
 		product.Date,
@@ -109,11 +109,12 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 
 	query := tx.QueryRow(
 		`
-				SELECT p.id, p.name, p.date, p.amount, p.description, p.category, p.owner_id, u.name, u.surname, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff
+				SELECT p.id, p.name, p.date, p.amount, p.description, cat.title, p.owner_id, u.name, u.surname, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff
 				FROM product AS p
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
-				GROUP BY p.id, u.name, u.surname`,
+				left join category as cat on cat.id=p.category_id
+				GROUP BY p.id, cat.title, u.name, u.surname`,
 		productID)
 
 	product := &models.ProductData{}

@@ -43,8 +43,6 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost)
-
-	r.HandleFunc("/categories", ph.CategoriesHandler).Methods(http.MethodGet)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -532,20 +530,3 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 	w.Write(errors.JSONSuccess("Successful dislike."))
 }
 
-func (ph *ProductHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
-
-	var categories []*models.Category
-	categories = append(categories, &models.Category{Title: "Транспорт"}, &models.Category{Title: "Недвижмость"}, &models.Category{Title: "Хобби и отдых"}, &models.Category{Title: "Работа"}, &models.Category{Title: "Для дома и дачи"}, &models.Category{Title: "Бытовая электрика"}, &models.Category{Title: "Личные вещи"}, &models.Category{Title: "Животные"})
-	body, err := json.Marshal(categories)
-	if err != nil {
-		logrus.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(body)
-}
