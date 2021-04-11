@@ -16,7 +16,7 @@ func NewCategoryRepository(conn *sql.DB) category.CategoryRepository {
 	}
 }
 
-func (cat *CategoryRepository)  GetCategory() ([]*models.Category, error) {
+func (cat *CategoryRepository)  GetAllCategories() ([]*models.Category, error) {
 	var categories []*models.Category
 
 	query, err := cat.dbConn.Query(`SELECT title from category`)

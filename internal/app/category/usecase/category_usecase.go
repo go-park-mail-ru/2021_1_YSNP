@@ -16,8 +16,8 @@ func NewCategoryUsecase(repo category.CategoryRepository) category.CategoryUseca
 	}
 }
 
-func(cat *CategoryUsecase) GetCategory() ([]*models.Category, *errors.Error) {
-	categories, err := cat.categoryRepo.GetCategory()
+func(cat *CategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Error) {
+	categories, err := cat.categoryRepo.GetAllCategories()
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

@@ -6,5 +6,5 @@ import (
 )
 
 type CategoryUsecase interface {
-	GetCategory() ([]*models.Category, *errors.Error)
+	GetAllCategories() ([]*models.Category, *errors.Error)
 }

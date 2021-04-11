@@ -30,7 +30,7 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 
 	var categories []*models.Category
-	categories, errCategories := cat.categoryUcase.GetCategory()
+	categories, errCategories := cat.categoryUcase.GetAllCategories()
 	if errCategories != nil {
 		logger.Error(errCategories.Message)
 		w.WriteHeader(errCategories.HttpError)
