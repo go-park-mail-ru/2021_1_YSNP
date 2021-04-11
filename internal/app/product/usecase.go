@@ -13,8 +13,7 @@ type ProductUsecase interface {
 	SetTariff(productID uint64, tariff int) *errors.Error
 
 	GetByID(productID uint64) (*models.ProductData, *errors.Error)
-	ListLatest(content *models.Page) ([]*models.ProductListData, *errors.Error)
-	ListAuthLatest(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
+	ListLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	UserAdList(userId uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	GetUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 

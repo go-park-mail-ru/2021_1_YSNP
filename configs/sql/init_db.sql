@@ -33,8 +33,8 @@ create table if not exists users
 
 create table if not exists category
 (
-    id        serial        primary key,
-    title     varchar(128)  unique not null
+    id    serial primary key,
+    title varchar(128) unique not null
 );
 
 CREATE TABLE IF NOT EXISTS product
@@ -67,8 +67,8 @@ CREATE TABLE IF NOT EXISTS product_images
 
 CREATE TABLE IF NOT EXISTS user_favorite
 (
-    user_id    int        NOT NULL,
-    product_id int unique NOT NULL,
+    user_id    int NOT NULL,
+    product_id int NOT NULL,
 
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
@@ -78,15 +78,16 @@ INSERT INTO users (email, telephone, password, name, surname, sex)
 VALUES ('asd', '123', '123', '123', '123', 'M');
 
 
-INSERT INTO category (title) VALUES 
-    ('Транспорт'),
-    ('Недвижмость'),
-    ('Хобби и отдых'),
-    ('Работа'),
-    ('Для дома и дачи'),
-    ('Бытовая электрика'),
-    ('Личные вещи'),
-    ('Животные');
+INSERT INTO category (title)
+VALUES ('Транспорт'),
+       ('Недвижмость'),
+       ('Хобби и отдых'),
+       ('Работа'),
+       ('Для дома и дачи'),
+       ('Бытовая электрика'),
+       ('Личные вещи'),
+       ('Животные');
+
 
 INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude) VALUES
     ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
@@ -103,17 +104,16 @@ INSERT INTO product (name, amount, description, category_id, owner_id, address, 
 
 
 
+
 INSERT INTO product_images (product_id, img_link)
-VALUES (1, 'asd2'),
-       (2, 'as3d'),
-       (3, 'as4d'),
-       (4, 'as5d'),
-       (5, 'a6sd'),
-       (6, 'as7d'),
-       (7, 'as8d'),
-       (8, 'as9d'),
-       (9, 'a52sd'),
-       (10, 'a32sd'),
-       (11, 'as43d');
-
-
+VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
+       (2, '/static/product/3af8506c-0608-498e-b2b7-7f7a445aa6df.webp'),
+       (3, '/static/product/4abcea38-00ad-4365-85af-1c144085ebd2.webp'),
+       (4, '/static/product/6d835ba7-1ecc-478d-8832-a64b3c58124c.webp'),
+       (5, '/static/product/8b644046-55b7-40a2-beab-308a964630ab.jpg'),
+       (6, '/static/product/697bade2-a4cb-49fc-bad3-c2205554b92a.jpeg'),
+       (7, '/static/product/936de281-1bdb-46e5-a404-3bf2a3fdbaac.webp'),
+       (8, '/static/product/ba1b1a47-97d3-4efb-aed2-f574fc28970f.webp'),
+       (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
+       (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
+       (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');

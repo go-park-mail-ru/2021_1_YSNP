@@ -331,14 +331,10 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 
 	var products []*models.ProductListData
 	var errE *errors.Error
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
-	if !ok {
-		products, errE = ph.productUcase.ListLatest(page)
-	} else {
-		products, errE = ph.productUcase.ListAuthLatest(userID, page)
-	}
+	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
 	logger.Info("user id ", userID)
 
+	products, errE = ph.productUcase.ListLatest(&userID, page)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -529,4 +525,3 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful dislike."))
 }
-
