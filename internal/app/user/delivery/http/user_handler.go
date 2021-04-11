@@ -35,7 +35,7 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/me", mw.SetCSRFToken(mw.CheckAuthMiddleware(uh.GetProfileHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/settings", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/settings/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
@@ -45,7 +45,6 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	w.Header().Set("X-CSRF-Token", csrf.Token(r))
 	signUp := models.SignUpRequest{}
 	err := json.NewDecoder(r.Body).Decode(&signUp)
 	if err != nil {

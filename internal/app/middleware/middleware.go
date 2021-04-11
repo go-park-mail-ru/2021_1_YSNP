@@ -5,6 +5,7 @@ import (
 	"github.com/google/uuid"
 	"net/http"
 	"time"
+	"crypto/rand"
 
 	"github.com/gorilla/csrf"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
@@ -84,6 +85,13 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+func (m *Middleware) SetCSRFToken(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-CSRF-Token", csrf.Token(r))
+		next.ServeHTTP(w, r)
+	})
+}
+
 func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session_id")
@@ -91,7 +99,6 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 			next.ServeHTTP(w, r)
 			return
 		}
-		w.Header().Set("X-CSRF-Token", csrf.Token(r))
 
 		session, errE := m.sessUcase.Check(cookie.Value)
 		if errE != nil {
@@ -103,4 +110,25 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 		ctx = context.WithValue(ctx, ContextUserID, session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
+}
+
+func CreateCSRFMiddleware(next http.Handler) http.Handler {
+	CSRFKey := make([]byte, 32)
+	_, err := rand.Read(CSRFKey)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+	}
+	return csrf.Protect(CSRFKey,
+		csrf.ErrorHandler(http.HandlerFunc(
+			func(w http.ResponseWriter, r *http.Request) {
+				errE := errors.Cause(errors.InvalidCSRFToken)
+				logrus.Error(errE.Message)
+				w.WriteHeader(errE.HttpError)
+				w.Write(errors.JSONError(errE))
+				return
+			},
+		)))
 }

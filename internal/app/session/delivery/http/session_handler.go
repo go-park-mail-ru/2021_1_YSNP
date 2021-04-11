@@ -29,14 +29,13 @@ func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsec
 }
 
 func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/login", mw.SetCSRFToken(sh.LoginHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	defer r.Body.Close()
-	w.Header().Set("X-CSRF-Token", csrf.Token(r))
 
 	login := &models.LoginRequest{}
 	err := json.NewDecoder(r.Body).Decode(&login)
