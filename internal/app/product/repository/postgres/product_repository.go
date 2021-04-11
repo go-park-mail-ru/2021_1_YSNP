@@ -29,7 +29,7 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 	query := tx.QueryRow(
 		`
 				INSERT INTO product(name, date, amount, description, category_id, owner_id, longitude, latitude, address)
-				VALUES ($1, $2, $3, $4, SELECT cat.id from category as cat where cat.title = $5, $6, $7, $8, $9)
+				VALUES ($1, $2, $3, $4, (SELECT cat.id from category as cat where cat.title = $5), $6, $7, $8, $9)
 				RETURNING id`,
 		product.Name,
 		product.Date,
