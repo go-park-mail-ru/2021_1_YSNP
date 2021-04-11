@@ -19,6 +19,10 @@ create table if not exists users
     sex       varchar(12)        not null,
     birthdate date,
     reg_date  timestamp,
+    latitude  float                       DEFAULT 55.753808,
+    longitude float                       DEFAULT 37.620017,
+    radius    int                         DEFAULT 0,
+    address   varchar(128)                DEFAULT 'Москва',
     avatar    varchar(128)       NOT NULL DEFAULT ''
 );
 
@@ -53,11 +57,21 @@ CREATE TABLE IF NOT EXISTS product_images
     product_id int                 NOT NULL,
     img_link   varchar(128) unique NOT NULL,
 
-FOREIGN KEY (product_id) REFERENCES product(id) ON DELETE CASCADE
+    FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS user_favorite
+(
+    user_id    int        NOT NULL,
+    product_id int unique NOT NULL,
 
-INSERT INTO users (email, telephone, password, name, surname, sex) VALUES ('asd', '123', '123', '123', '123', 'M');
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
+);
+
+INSERT INTO users (email, telephone, password, name, surname, sex)
+VALUES ('asd', '123', '123', '123', '123', 'M');
+
 
 INSERT INTO category (title) VALUES 
     ('Транспорт'),
@@ -83,17 +97,18 @@ INSERT INTO product (name, amount, description, category_id, owner_id, address, 
     ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 55.753808, 37.620017);
 
 
-    INSERT INTO product_images (product_id, img_link) VALUES 
-    (1, 'asd2'),
-        (2, 'as3d'),
-            (3, 'as4d'),
-                (4, 'as5d'),
-                    (5, 'a6sd'),
-                        (6, 'as7d'),
-                            (7, 'as8d'),
-                                (8, 'as9d'),
-                    (9, 'a52sd'),
-                        (10, 'a32sd'),
-                            (11, 'as43d');
+
+INSERT INTO product_images (product_id, img_link)
+VALUES (1, 'asd2'),
+       (2, 'as3d'),
+       (3, 'as4d'),
+       (4, 'as5d'),
+       (5, 'a6sd'),
+       (6, 'as7d'),
+       (7, 'as8d'),
+       (8, 'as9d'),
+       (9, 'a52sd'),
+       (10, 'a32sd'),
+       (11, 'as43d');
 
 

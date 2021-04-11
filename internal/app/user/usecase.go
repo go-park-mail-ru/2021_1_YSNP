@@ -15,4 +15,5 @@ type UserUsecase interface {
 	UpdateAvatar(userID uint64, newAvatar string) (*models.UserData, *errors.Error)
 	CheckPassword(user *models.UserData, password string) *errors.Error
 	UpdatePassword(userID uint64, password string) (*models.UserData, *errors.Error)
+	UpdatePosition(userID uint64, data *models.PositionData) (*models.UserData, *errors.Error)
 }
