@@ -238,12 +238,13 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
-				left join user_favorite uf on p.id = uf.product_id
+				left join user_favorite uf on p.id = uf.product_id and uf.user_id = $3
 				GROUP BY p.id, uf.user_id
 				ORDER BY p.date DESC 
 				LIMIT $1 OFFSET $2`,
 		content.Count,
-		content.From*content.Count)
+		content.From*content.Count,
+		userID)
 	if err != nil {
 		return nil, err
 	}
