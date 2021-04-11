@@ -2,10 +2,11 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 	"math"
 	"strings"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
+	"fmt"
 )
 
 func NewProductRepository(conn *sql.DB) search.SearchRepository {
@@ -65,8 +66,19 @@ func (s SearchRepository) SelectByFilter(data *models.Search) ([]*models.Product
 				left join category as cat on cat.id=p.category_id
 				WHERE LOWER(name) LIKE LOWER($1) AND
 					  cat.title LIKE $2  AND
-				      amount BETWEEN $3 AND $4   `
-	values = append(values, "%"+data.Search+"%", "%"+data.Category+"%", minAmount, maxAmount)
+				      amount BETWEEN $3 AND $4
+			  `
+	if data.Radius == 0 {
+		values = append(values, "%"+data.Search+"%", "%"+data.Category+"%", minAmount,maxAmount)
+	} else {
+		selectQuery += `AND
+		ST_DWithin(
+		  Geography(ST_SetSRID(ST_POINT(p.longitude, p.latitude), 4326)),
+		  ST_GeogFromText($5), $6 * 1000)`
+		val := "SRID=4326; POINT(" + fmt.Sprintf("%f", data.Longitude) + " " + fmt.Sprintf("%f", data.Latitude ) + ")"
+		values = append(values, "%"+data.Search+"%", "%"+data.Category+"%", minAmount,maxAmount, val, data.Radius)
+	}
+			  
 	dateQuery := getDateSorting(data)
 	var orderQuery string
 	orderQuery += "GROUP BY p.id " + getOrderQuery(data)

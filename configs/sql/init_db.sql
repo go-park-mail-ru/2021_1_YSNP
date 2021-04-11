@@ -6,6 +6,11 @@
 --     TABLESPACE = pg_default
 --     TEMPLATE template0
 -- 	;
+
+CREATE EXTENSION postgis;
+CREATE EXTENSION postgis_topology;
+
+
 GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO postgres;
 
 create table if not exists users
@@ -84,17 +89,17 @@ INSERT INTO category (title) VALUES
     ('Животные');
 
 INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude) VALUES
-    ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 55.753808, 37.620017),
-    ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 55.753808, 37.620017);
+    ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
+    ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
 
 
 
