@@ -45,6 +45,7 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 		if rollbackErr != nil {
 			return rollbackErr
 		}
+
 		return err
 	}
 
@@ -61,7 +62,10 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 
 	query := ur.dbConn.QueryRow(
 		`
-				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
+				SELECT id, email, telephone, password, 
+				name, surname, sex, birthdate, 
+				latitude, longitude, radius, address,
+				avatar
 				FROM users
 				WHERE telephone=$1`,
 		telephone)
@@ -69,15 +73,19 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 	var date time.Time
 
 	err := query.Scan(
-				&user.ID,
-				&user.Email,
-				&user.Telephone,
-				&user.Password,
-				&user.Name,
-				&user.Surname,
-				&user.Sex,
-				&date,
-				&user.LinkImages)
+		&user.ID,
+		&user.Email,
+		&user.Telephone,
+		&user.Password,
+		&user.Name,
+		&user.Surname,
+		&user.Sex,
+		&date,
+		&user.Latitude,
+		&user.Longitude,
+		&user.Radius,
+		&user.Address,
+		&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +100,9 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 
 	query := ur.dbConn.QueryRow(
 		`
-				SELECT id, email, telephone, password, name, surname, sex, birthdate, avatar
+				SELECT id, email, telephone, password, 
+			    name, surname, sex, birthdate, 
+				latitude, longitude, radius, address, avatar
 				FROM users
 				WHERE id=$1`,
 		userID)
@@ -100,15 +110,19 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 	var date time.Time
 
 	err := query.Scan(
-				&user.ID,
-				&user.Email,
-				&user.Telephone,
-				&user.Password,
-				&user.Name,
-				&user.Surname,
-				&user.Sex,
-				&date,
-				&user.LinkImages)
+		&user.ID,
+		&user.Email,
+		&user.Telephone,
+		&user.Password,
+		&user.Name,
+		&user.Surname,
+		&user.Sex,
+		&date,
+		&user.Latitude,
+		&user.Longitude,
+		&user.Radius,
+		&user.Address,
+		&user.LinkImages)
 	if err != nil {
 		return nil, err
 	}
@@ -127,15 +141,23 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 	_, err = tx.Exec(
 		`
 				UPDATE users
-				SET email = $2, password = $3, name = $4, surname = $5, sex = $6, birthdate = $7, avatar = $8
+				SET email = $2, telephone = $3, password = $4, 
+				name = $5, surname = $6, sex = $7, birthdate = $8,
+				latitude = $9, longitude = $10, radius = $11, address = $12,
+				avatar = $13
 				WHERE id = $1;`,
 		user.ID,
 		user.Email,
+		user.Telephone,
 		user.Password,
 		user.Name,
 		user.Surname,
 		user.Sex,
 		user.DateBirth,
+		user.Latitude,
+		user.Longitude,
+		user.Radius,
+		user.Address,
 		user.LinkImages)
 
 	if err != nil {

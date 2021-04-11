@@ -28,18 +28,19 @@ func (uu *UserUsecase) Create(user *models.UserData) *errors.Error {
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
-
 	user.Password = string(hashedPassword)
 
 	err = uu.userRepo.Insert(user)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
+
 	return nil
 }
 
 func (uu *UserUsecase) GetByTelephone(telephone string) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByTelephone(telephone)
+
 	switch {
 	case err == sql.ErrNoRows:
 		return nil, errors.Cause(errors.UserNotExist)
@@ -66,6 +67,10 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 		Email:      user.Email,
 		Telephone:  user.Telephone,
 		DateBirth:  user.DateBirth,
+		Latitude:   user.Latitude,
+		Longitude:  user.Longitude,
+		Radius:     user.Radius,
+		Address:    user.Address,
 		LinkImages: user.LinkImages,
 	}
 
@@ -117,6 +122,7 @@ func (uu *UserUsecase) CheckPassword(user *models.UserData, password string) *er
 	if err != nil {
 		return errors.Cause(errors.WrongPassword)
 	}
+
 	return nil
 }
 
@@ -130,8 +136,26 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
-
 	user.Password = string(newHashedPassword)
+
+	err = uu.userRepo.Update(user)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	return user, nil
+}
+
+func (uu *UserUsecase) UpdatePosition(userID uint64, data *models.PositionData) (*models.UserData, *errors.Error) {
+	user, err := uu.userRepo.SelectByID(userID)
+	if err != nil {
+		return nil, errors.Cause(errors.UserNotExist)
+	}
+
+	user.Latitude = data.Latitude
+	user.Longitude = data.Longitude
+	user.Radius = data.Radius
+	user.Address = data.Address
 
 	err = uu.userRepo.Update(user)
 	if err != nil {

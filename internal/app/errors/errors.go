@@ -19,6 +19,7 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	ProductAlreadyLiked
 	PromoteEmptyLabel
 	EmptySearch
 )
@@ -117,11 +118,16 @@ var CustomErrors = map[ErrorType]*Error{
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
 	},
+	ProductAlreadyLiked: {
+		ErrorCode: ProductAlreadyLiked,
+		HttpError: http.StatusBadRequest,
+		Message:   "product already liked",
+	},
 	EmptySearch: {
 		ErrorCode: EmptySearch,
 		HttpError: http.StatusNotFound,
 		Message:   "searching products dont't exist",
-  },
+	},
 	PromoteEmptyLabel: {
 		ErrorCode: PromoteEmptyLabel,
 		HttpError: http.StatusBadRequest,

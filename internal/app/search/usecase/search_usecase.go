@@ -11,7 +11,7 @@ type SearchUsecase struct {
 }
 
 func NewSessionUsecase(repo search.SearchRepository) search.SearchUsecase {
-	return &SearchUsecase {
+	return &SearchUsecase{
 		searchRepo: repo,
 	}
 }
@@ -22,7 +22,7 @@ func (su *SearchUsecase) SelectByFilter(data *models.Search) ([]*models.ProductL
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
-	
+
 	if len(res) == 0 {
 		return nil, errors.Cause(errors.EmptySearch)
 	}
