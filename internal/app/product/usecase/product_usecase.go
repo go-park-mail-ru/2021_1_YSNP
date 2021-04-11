@@ -70,21 +70,8 @@ func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *error
 	return product, nil
 }
 
-func (pu *ProductUsecase) ListLatest(content *models.Page) ([]*models.ProductListData, *errors.Error) {
-	products, err := pu.productRepo.SelectLatest(content)
-	if err != nil {
-		return nil, errors.UnexpectedInternal(err)
-	}
-
-	if len(products) == 0 {
-		return []*models.ProductListData{}, nil
-	}
-
-	return products, nil
-}
-
-func (pu *ProductUsecase) ListAuthLatest(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error) {
-	products, err := pu.productRepo.SelectAuthLatest(userID, content)
+func (pu *ProductUsecase) ListLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, *errors.Error) {
+	products, err := pu.productRepo.SelectLatest(userID, content)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

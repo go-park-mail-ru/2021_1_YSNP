@@ -176,61 +176,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	return product, nil
 }
 
-func (pr *ProductRepository) SelectLatest(content *models.Page) ([]*models.ProductListData, error) {
-	var products []*models.ProductListData
-
-	query, err := pr.dbConn.Query(
-		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), p.tariff
-				FROM product as p
-				left join product_images as pi on pi.product_id=p.id
-				GROUP BY p.id
-				ORDER BY p.date DESC 
-				LIMIT $1 OFFSET $2`,
-		content.Count,
-		content.From*content.Count)
-	if err != nil {
-		return nil, err
-	}
-
-	defer query.Close()
-
-	var linkStr string
-	var date time.Time
-
-	for query.Next() {
-		product := &models.ProductListData{}
-
-		err := query.Scan(
-			&product.ID,
-			&product.Name,
-			&date,
-			&product.Amount,
-			&linkStr,
-			&product.Tariff)
-
-		if err != nil {
-			return nil, err
-		}
-
-		product.UserLiked = false
-		product.Date = date.Format("2006-01-02")
-		linkStr = linkStr[1 : len(linkStr)-1]
-		if linkStr != "NULL" {
-			product.LinkImages = strings.Split(linkStr, ",")
-		}
-
-		products = append(products, product)
-	}
-
-	if err := query.Err(); err != nil {
-		return nil, err
-	}
-
-	return products, err
-}
-
-func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Page) ([]*models.ProductListData, error) {
+func (pr *ProductRepository) SelectLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 
 	query, err := pr.dbConn.Query(
@@ -244,7 +190,7 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 				LIMIT $1 OFFSET $2`,
 		content.Count,
 		content.From*content.Count,
-		userID)
+		*userID)
 	if err != nil {
 		return nil, err
 	}
@@ -266,13 +212,12 @@ func (pr *ProductRepository) SelectAuthLatest(userID uint64, content *models.Pag
 			&linkStr,
 			&user,
 			&product.Tariff)
-
 		if err != nil {
 			return nil, err
 		}
 
 		product.UserLiked = false
-		if user.Valid && uint64(user.Int64) == userID {
+		if userID != nil && user.Valid && uint64(user.Int64) == *userID {
 			product.UserLiked = true
 		}
 
