@@ -29,5 +29,5 @@ func (p *Postgres) GetDatabase() *sql.DB {
 }
 
 func (p *Postgres) Close() {
-	p.Close()
+	p.postgresDatabase.Close()
 }
