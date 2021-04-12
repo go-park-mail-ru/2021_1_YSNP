@@ -3,9 +3,11 @@ package repository
 import (
 	"encoding/json"
 	"errors"
+
+	"github.com/tarantool/go-tarantool"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
-	"github.com/tarantool/go-tarantool"
 )
 
 type SessionRepository struct {

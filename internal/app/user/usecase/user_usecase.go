@@ -2,11 +2,13 @@ package usecase
 
 import (
 	"database/sql"
+	"os"
+
+	"golang.org/x/crypto/bcrypt"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
-	"golang.org/x/crypto/bcrypt"
-	"os"
 )
 
 type UserUsecase struct {

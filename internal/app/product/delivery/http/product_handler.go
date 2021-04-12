@@ -10,15 +10,16 @@ import (
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
-	"github.com/google/uuid"
-	"github.com/gorilla/mux"
 )
 
 type ProductHandler struct {
@@ -40,7 +41,11 @@ func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	page := models.Page{}
 	err := json.NewDecoder(r.Body).Decode(&page)
@@ -85,7 +90,11 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
@@ -115,7 +124,12 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
@@ -170,7 +184,11 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
@@ -287,7 +305,11 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	err := r.ParseForm()
 	if err != nil {

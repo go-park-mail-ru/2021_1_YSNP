@@ -30,6 +30,12 @@ func (l *Logger) GetLogger() *logrus.Entry {
 	return l.logrusLogger
 }
 
+func GetDefaultLogger() *logrus.Entry {
+	return logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	})
+}
+
 func (l *Logger) StartServerLog(host string, port string) {
 	l.logrusLogger.WithFields(logrus.Fields{
 		"host": host,
