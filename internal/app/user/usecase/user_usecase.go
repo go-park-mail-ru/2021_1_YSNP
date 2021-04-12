@@ -92,10 +92,7 @@ func (uu *UserUsecase) GetSellerByID(userID uint64) (*models.SellerData, *errors
 		ID:         user.ID,
 		Name:       user.Name,
 		Surname:    user.Surname,
-		Sex:        user.Sex,
-		Email:      user.Email,
 		Telephone:  user.Telephone,
-		DateBirth:  user.DateBirth,
 		LinkImages: user.LinkImages,
 	}
 

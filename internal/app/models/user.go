@@ -31,13 +31,13 @@ type ProfileData struct {
 }
 
 type SellerData struct {
-	ID         uint64 `json:"id" valid:"numeric"`
-	Name       string `json:"name" valid:"stringlength(1|30)"`
-	Surname    string `json:"surname" valid:"stringlength15|30)"`
-	Sex        string `json:"sex" valid:"in(male|female)"`
-	Email      string `json:"email" valid:"email"`
-	Telephone  string `json:"telephone" valid:"phoneNumber"`
-	DateBirth  string `json:"dateBirth" valid:"-"`
+	ID      uint64 `json:"id" valid:"numeric"`
+	Name    string `json:"name" valid:"stringlength(1|30)"`
+	Surname string `json:"surname" valid:"stringlength(1|30)"`
+	//Sex        string `json:"sex" valid:"in(male|female)"`
+	//Email      string `json:"email" valid:"email"`
+	Telephone string `json:"telephone" valid:"phoneNumber"`
+	//DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
