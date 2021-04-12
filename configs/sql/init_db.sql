@@ -57,6 +57,9 @@ CREATE TABLE IF NOT EXISTS product
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION
 );
 
+CREATE INDEX idx_product ON product USING GIST
+    (Geography(ST_SetSRID(ST_POINT(longitude, latitude), 4326)));
+
 CREATE TABLE IF NOT EXISTS product_images
 (
     product_id int                 NOT NULL,
