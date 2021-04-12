@@ -2,16 +2,17 @@ package delivery
 
 import (
 	"bytes"
+	"context"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	sMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
 	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -35,12 +36,13 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 			"email":"a@a.ru",
 			"telephone":"+79169230768",
 			"password1":"Qwerty12",
+			"password2":"Qwerty12",
 			"dateBirth":"2021-03-08"
 			}
 	`))
 
 	userTest := &models.UserData{
-		ID: 		0,
+		ID:         0,
 		Name:       "Максим",
 		Surname:    "Торжков",
 		Sex:        "male",

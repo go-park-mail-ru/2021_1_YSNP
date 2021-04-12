@@ -131,5 +131,5 @@ func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 	http.SetCookie(w, session)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("logout success"))
+	w.Write(errors.JSONSuccess("Successful logout."))
 }
