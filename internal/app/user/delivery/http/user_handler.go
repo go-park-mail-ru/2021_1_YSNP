@@ -34,12 +34,14 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 }
 
 func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost)
-	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/me", mw.CheckAuthMiddleware(uh.GetProfileHandler)).Methods(http.MethodGet)
-	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost, http.MethodOptions)
+
+	r.HandleFunc("/me", mw.SetCSRFToken(mw.CheckAuthMiddleware(uh.GetProfileHandler))).Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -406,7 +408,11 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 }
 
 func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {

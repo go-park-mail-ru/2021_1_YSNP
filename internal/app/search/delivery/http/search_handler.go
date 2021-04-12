@@ -2,13 +2,15 @@ package delivery
 
 import (
 	"encoding/json"
+	"net/http"
+
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 type SearchHandler struct {
