@@ -19,8 +19,10 @@ const (
 	UserUnauthorized
 	EmptyContext
 	ProductNotExist
+	ProductAlreadyLiked
 	PromoteEmptyLabel
 	InvalidCSRFToken
+	EmptySearch
 )
 
 type Error struct {
@@ -89,7 +91,7 @@ var CustomErrors = map[ErrorType]*Error{
 	},
 	SessionNotExist: {
 		ErrorCode: SessionNotExist,
-		HttpError: http.StatusBadRequest,
+		HttpError: http.StatusUnauthorized,
 		Message:   "user session doesn't exists",
 	},
 	SessionExpired: {
@@ -116,6 +118,16 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductNotExist,
 		HttpError: http.StatusNotFound,
 		Message:   "product doesn't exist",
+	},
+	ProductAlreadyLiked: {
+		ErrorCode: ProductAlreadyLiked,
+		HttpError: http.StatusBadRequest,
+		Message:   "product already liked",
+	},
+	EmptySearch: {
+		ErrorCode: EmptySearch,
+		HttpError: http.StatusNotFound,
+		Message:   "searching products dont't exist",
 	},
 	PromoteEmptyLabel: {
 		ErrorCode: PromoteEmptyLabel,
