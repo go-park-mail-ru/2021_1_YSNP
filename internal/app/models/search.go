@@ -10,4 +10,6 @@ type Search struct {
 	Longitude  float64 `valid:"longitude"`
 	Search     string  `valid:"type(string)"`
 	Sorting    string  `valid:"type(string)"`
+	From       uint64  `valid:"numeric"`
+	Count      uint64  `valid:"numeric"`
 }
