@@ -5,6 +5,8 @@ type Search struct {
 	Date       string `json:"date"`
 	FromAmount int    `json:"fromAmount"`
 	Radius     int    `json:"radius"`
+	Latitude  float32 `json:"latitude"`
+	Longitude float32 `json:"longitude"`
 	Search     string `json:"search"`
 	Sorting    string `json:"sorting"`
 	ToAmount   int    `json:"toAmount"`

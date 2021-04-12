@@ -1,6 +1,8 @@
 package databases
 
 import (
+	"fmt"
+
 	"github.com/tarantool/go-tarantool"
 )
 
@@ -19,6 +21,8 @@ func NewTarantool(user string, pass string, addr string) (*Tarantool, error) {
 		return nil, err
 	}
 
+	resp, err := tarConn.Ping()
+	fmt.Println(resp, err)
 	return &Tarantool{
 		tarantoolDatabase: tarConn,
 	}, nil
