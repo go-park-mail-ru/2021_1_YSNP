@@ -65,8 +65,8 @@ func main() {
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
 	mw.NewLogger(logger.GetLogger())
 
-	router.Use(mw.AccessLogMiddleware)
 	router.Use(middleware.CorsControlMiddleware)
+	router.Use(mw.AccessLogMiddleware)
 	router.Use(csrf.Protect([]byte(middleware.CsrfKey),
 		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
