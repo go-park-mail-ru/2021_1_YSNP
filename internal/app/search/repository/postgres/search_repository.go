@@ -2,11 +2,11 @@ package repository
 
 import (
 	"database/sql"
-	"math"
-	"strings"
+	"fmt"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
-	"fmt"
+	"math"
+	"strings"
 )
 
 func NewProductRepository(conn *sql.DB) search.SearchRepository {
@@ -69,17 +69,21 @@ func (s SearchRepository) SelectByFilter(userID *uint64, data *models.Search) ([
 					  cat.title LIKE $3  AND
 				      amount BETWEEN $4 AND $5
 			  `
+	var limit string
+
 	if data.Radius == 0 {
-		values = append(values, *userID,  "%"+data.Search+"%", "%"+data.Category+"%", minAmount,maxAmount)
+		limit = "LIMIT $6 OFFSET $7"
+		values = append(values, *userID, "%"+data.Search+"%", "%"+data.Category+"%", minAmount, maxAmount, data.Count, data.From*data.Count)
 	} else {
+		limit = "LIMIT $8 OFFSET $9"
 		selectQuery += `AND
 		ST_DWithin(
 		  Geography(ST_SetSRID(ST_POINT(p.longitude, p.latitude), 4326)),
 		  ST_GeogFromText($6), $7 * 1000)`
-		val := "SRID=4326; POINT(" + fmt.Sprintf("%f", data.Longitude) + " " + fmt.Sprintf("%f", data.Latitude ) + ")"
-		values = append(values, *userID, "%"+data.Search+"%", "%"+data.Category+"%", minAmount,maxAmount, val, data.Radius)
+		val := "SRID=4326; POINT(" + fmt.Sprintf("%f", data.Longitude) + " " + fmt.Sprintf("%f", data.Latitude) + ")"
+		values = append(values, *userID, "%"+data.Search+"%", "%"+data.Category+"%", minAmount, maxAmount, val, data.Radius, data.Count, data.From*data.Count)
 	}
-			  
+
 	dateQuery := getDateSorting(data)
 	var orderQuery string
 	orderQuery += "GROUP BY p.id, uf.user_id " + getOrderQuery(data)
@@ -87,6 +91,7 @@ func (s SearchRepository) SelectByFilter(userID *uint64, data *models.Search) ([
 		selectQuery,
 		dateQuery,
 		orderQuery,
+		limit,
 	}, " ")
 	query, err := s.dbConn.Query(resultQuery, values...)
 
@@ -100,7 +105,6 @@ func (s SearchRepository) SelectByFilter(userID *uint64, data *models.Search) ([
 	for query.Next() {
 		product := &models.ProductListData{}
 		var user sql.NullInt64
-
 
 		err := query.Scan(
 			&product.ID,

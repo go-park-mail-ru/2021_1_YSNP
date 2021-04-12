@@ -352,12 +352,10 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 		}
 	}
 
-	var products []*models.ProductListData
-	var errE *errors.Error
 	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
 	logger.Info("user id ", userID)
 
-	products, errE = ph.productUcase.ListLatest(&userID, page)
+	products, errE := ph.productUcase.ListLatest(&userID, page)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
