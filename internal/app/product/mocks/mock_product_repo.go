@@ -90,21 +90,6 @@ func (mr *MockProductRepositoryMockRecorder) InsertProductLike(arg0, arg1 interf
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertProductLike", reflect.TypeOf((*MockProductRepository)(nil).InsertProductLike), arg0, arg1)
 }
 
-// SelectAuthLatest mocks base method.
-func (m *MockProductRepository) SelectAuthLatest(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectAuthLatest", arg0, arg1)
-	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-// SelectAuthLatest indicates an expected call of SelectAuthLatest.
-func (mr *MockProductRepositoryMockRecorder) SelectAuthLatest(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectAuthLatest", reflect.TypeOf((*MockProductRepository)(nil).SelectAuthLatest), arg0, arg1)
-}
-
 // SelectByID mocks base method.
 func (m *MockProductRepository) SelectByID(arg0 uint64) (*models.ProductData, error) {
 	m.ctrl.T.Helper()
@@ -121,18 +106,18 @@ func (mr *MockProductRepositoryMockRecorder) SelectByID(arg0 interface{}) *gomoc
 }
 
 // SelectLatest mocks base method.
-func (m *MockProductRepository) SelectLatest(arg0 *models.Page) ([]*models.ProductListData, error) {
+func (m *MockProductRepository) SelectLatest(arg0 *uint64, arg1 *models.Page) ([]*models.ProductListData, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectLatest", arg0)
+	ret := m.ctrl.Call(m, "SelectLatest", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectLatest indicates an expected call of SelectLatest.
-func (mr *MockProductRepositoryMockRecorder) SelectLatest(arg0 interface{}) *gomock.Call {
+func (mr *MockProductRepositoryMockRecorder) SelectLatest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectLatest", reflect.TypeOf((*MockProductRepository)(nil).SelectLatest), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectLatest", reflect.TypeOf((*MockProductRepository)(nil).SelectLatest), arg0, arg1)
 }
 
 // SelectUserAd mocks base method.
