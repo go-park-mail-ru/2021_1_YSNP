@@ -2,17 +2,20 @@ package delivery
 
 import (
 	"encoding/json"
+	"net/http"
+	"time"
+
 	"github.com/asaskevich/govalidator"
+	"github.com/gorilla/mux"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/sirupsen/logrus"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
-	"github.com/gorilla/mux"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
-	"net/http"
-	"time"
 )
 
 type SessionHandler struct {
@@ -28,12 +31,16 @@ func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsec
 }
 
 func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost)
-	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 	defer r.Body.Close()
 
 	login := &models.LoginRequest{}
@@ -106,7 +113,11 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	session, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {

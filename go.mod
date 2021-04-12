@@ -9,6 +9,7 @@ require (
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.2.0
+	github.com/gorilla/csrf v1.7.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/schema v1.2.0
 	github.com/jackc/fake v0.0.0-20150926172116-812a484cc733 // indirect

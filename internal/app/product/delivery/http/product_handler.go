@@ -2,11 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/asaskevich/govalidator"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/gorilla/schema"
-	"github.com/microcosm-cc/bluemonday"
-	"github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"os"
@@ -14,11 +9,18 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
+	"github.com/asaskevich/govalidator"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
+	"github.com/gorilla/schema"
+	"github.com/microcosm-cc/bluemonday"
+	"github.com/sirupsen/logrus"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
 )
 
 type ProductHandler struct {
@@ -32,21 +34,26 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 }
 
 func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost)
+	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/product/{id:[0-9]+}", ph.ProductIDHandler).Methods(http.MethodGet)
-	r.HandleFunc("/product/list", mw.CheckAuthMiddleware(ph.MainPageHandler)).Methods(http.MethodGet)
-	r.HandleFunc("/user/ad/list", mw.CheckAuthMiddleware(ph.UserAdHandler)).Methods(http.MethodGet)
-	r.HandleFunc("/user/favorite/list", mw.CheckAuthMiddleware(ph.UserFavoriteHandler)).Methods(http.MethodGet)
+	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
-	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost)
-	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost)
+	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
@@ -101,7 +108,11 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
@@ -218,7 +229,11 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	err := r.ParseForm()
 	if err != nil {
@@ -273,7 +288,11 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
@@ -303,7 +322,11 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	page := &models.Page{}
 	decoder := schema.NewDecoder()
@@ -355,7 +378,11 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -412,7 +439,11 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -469,7 +500,11 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
@@ -498,7 +533,11 @@ func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
