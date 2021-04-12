@@ -79,6 +79,29 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 	return profile, nil
 }
 
+func (uu *UserUsecase) GetSellerByID(userID uint64) (*models.SellerData, *errors.Error) {
+	user, err := uu.userRepo.SelectByID(userID)
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, errors.Cause(errors.UserNotExist)
+	case err != nil:
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	profile := &models.SellerData{
+		ID:         user.ID,
+		Name:       user.Name,
+		Surname:    user.Surname,
+		Sex:        user.Sex,
+		Email:      user.Email,
+		Telephone:  user.Telephone,
+		DateBirth:  user.DateBirth,
+		LinkImages: user.LinkImages,
+	}
+
+	return profile, nil
+}
+
 func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData) (*models.UserData, *errors.Error) {
 	oldUser, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
