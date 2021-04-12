@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
@@ -63,11 +64,13 @@ func main() {
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
 	mw.NewLogger(logger.GetLogger())
+
 	router.Use(mw.AccessLogMiddleware)
 	router.Use(middleware.CorsControlMiddleware)
+	router.Use(csrf.Protect([]byte(middleware.CsrfKey),
+		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	api.Use(mw.CreateCSRFMiddleware)
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)

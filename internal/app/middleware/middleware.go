@@ -2,16 +2,20 @@ package middleware
 
 import (
 	"context"
-	"github.com/google/uuid"
 	"net/http"
 	"time"
-	"crypto/rand"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
+	"github.com/sirupsen/logrus"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
-	"github.com/sirupsen/logrus"
 )
+
+const CsrfKey = "ba6f7ee3-84d8-4f68-aaa5-5ef7c1823aa4"
 
 type Middleware struct {
 	logrusLogger *logrus.Entry
@@ -85,13 +89,6 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-func (m *Middleware) SetCSRFToken(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("X-CSRF-Token", csrf.Token(r))
-		next.ServeHTTP(w, r)
-	})
-}
-
 func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie("session_id")
@@ -112,23 +109,24 @@ func (m *Middleware) CheckAuthMiddleware(next http.HandlerFunc) http.HandlerFunc
 	}
 }
 
-func CreateCSRFMiddleware(next http.Handler) http.Handler {
-	CSRFKey := make([]byte, 32)
-	_, err := rand.Read(CSRFKey)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+func (m *Middleware) SetCSRFToken(next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("X-CSRF-Token", csrf.Token(r))
+		next.ServeHTTP(w, r)
+	}
+}
+
+func (m *Middleware) CSFRErrorHandler() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logger, ok := r.Context().Value(ContextLogger).(*logrus.Entry)
+		if !ok {
+			logger = log.GetDefaultLogger()
+			logger.Warn("no logger")
+		}
+
+		errE := errors.Cause(errors.InvalidCSRFToken)
+		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 	}
-	return csrf.Protect(CSRFKey,
-		csrf.ErrorHandler(http.HandlerFunc(
-			func(w http.ResponseWriter, r *http.Request) {
-				errE := errors.Cause(errors.InvalidCSRFToken)
-				logrus.Error(errE.Message)
-				w.WriteHeader(errE.HttpError)
-				w.Write(errors.JSONError(errE))
-				return
-			},
-		)))
 }
