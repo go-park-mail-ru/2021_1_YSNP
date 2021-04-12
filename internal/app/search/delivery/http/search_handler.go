@@ -11,6 +11,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 )
 
 type SearchHandler struct {
@@ -24,10 +25,16 @@ func NewSearchHandler(searchUsecase search.SearchUsecase) *SearchHandler {
 }
 
 func (sh *SearchHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/search", sh.MainPageHandler).Methods(http.MethodPost)
+	r.HandleFunc("/search", mw.SetCSRFToken(mw.CheckAuthMiddleware(sh.MainPageHandler))).Methods(http.MethodPost, http.MethodOptions) 
 }
 
 func (sh *SearchHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
 	page := models.Search{}
 	err := json.NewDecoder(r.Body).Decode(&page)
 	if err != nil {
@@ -37,8 +44,10 @@ func (sh *SearchHandler) MainPageHandler(w http.ResponseWriter, r *http.Request)
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	logger.Info("user id ", userID)
 
-	products, errE := sh.searchUsecase.SelectByFilter(&page)
+	products, errE := sh.searchUsecase.SelectByFilter(&userID, &page)
 	if errE != nil {
 		logrus.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

@@ -23,7 +23,7 @@ func NewCategoryHandler(productUcase category.CategoryUsecase) *CategoryHandler 
 }
 
 func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/categories", cat.CategoriesHandler).Methods(http.MethodGet)
+	r.HandleFunc("/categories",  mw.SetCSRFToken(cat.CategoriesHandler)).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
