@@ -242,7 +242,7 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 
 	query, err := pr.dbConn.Query(
 		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), p.tariff
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
 				WHERE owner_id=$1
@@ -269,7 +269,8 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 			&product.Name,
 			&date,
 			&product.Amount,
-			&linkStr)
+			&linkStr,
+			&product.Tariff)
 
 		if err != nil {
 			return nil, err
