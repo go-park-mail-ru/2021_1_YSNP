@@ -15,8 +15,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 
-
-
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
 	categoryUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/usecase"
@@ -83,17 +81,16 @@ func main() {
 
 	router.Use(middleware.CorsControlMiddleware)
 	router.Use(mw.AccessLogMiddleware)
-	router.Use(csrf.Protect([]byte(middleware.CsrfKey),
-		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	api := router.PathPrefix("/api/v1").Subrouter()
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
-	prodHandler.Configure(api, mw)
+	prodHandler.Configure(api, router, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
-
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.GetServerPort()),
