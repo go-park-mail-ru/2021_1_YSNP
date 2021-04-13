@@ -184,7 +184,7 @@ func TestUserHandler_GetProfileHandler_Success(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -222,7 +222,7 @@ func TestUserHandler_GetProfileHandler_UserUnauthorized(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -248,7 +248,7 @@ func TestUserHandler_GetProfileHandler_UserNotExist(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -276,7 +276,7 @@ func TestUserHandler_GetSellerHandler_Success(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
@@ -312,7 +312,7 @@ func TestUserHandler_GetSellerHandler_UserUnauth(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
@@ -338,7 +338,7 @@ func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
@@ -380,7 +380,7 @@ func TestUserHandler_ChangeProfileHandler_Success(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -410,7 +410,7 @@ func TestUserHandler_ChangeProfileHandler_NotAuth(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("POST", "/api/v1/user", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -448,7 +448,7 @@ func TestUserHandler_ChangeProfileHandler_ValidateError(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -487,7 +487,7 @@ func TestUserHandler_ChangeProfileHandler_NoUser(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -523,7 +523,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_Success(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user/password", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -551,7 +551,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NotAuth(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("POST", "/api/v1/user/password", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -584,7 +584,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_ValidateError(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user/password", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -618,7 +618,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NoUser(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user/password", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -662,7 +662,7 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 		Address:   "Qwerty123",
 	}
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user/position", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -690,7 +690,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NotAuth(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("POST", "/api/v1/user/position", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -724,7 +724,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 			}
 	`))
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	r := httptest.NewRequest("POST", "/api/v1/user/position", byteData)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -752,7 +752,7 @@ func TestUserHandler_UploadAvatarHandler_ErrorContentType(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/signup", nil)
+	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
