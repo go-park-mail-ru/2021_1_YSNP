@@ -33,10 +33,10 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 	}
 }
 
-func (ph *ProductHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
+	rNoCSRF.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
