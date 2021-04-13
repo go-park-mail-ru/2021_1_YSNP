@@ -93,6 +93,21 @@ func (mr *MockUserUsecaseMockRecorder) GetByTelephone(arg0 interface{}) *gomock.
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByTelephone", reflect.TypeOf((*MockUserUsecase)(nil).GetByTelephone), arg0)
 }
 
+// GetSellerByID mocks base method.
+func (m *MockUserUsecase) GetSellerByID(arg0 uint64) (*models.SellerData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetSellerByID", arg0)
+	ret0, _ := ret[0].(*models.SellerData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// GetSellerByID indicates an expected call of GetSellerByID.
+func (mr *MockUserUsecaseMockRecorder) GetSellerByID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetSellerByID", reflect.TypeOf((*MockUserUsecase)(nil).GetSellerByID), arg0)
+}
+
 // UpdateAvatar mocks base method.
 func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()

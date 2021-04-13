@@ -88,9 +88,11 @@ func TestProductUsecase_ListLatest_Success(t *testing.T) {
 		Tariff:     0,
 	}
 
-	prodRepo.EXPECT().SelectLatest(gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
+	var userID uint64 = 0
 
-	list, err := prodUcase.ListLatest(page)
+	prodRepo.EXPECT().SelectLatest(&userID, gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
+
+	list, err := prodUcase.ListLatest(&userID, page)
 	assert.Equal(t, err, (*errors.Error)(nil))
 	assert.Equal(t, list[0], prodList)
 }
@@ -108,59 +110,11 @@ func TestProductUsecase_ListLatest_NoProduct(t *testing.T) {
 		Count: 20,
 	}
 
-	prodRepo.EXPECT().SelectLatest(gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
+	var userID uint64 = 0
 
-	list, err := prodUcase.ListLatest(page)
-	assert.Equal(t, err, (*errors.Error)(nil))
-	assert.Equal(t, len(list), 0)
-}
+	prodRepo.EXPECT().SelectLatest(&userID, gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
-func TestProductUsecase_ListAuthLatest_Success(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	page := &models.Page{
-		From:  0,
-		Count: 20,
-	}
-
-	prodList := &models.ProductListData{
-		ID:         0,
-		Name:       "Product Name",
-		Date:       "2013-3-3",
-		Amount:     12000,
-		LinkImages: nil,
-		UserLiked:  false,
-		Tariff:     0,
-	}
-
-	prodRepo.EXPECT().SelectAuthLatest(uint64(0),gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
-
-	list, err := prodUcase.ListAuthLatest(0, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
-	assert.Equal(t, list[0], prodList)
-}
-
-func TestProductUsecase_ListAuthLatest_NoProduct(t *testing.T) {
-	t.Parallel()
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	page := &models.Page{
-		From:  0,
-		Count: 20,
-	}
-
-	prodRepo.EXPECT().SelectAuthLatest(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
-
-	list, err := prodUcase.ListAuthLatest(0, page)
+	list, err := prodUcase.ListLatest(&userID, page)
 	assert.Equal(t, err, (*errors.Error)(nil))
 	assert.Equal(t, len(list), 0)
 }

@@ -107,34 +107,19 @@ func (mr *MockProductUsecaseMockRecorder) LikeProduct(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "LikeProduct", reflect.TypeOf((*MockProductUsecase)(nil).LikeProduct), arg0, arg1)
 }
 
-// ListAuthLatest mocks base method.
-func (m *MockProductUsecase) ListAuthLatest(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListAuthLatest", arg0, arg1)
-	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(*errors.Error)
-	return ret0, ret1
-}
-
-// ListAuthLatest indicates an expected call of ListAuthLatest.
-func (mr *MockProductUsecaseMockRecorder) ListAuthLatest(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListAuthLatest", reflect.TypeOf((*MockProductUsecase)(nil).ListAuthLatest), arg0, arg1)
-}
-
 // ListLatest mocks base method.
-func (m *MockProductUsecase) ListLatest(arg0 *models.Page) ([]*models.ProductListData, *errors.Error) {
+func (m *MockProductUsecase) ListLatest(arg0 *uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "ListLatest", arg0)
+	ret := m.ctrl.Call(m, "ListLatest", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // ListLatest indicates an expected call of ListLatest.
-func (mr *MockProductUsecaseMockRecorder) ListLatest(arg0 interface{}) *gomock.Call {
+func (mr *MockProductUsecaseMockRecorder) ListLatest(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLatest", reflect.TypeOf((*MockProductUsecase)(nil).ListLatest), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLatest", reflect.TypeOf((*MockProductUsecase)(nil).ListLatest), arg0, arg1)
 }
 
 // SetTariff mocks base method.

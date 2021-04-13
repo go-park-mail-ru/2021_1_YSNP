@@ -35,16 +35,16 @@ func (m *MockSearchRepository) EXPECT() *MockSearchRepositoryMockRecorder {
 }
 
 // SelectByFilter mocks base method.
-func (m *MockSearchRepository) SelectByFilter(arg0 *models.Search) ([]*models.ProductListData, error) {
+func (m *MockSearchRepository) SelectByFilter(arg0 *uint64, arg1 *models.Search) ([]*models.ProductListData, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "SelectByFilter", arg0)
+	ret := m.ctrl.Call(m, "SelectByFilter", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
 // SelectByFilter indicates an expected call of SelectByFilter.
-func (mr *MockSearchRepositoryMockRecorder) SelectByFilter(arg0 interface{}) *gomock.Call {
+func (mr *MockSearchRepositoryMockRecorder) SelectByFilter(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByFilter", reflect.TypeOf((*MockSearchRepository)(nil).SelectByFilter), arg0)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByFilter", reflect.TypeOf((*MockSearchRepository)(nil).SelectByFilter), arg0, arg1)
 }

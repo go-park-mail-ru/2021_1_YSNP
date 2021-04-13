@@ -312,3 +312,43 @@ func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
 	_, err := userUcase.UpdatePosition(userTest.ID, position)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
 }
+
+func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo)
+
+	userTestProfile := &models.SellerData{
+		ID: 		userTest.ID,
+		Name:       "Максим",
+		Surname:    "Торжков",
+		Telephone:  "+79169230768",
+		LinkImages: userTest.LinkImages,
+	}
+
+	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
+
+
+	user, err := userUcase.GetSellerByID(userTest.ID)
+	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, user, userTestProfile)
+}
+
+func TestUserUsecase_GetSellerByID_UserNotExist(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo)
+
+	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
+
+
+	user, err := userUcase.GetSellerByID(userTest.ID)
+	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, user, (*models.SellerData)(nil))
+}
