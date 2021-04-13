@@ -242,7 +242,7 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 
 	query, err := pr.dbConn.Query(
 		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), p.tariff
 				FROM product as p
 				left join product_images as pi on pi.product_id=p.id
 				WHERE owner_id=$1
@@ -269,7 +269,8 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 			&product.Name,
 			&date,
 			&product.Amount,
-			&linkStr)
+			&linkStr,
+			&product.Tariff)
 
 		if err != nil {
 			return nil, err
@@ -296,7 +297,7 @@ func (pr *ProductRepository) SelectUserFavorite(userID uint64, content *models.P
 
 	query, err := pr.dbConn.Query(
 		`
-				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link)
+				SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), p.tariff
                 FROM user_favorite
                 JOIN product p ON p.id = user_favorite.product_id
                 LEFT JOIN product_images AS pi ON pi.product_id = p.id
@@ -324,7 +325,8 @@ func (pr *ProductRepository) SelectUserFavorite(userID uint64, content *models.P
 			&product.Name,
 			&date,
 			&product.Amount,
-			&linkStr)
+			&linkStr,
+			&product.Tariff)
 
 		if err != nil {
 			return nil, err
