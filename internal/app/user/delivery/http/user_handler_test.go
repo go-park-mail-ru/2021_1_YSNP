@@ -359,7 +359,7 @@ func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 }
 
 func TestUserHandler_ChangeProfileHandler_Success(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()

@@ -56,13 +56,13 @@ func main() {
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
 	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
-	searchRepo := searchRepo.NewProductRepository(postgresDB.GetDatabase())
+	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo)
-	searchUcase := searchUsecase.NewSessionUsecase(searchRepo)
+	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)

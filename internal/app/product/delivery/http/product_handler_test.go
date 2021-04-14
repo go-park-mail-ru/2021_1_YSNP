@@ -55,9 +55,10 @@ func TestProductHandler_ProductCreateHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().Create(gomock.Eq(prodTest)).Return(nil)
 
@@ -81,9 +82,10 @@ func TestProductHandler_ProductCreateHandler_UserUnauth(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.ProductCreateHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -115,9 +117,10 @@ func TestProductHandler_ProductCreateHandler_ValidateErr(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.ProductCreateHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -140,9 +143,10 @@ func TestProductHandler_ProductIDHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(prodTest, nil)
 
@@ -167,9 +171,10 @@ func TestProductHandler_ProductIDHandler_ProductNotExist(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(nil, errors.Cause(errors.ProductNotExist))
 
@@ -201,9 +206,10 @@ func TestProductHandler_MainPageHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().ListLatest(&userID, gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
@@ -227,9 +233,10 @@ func TestProductHandler_MainPageHandler_DecodeError(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.MainPageHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -259,9 +266,10 @@ func TestProductHandler_UserAdHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().UserAdList(userID, gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
@@ -286,9 +294,10 @@ func TestProductHandler_UserAdHandler_DecodeError(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.UserAdHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -310,9 +319,10 @@ func TestProductHandler_UserAdHandler_UserUnauth(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.UserAdHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -342,9 +352,10 @@ func TestProductHandler_UserFavoriteHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().GetUserFavorite(userID, gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
@@ -369,9 +380,10 @@ func TestProductHandler_UserFavoriteHandler_DecodeError(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.UserFavoriteHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -393,9 +405,10 @@ func TestProductHandler_UserFavoriteHandler_UserUnauth(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.UserFavoriteHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -419,9 +432,10 @@ func TestProductHandler_LikeProductHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().LikeProduct(gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).Return(nil)
 
@@ -446,9 +460,10 @@ func TestProductHandler_LikeProductHandler_Unauth(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.LikeProductHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -472,9 +487,10 @@ func TestProductHandler_LikeProductHandler_Error(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
+	rout := mux.NewRouter()
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().LikeProduct(gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).Return(errors.Cause(errors.ProductAlreadyLiked))
 
@@ -500,9 +516,10 @@ func TestProductHandler_DislikeProductHandler_Success(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodUcase.EXPECT().DislikeProduct(gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).Return(nil)
 
@@ -527,10 +544,65 @@ func TestProductHandler_DislikeProductHandler_Unauth(t *testing.T) {
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
 	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, nil)
+	prodHandler.Configure(router, rout, nil)
 
 	prodHandler.DislikeProductHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestProductHandler_UploadPhotoHandler_Error(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.UploadPhotoHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestProductHandler_PromoteProductHandler_PartFormError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.PromoteProductHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
