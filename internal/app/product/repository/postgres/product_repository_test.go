@@ -321,13 +321,14 @@ func TestProductRepository_SelectUserAd_Success(t *testing.T) {
 		Tariff:     0,
 	}
 
-	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)"})
+	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)", "p.tariff"})
 	rows.AddRow(
 		&prodTest.ID,
 		&prodTest.Name,
 		&date,
 		&prodTest.Amount,
-		&linkStr)
+		&linkStr,
+		&prodTest.Tariff)
 	mock.ExpectQuery(`SELECT`).WithArgs(userID, 10, 10).WillReturnRows(rows)
 
 	user, err := prodRepo.SelectUserAd(userID, page)
@@ -372,13 +373,14 @@ func TestProductRepository_SelectUserFavorite_Success(t *testing.T) {
 		Tariff:     0,
 	}
 
-	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)"})
+	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)", "p.tariff"})
 	rows.AddRow(
 		&prodTest.ID,
 		&prodTest.Name,
 		&date,
 		&prodTest.Amount,
-		&linkStr)
+		&linkStr,
+		&prodTest.Tariff)
 	mock.ExpectQuery(`SELECT`).WithArgs(userID, 10, 10).WillReturnRows(rows)
 
 	user, err := prodRepo.SelectUserFavorite(userID, page)
