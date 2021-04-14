@@ -10,7 +10,7 @@ type SearchUsecase struct {
 	searchRepo search.SearchRepository
 }
 
-func NewSessionUsecase(repo search.SearchRepository) search.SearchUsecase {
+func NewSearchUsecase(repo search.SearchRepository) search.SearchUsecase {
 	return &SearchUsecase{
 		searchRepo: repo,
 	}

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func NewProductRepository(conn *sql.DB) search.SearchRepository {
+func NewSearchRepository(conn *sql.DB) search.SearchRepository {
 	return &SearchRepository{
 		dbConn: conn,
 	}

@@ -22,6 +22,7 @@ var prodTest = &models.ProductData{
 	Latitude:     1,
 	Address:      "Address",
 	LinkImages:   []string{"test_str.jpg"},
+	Tariff: 0,
 }
 
 func TestProductRepository_Insert_Success(t *testing.T) {
@@ -528,5 +529,106 @@ func TestProductRepository_DeleteProductLike_UpdateErr(t *testing.T) {
 	mock.ExpectRollback()
 
 	err = prodRepo.DeleteProductLike(userID, prodTest.ID)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_UpdateTariff_Success(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.Tariff, prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	mock.ExpectCommit()
+
+	err = prodRepo.UpdateTariff(prodTest.ID, prodTest.Tariff)
+	assert.NoError(t, err)
+}
+
+func TestProductRepository_UpdateTariff_Error(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.Tariff, prodTest.Address).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	mock.ExpectCommit()
+
+	err = prodRepo.UpdateTariff(prodTest.ID, prodTest.Tariff)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_InsertPhoto_Success(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(
+		prodTest.ID,
+		prodTest.LinkImages[0]).WillReturnResult(driver.ResultNoRows)
+	mock.ExpectCommit()
+
+	err = prodRepo.InsertPhoto(prodTest)
+	assert.NoError(t, err)
+}
+
+func TestProductRepository_InsertPhoto_DeleteErr(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.Address).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	mock.ExpectRollback()
+
+	err = prodRepo.InsertPhoto(prodTest)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_InsertPhoto_InserErr(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(
+		prodTest.Address,
+		prodTest.LinkImages[0]).WillReturnResult(driver.ResultNoRows)
+	mock.ExpectRollback()
+
+	err = prodRepo.InsertPhoto(prodTest)
 	assert.Error(t, err)
 }

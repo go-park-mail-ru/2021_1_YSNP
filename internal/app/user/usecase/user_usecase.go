@@ -107,7 +107,7 @@ func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData
 
 	newUserData.ID = userID
 	newUserData.Password = oldUser.Password
-
+	newUserData.LinkImages = oldUser.LinkImages
 	err = uu.userRepo.Update(newUserData)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
