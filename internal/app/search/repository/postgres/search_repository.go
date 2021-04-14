@@ -32,7 +32,7 @@ func getMaxMinAmount(data *models.Search) (int, int) {
 func getDateSorting(data *models.Search) string {
 	switch data.Date {
 	case "За 24 часа":
-		return "AND date BETWEEN now() - INTERVAL '1 DAY' AND now()"
+		return "AND date BETWEEN now() - INTERVAL '2 DAY' AND now()"
 	case "За 7 дней":
 		return "AND date BETWEEN now() - INTERVAL '7 DAY' AND now()"
 	default:
