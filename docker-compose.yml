@@ -1,0 +1,30 @@
+version: '3'
+
+# docker rm $(docker ps -a -q) && docker volume prune -f
+
+services:
+  postgres:
+    image: postgis/postgis
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ysnpkoyadb
+      POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
+      SHARED_PRELOAD_LIBRARIES: pg_cron
+    ports:
+      - '5432:5432'
+    volumes:
+      - './configs/sql/:/docker-entrypoint-initdb.d/'
+  tarantool:
+    image: tarantool/tarantool:2.6.0
+    environment:
+      TARANTOOL_USER_NAME: admin
+      TARANTOOL_USER_PASSWORD: pass
+    ports:
+      - '3301:3301'
+    volumes:
+      - './configs/lua/:/opt/tarantool/'
+    command: tarantool /opt/tarantool/app.lua
+

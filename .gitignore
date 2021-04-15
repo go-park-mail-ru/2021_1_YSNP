@@ -1,3 +1,5 @@
+static/
+
 ### Code ###
 .vscode/*
 !.vscode/tasks.json
@@ -11,6 +13,8 @@
 *.dll
 *.so
 *.dylib
+
+cover
 
 # Test binary, built with `go test -c`
 *.test
