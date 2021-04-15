@@ -40,3 +40,25 @@ func TestCategoryHandler_CategoriesHandler_Success(t *testing.T) {
 	catHandler.CategoriesHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
+
+func TestCategoryHandler_CategoriesHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	catUcase := mock.NewMockCategoryUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/categories", nil)
+	ctx := r.Context()
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	catHandler := NewCategoryHandler(catUcase)
+	catHandler.Configure(router, nil)
+
+	catUcase.EXPECT().GetAllCategories().Return([]*models.Category{}, nil)
+
+	catHandler.CategoriesHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}

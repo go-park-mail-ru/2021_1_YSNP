@@ -20,15 +20,15 @@ import (
 )
 
 var userTest = &models.UserData{
-		ID:         0,
-		Name:       "Максим",
-		Surname:    "Торжков",
-		Sex:        "male",
-		Email:      "a@a.ru",
-		Telephone:  "+79169230768",
-		Password:   "Qwerty12",
-		DateBirth:  "2021-03-08",
-	}
+	ID:        0,
+	Name:      "Максим",
+	Surname:   "Торжков",
+	Sex:       "male",
+	Email:     "a@a.ru",
+	Telephone: "+79169230768",
+	Password:  "Qwerty12",
+	DateBirth: "2021-03-08",
+}
 
 func TestSessionHandler_LoginHandler_OK(t *testing.T) {
 	t.Parallel()
@@ -65,6 +65,71 @@ func TestSessionHandler_LoginHandler_OK(t *testing.T) {
 	sessHandler.LoginHandler(w, r.WithContext(ctx))
 
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSessionHandler_LoginHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	userUcase := userMock.NewMockUserUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+	{
+		"telephone": "+79169230768",
+		"password": "Qwerty12"
+	}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
+	ctx := r.Context()
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	sessHandler := NewSessionHandler(sessUcase, userUcase)
+	sessHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetByTelephone(userTest.Telephone).Return(userTest, nil)
+	userUcase.EXPECT().CheckPassword(userTest, userTest.Password).Return(nil)
+	sessUcase.EXPECT().Create(gomock.Any()).Return(nil)
+
+	sessHandler.LoginHandler(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSessionHandler_LoginHandler_DecodeError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	userUcase := userMock.NewMockUserUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+	{
+		"telephone": "+79169230768",
+		"password": 12
+	}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	sessHandler := NewSessionHandler(sessUcase, userUcase)
+	sessHandler.Configure(router, nil)
+
+	sessHandler.LoginHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestSessionHandler_LoginHandler_InternalError(t *testing.T) {
@@ -234,6 +299,41 @@ func TestSessionHandler_LogoutHandler_OK(t *testing.T) {
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	sessHandler := NewSessionHandler(sessUcase, userUcase)
+	sessHandler.Configure(router, nil)
+
+	sessUcase.EXPECT().Delete(session.Value).Return(nil)
+
+	sessHandler.LogoutHandler(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestSessionHandler_LogoutHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	userUcase := userMock.NewMockUserUsecase(ctrl)
+
+	session := models.CreateSession(0)
+	cookie := http.Cookie{
+		Name:     "session_id",
+		Value:    session.Value,
+		Expires:  session.ExpiresAt,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
+	}
+
+	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
+	r.AddCookie(&cookie)
+	ctx := r.Context()
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
