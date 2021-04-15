@@ -12,14 +12,14 @@ import (
 )
 
 var prodTest = &models.ProductData{
-	ID:           0,
-	Name:         "tovar",
-	Date:         "",
-	Amount:       10000,
-	LinkImages:   []string{},
-	Description:  "Description product aaaaa",
-	Category:     "0",
-	OwnerID:      0,
+	ID:          0,
+	Name:        "tovar",
+	Date:        "",
+	Amount:      10000,
+	LinkImages:  []string{},
+	Description: "Description product aaaaa",
+	Category:    "0",
+	OwnerID:     0,
 }
 
 func TestProductUsecase_Create_Success(t *testing.T) {
@@ -142,7 +142,7 @@ func TestProductUsecase_UserAdList_Success(t *testing.T) {
 		Tariff:     0,
 	}
 
-	prodRepo.EXPECT().SelectUserAd(uint64(0),gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
+	prodRepo.EXPECT().SelectUserAd(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
 
 	list, err := prodUcase.UserAdList(0, page)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -192,7 +192,7 @@ func TestProductUsecase_GetUserFavorite_Success(t *testing.T) {
 		Tariff:     0,
 	}
 
-	prodRepo.EXPECT().SelectUserFavorite(uint64(0),gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
+	prodRepo.EXPECT().SelectUserFavorite(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
 
 	list, err := prodUcase.GetUserFavorite(0, page)
 	assert.Equal(t, err, (*errors.Error)(nil))

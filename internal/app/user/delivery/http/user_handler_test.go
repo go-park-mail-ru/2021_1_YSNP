@@ -20,7 +20,7 @@ import (
 )
 
 var userTest = &models.UserData{
-	ID: 		0,
+	ID:         0,
 	Name:       "Максим",
 	Surname:    "Торжков",
 	Sex:        "male",
@@ -183,14 +183,14 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 	`))
 
 	userTest := &models.UserData{
-		ID:         0,
-		Name:       "Максим",
-		Surname:    "Торжков",
-		Sex:        "male",
-		Email:      "a@a.ru",
-		Telephone:  "+79169230768",
-		Password:   "Qwerty12",
-		DateBirth:  "2021-03-08",
+		ID:        0,
+		Name:      "Максим",
+		Surname:   "Торжков",
+		Sex:       "male",
+		Email:     "a@a.ru",
+		Telephone: "+79169230768",
+		Password:  "Qwerty12",
+		DateBirth: "2021-03-08",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
@@ -342,7 +342,6 @@ func TestUserHandler_GetProfileHandler_UserUnauthorized(t *testing.T) {
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
-
 
 	userHandler.GetProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
@@ -1147,7 +1146,7 @@ func TestUserHandler_UploadAvatarHandler_LoggerError(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
+	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
 	w := httptest.NewRecorder()
@@ -1169,7 +1168,7 @@ func TestUserHandler_UploadAvatarHandler_ErrorContentType(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
+	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
@@ -1195,7 +1194,7 @@ func TestUserHandler_UploadAvatarHandler_NoAuthError(t *testing.T) {
 	userUcase := uMock.NewMockUserUsecase(ctrl)
 	sessUcase := sMock.NewMockSessionUsecase(ctrl)
 
-	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
+	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()
 	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",

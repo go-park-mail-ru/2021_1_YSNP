@@ -11,18 +11,18 @@ import (
 )
 
 var prodTest = &models.ProductData{
-	ID:           0,
-	Name:         "tovar",
-	Date:         "2010-02-02",
-	Amount:       10000,
-	Description:  "Description product aaaaa",
-	Category:     "0",
-	OwnerID:      0,
-	Longitude: 	  1,
-	Latitude:     1,
-	Address:      "Address",
-	LinkImages:   []string{"test_str.jpg"},
-	Tariff: 0,
+	ID:          0,
+	Name:        "tovar",
+	Date:        "2010-02-02",
+	Amount:      10000,
+	Description: "Description product aaaaa",
+	Category:    "0",
+	OwnerID:     0,
+	Longitude:   1,
+	Latitude:    1,
+	Address:     "Address",
+	LinkImages:  []string{"test_str.jpg"},
+	Tariff:      0,
 }
 
 func TestProductRepository_Insert_Success(t *testing.T) {

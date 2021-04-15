@@ -1,9 +1,9 @@
 package usecase
 
 import (
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
 )
 
 type CategoryUsecase struct {
@@ -16,11 +16,11 @@ func NewCategoryUsecase(repo category.CategoryRepository) category.CategoryUseca
 	}
 }
 
-func(cat *CategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Error) {
+func (cat *CategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Error) {
 	categories, err := cat.categoryRepo.GetAllCategories()
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
-	
+
 	return categories, nil
 }

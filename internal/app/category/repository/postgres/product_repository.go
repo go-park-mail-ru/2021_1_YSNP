@@ -2,8 +2,8 @@ package repository
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 
 type CategoryRepository struct {
@@ -16,7 +16,7 @@ func NewCategoryRepository(conn *sql.DB) category.CategoryRepository {
 	}
 }
 
-func (cat *CategoryRepository)  GetAllCategories() ([]*models.Category, error) {
+func (cat *CategoryRepository) GetAllCategories() ([]*models.Category, error) {
 	var categories []*models.Category
 
 	query, err := cat.dbConn.Query(`SELECT title from category`)

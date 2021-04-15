@@ -11,7 +11,7 @@ import (
 )
 
 var userTest = &models.UserData{
-	ID: 		0,
+	ID:         0,
 	Name:       "Максим",
 	Surname:    "Торжков",
 	Sex:        "male",
@@ -47,7 +47,6 @@ func TestUserUsecase_Create_TelephoneAlreadyExists(t *testing.T) {
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
-
 	err := userUcase.Create(userTest)
 	assert.Equal(t, err, errors.Cause(errors.TelephoneAlreadyExists))
 }
@@ -72,7 +71,6 @@ func TestUserUsecase_GetByID_Success(t *testing.T) {
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 
-
 	user, err := userUcase.GetByID(userTest.ID)
 	assert.Equal(t, err, (*errors.Error)(nil))
 	assert.Equal(t, user, userTestProfile)
@@ -87,7 +85,6 @@ func TestUserUsecase_GetByID_UserNotExist(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
-
 
 	user, err := userUcase.GetByID(userTest.ID)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
@@ -104,7 +101,6 @@ func TestUserUsecase_GetByTelephone_Success(t *testing.T) {
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
-
 	user, err := userUcase.GetByTelephone(userTest.Telephone)
 	assert.Equal(t, err, (*errors.Error)(nil))
 	assert.Equal(t, user, userTest)
@@ -119,7 +115,6 @@ func TestUserUsecase_GetByTelephone_UserNotExist(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo)
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(nil, sql.ErrNoRows)
-
 
 	user, err := userUcase.GetByTelephone(userTest.Telephone)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
@@ -270,7 +265,7 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 	}
 
 	userWithPosit := &models.UserData{
-		ID: 		0,
+		ID:         0,
 		Name:       "Максим",
 		Surname:    "Торжков",
 		Sex:        "male",
@@ -279,10 +274,10 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 		Password:   "Qwerty12",
 		DateBirth:  "2021-03-08",
 		LinkImages: "",
-		Latitude:  1,
-		Longitude: 1,
-		Radius:    1,
-		Address:   "address",
+		Latitude:   1,
+		Longitude:  1,
+		Radius:     1,
+		Address:    "address",
 	}
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userLocalTest, nil)
@@ -322,7 +317,7 @@ func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo)
 
 	userTestProfile := &models.SellerData{
-		ID: 		userTest.ID,
+		ID:         userTest.ID,
 		Name:       "Максим",
 		Surname:    "Торжков",
 		Telephone:  "+79169230768",
@@ -330,7 +325,6 @@ func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
 	}
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
-
 
 	user, err := userUcase.GetSellerByID(userTest.ID)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -346,7 +340,6 @@ func TestUserUsecase_GetSellerByID_UserNotExist(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
-
 
 	user, err := userUcase.GetSellerByID(userTest.ID)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
