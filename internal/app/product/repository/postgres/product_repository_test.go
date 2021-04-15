@@ -103,7 +103,7 @@ func TestProductRepository_SelectByID_Success(t *testing.T) {
 	prodRepo := NewProductRepository(db)
 
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
@@ -198,7 +198,7 @@ func TestProductRepository_SelectByID_UpdateErr(t *testing.T) {
 	prodRepo := NewProductRepository(db)
 
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
@@ -254,7 +254,7 @@ func TestProductRepository_SelectLatest_Success(t *testing.T) {
 	var userID uint64 = 1
 
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
@@ -307,7 +307,7 @@ func TestProductRepository_SelectUserAd_Success(t *testing.T) {
 	var userID uint64 = 1
 
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
@@ -359,7 +359,7 @@ func TestProductRepository_SelectUserFavorite_Success(t *testing.T) {
 	var userID uint64 = 1
 
 	layout := "2006-01-02"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 

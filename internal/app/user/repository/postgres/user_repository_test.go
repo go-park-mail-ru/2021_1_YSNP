@@ -36,7 +36,7 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 	userRepo := NewUserRepository(db)
 
 	layout := "2006-01-02"
-	time, err := time.Parse(layout, userTest.DateBirth)
+	time, _ := time.Parse(layout, userTest.DateBirth)
 
 	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
@@ -112,7 +112,7 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 	userRepo := NewUserRepository(db)
 
 	layout := "2006-01-02"
-	time, err := time.Parse(layout, userTest.DateBirth)
+	time, _ := time.Parse(layout, userTest.DateBirth)
 
 	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
