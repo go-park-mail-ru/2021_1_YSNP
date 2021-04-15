@@ -50,6 +50,36 @@ func TestSearchHandler_SearchHandler_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestSearchHandler_SearchHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	searchUcase := mock.NewMockSearchUsecase(ctrl)
+
+	var userID uint64 = 1
+
+	search := &models.Search{
+		Category:   "Шуба",
+	}
+
+	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	searchHandler := NewSearchHandler(searchUcase)
+	searchHandler.Configure(router, nil)
+
+	searchUcase.EXPECT().SelectByFilter(&userID, search).Return([]*models.ProductListData{}, nil)
+
+	searchHandler.SearchHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestSearchHandler_SearchHandler_ValidationError(t *testing.T) {
 	t.Parallel()
 

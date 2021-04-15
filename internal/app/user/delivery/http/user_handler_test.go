@@ -85,6 +85,81 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestUserHandler_SignUpHandler_LoggerError(t *testing.T) {
+	//t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"name":"Максим",
+			"surname":"Торжков",
+			"sex":"male",
+			"email":"a@a.ru",
+			"telephone":"+79169230768",
+			"password1":"Qwerty12",
+			"password2":"Qwerty12",
+			"dateBirth":"2021-03-08"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	ctx := r.Context()
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().Create(userTest).Return(nil)
+	sessUcase.EXPECT().Create(gomock.Any()).Return(nil)
+	userHandler.SignUpHandler(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_SignUpHandler_DecodeError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"name":12,
+			"surname":"Торжков",
+			"sex":"male",
+			"email":"a@a.ru",
+			"telephone":"+79169230768",
+			"password1":"Qwerty12",
+			"password2":"Qwerty12",
+			"dateBirth":"2021-03-08"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.SignUpHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 	t.Parallel()
 
@@ -213,6 +288,40 @@ func TestUserHandler_GetProfileHandler_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestUserHandler_GetProfileHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/me", nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userTestProfile := &models.ProfileData{
+		Name:       "Максим",
+		Surname:    "Торжков",
+		Sex:        "male",
+		Email:      "a@a.ru",
+		Telephone:  "+79169230768",
+		DateBirth:  "2021-03-08",
+		LinkImages: "",
+	}
+
+	userUcase.EXPECT().GetByID(gomock.Eq(userTest.ID)).Return(userTestProfile, nil)
+
+	userHandler.GetProfileHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
 func TestUserHandler_GetProfileHandler_UserUnauthorized(t *testing.T) {
 	t.Parallel()
 
@@ -284,6 +393,38 @@ func TestUserHandler_GetSellerHandler_Success(t *testing.T) {
 	}))
 	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
 	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	sellerTestProfile := &models.SellerData{
+		Name:       "Максим",
+		Surname:    "Торжков",
+		Telephone:  "+79169230768",
+		LinkImages: "",
+	}
+
+	userUcase.EXPECT().GetSellerByID(uint64(0)).Return(sellerTestProfile, nil)
+
+	userHandler.GetSellerHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_GetSellerHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
@@ -399,6 +540,84 @@ func TestUserHandler_ChangeProfileHandler_Success(t *testing.T) {
 
 	userHandler.ChangeProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_ChangeProfileHandler_LoggerError(t *testing.T) {
+	//t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"name":"Максим",
+			"surname":"Торжков",
+			"sex":"male",
+			"email":"a@a.ru",
+			"telephone":"+79169230768",
+			"password1":"Qwerty12",
+			"password2":"Qwerty12",
+			"dateBirth":"2021-03-08"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userTest.Password = ""
+
+	userUcase.EXPECT().UpdateProfile(gomock.Eq(userTest.ID), gomock.Eq(userTest)).Return(userTest, nil)
+
+	userHandler.ChangeProfileHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_ChangeProfileHandler_DecodeError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"name":12,
+			"surname":"Торжков",
+			"sex":"male",
+			"email":"a@a.ru",
+			"telephone":"+79169230768",
+			"password1":"Qwerty12",
+			"password2":"Qwerty12",
+			"dateBirth":"2021-03-08"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.ChangeProfileHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
 func TestUserHandler_ChangeProfileHandler_NotAuth(t *testing.T) {
@@ -542,6 +761,72 @@ func TestUserHandler_ChangeProfilePasswordHandler_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestUserHandler_ChangeProfilePasswordHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"oldPassword":"Qwerty12",
+			"newPassword1":"Qwerty123",
+			"newPassword2":"Qwerty123"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user/password", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().UpdatePassword(gomock.Eq(userTest.ID), gomock.Eq("Qwerty123")).Return(userTest, nil)
+
+	userHandler.ChangeProfilePasswordHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_ChangeProfilePasswordHandler_DecodeError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"oldPassword":12,
+			"newPassword1":"Qwerty123",
+			"newPassword2":"Qwerty123"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user/password", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.ChangeProfilePasswordHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestUserHandler_ChangeProfilePasswordHandler_NotAuth(t *testing.T) {
 	t.Parallel()
 
@@ -681,6 +966,116 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"latitude": 1,
+			"longitude": 1,
+			"radius": 1,
+			"address":"Qwerty123"
+			}
+	`))
+
+	position := &models.PositionData{
+		Latitude:  1,
+		Longitude: 1,
+		Radius:    1,
+		Address:   "Qwerty123",
+	}
+
+	r := httptest.NewRequest("POST", "/api/v1/user/position", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().UpdatePosition(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
+
+	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_ChangeUSerPositionHandler_DecodeError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"latitude": "1",
+			"longitude": 1,
+			"radius": 1,
+			"address":"Qwerty123"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user/position", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUserHandler_ChangeUSerPositionHandler_ValidationError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+			"latitude": -1123,
+			"longitude": 1,
+			"radius": 1,
+			"address":"Qwerty123"
+			}
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/user/position", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestUserHandler_ChangeUSerPositionHandler_NotAuth(t *testing.T) {
 	t.Parallel()
 
@@ -743,6 +1138,28 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestUserHandler_UploadAvatarHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.UploadAvatarHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestUserHandler_UploadAvatarHandler_ErrorContentType(t *testing.T) {
 	t.Parallel()
 
@@ -767,4 +1184,29 @@ func TestUserHandler_UploadAvatarHandler_ErrorContentType(t *testing.T) {
 
 	userHandler.UploadAvatarHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestUserHandler_UploadAvatarHandler_NoAuthError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/upload",nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.UploadAvatarHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }

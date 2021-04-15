@@ -46,7 +46,7 @@ func TestSearchRepository_SelectByFilter(t *testing.T) {
 	var userID uint64 = 1
 
 	layout := "2006-01-02T15:04:05Z"
-	date, err := time.Parse(layout, prodTest.Date)
+	date, _ := time.Parse(layout, prodTest.Date)
 
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 

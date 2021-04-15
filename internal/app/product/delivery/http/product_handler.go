@@ -53,7 +53,6 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
-
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
@@ -102,6 +101,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	logger.Debug("product id ", productData.ID)
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
@@ -150,6 +150,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 			return
 		}
 		logger.Debug("photo ", files[i].Header)
+
 		defer file.Close()
 		extension := filepath.Ext(files[i].Filename)
 
@@ -200,13 +201,6 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		imgs["linkImages"] = append(imgs["linkImages"], "/static/product/"+photoID.String()+extension)
 	}
 
-	//if len(imgs) == 0 {
-	//	logger.Error(err)
-	//	w.WriteHeader(http.StatusBadRequest)
-	//	w.Write(errors.JSONError(errors.Error{Message: "http: no such file"}.Error()))
-	//	return
-	//}
-
 	_, errE := ph.productUcase.UpdatePhoto(productID, imgs["linkImages"])
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -252,7 +246,7 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Debug(label)
+	logger.Debug("label ", label)
 
 	data := strings.Split(label, ",")
 	productID, err := strconv.ParseUint(data[0], 10, 64)
@@ -263,7 +257,7 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info(productID)
+	logger.Info("product id ", productID)
 
 	tariff, err := strconv.Atoi(data[1])
 	if err != nil {
@@ -273,7 +267,7 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info(tariff)
+	logger.Info("tariff ", tariff)
 
 	errE := ph.productUcase.SetTariff(productID, tariff)
 	if errE != nil {
@@ -341,17 +335,6 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	}
 	logger.Info("page ", page)
 
-	_, err = govalidator.ValidateStruct(page)
-	if err != nil {
-		if allErrs, ok := err.(govalidator.Errors); ok {
-			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-	}
-
 	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
 	logger.Info("user id ", userID)
 
@@ -405,17 +388,6 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	logger.Info("page ", page)
 
-	_, err = govalidator.ValidateStruct(page)
-	if err != nil {
-		if allErrs, ok := err.(govalidator.Errors); ok {
-			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-	}
-
 	products, errE := ph.productUcase.UserAdList(userID, page)
 	if errE != nil {
 		logger.Error(errE.Message)
@@ -465,17 +437,6 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 	logger.Info("page ", page)
-
-	_, err = govalidator.ValidateStruct(page)
-	if err != nil {
-		if allErrs, ok := err.(govalidator.Errors); ok {
-			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-	}
 
 	products, errE := ph.productUcase.GetUserFavorite(userID, page)
 	if errE != nil {

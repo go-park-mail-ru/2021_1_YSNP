@@ -37,7 +37,7 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		logger.Warn("no logger")
 	}
 
-	logger.Info(r.URL.Query())
+	logger.Debug("query ", r.URL.Query())
 
 	search := &models.Search{}
 	decoder := schema.NewDecoder()

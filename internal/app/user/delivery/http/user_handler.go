@@ -118,10 +118,10 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:    "session_id",
-		Value:   session.Value,
-		Expires: session.ExpiresAt,
-		//Secure:   true,
+		Name:     "session_id",
+		Value:    session.Value,
+		Expires:  session.ExpiresAt,
+		Secure:   true,
 		SameSite: http.SameSiteLaxMode,
 		HttpOnly: true,
 	}
@@ -458,6 +458,7 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
+	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
