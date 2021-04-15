@@ -27,7 +27,7 @@ func TestSearchHandler_SearchHandler_Success(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
@@ -61,7 +61,7 @@ func TestSearchHandler_SearchHandler_LoggerError(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
@@ -119,7 +119,7 @@ func TestSearchHandler_SearchHandler_NotFoundErr(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
