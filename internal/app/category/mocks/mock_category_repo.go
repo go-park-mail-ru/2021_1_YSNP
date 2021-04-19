@@ -35,9 +35,9 @@ func (m *MockCategoryRepository) EXPECT() *MockCategoryRepositoryMockRecorder {
 }
 
 // GetAllCategories mocks base method.
-func (m *MockCategoryRepository) GetAllCategories() ([]*models.Category, error) {
+func (m *MockCategoryRepository) SelectCategories() ([]*models.Category, error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCategories")
+	ret := m.ctrl.Call(m, "SelectCategories")
 	ret0, _ := ret[0].([]*models.Category)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
@@ -46,5 +46,5 @@ func (m *MockCategoryRepository) GetAllCategories() ([]*models.Category, error) 
 // GetAllCategories indicates an expected call of GetAllCategories.
 func (mr *MockCategoryRepositoryMockRecorder) GetAllCategories() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCategories", reflect.TypeOf((*MockCategoryRepository)(nil).GetAllCategories))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectCategories", reflect.TypeOf((*MockCategoryRepository)(nil).SelectCategories))
 }

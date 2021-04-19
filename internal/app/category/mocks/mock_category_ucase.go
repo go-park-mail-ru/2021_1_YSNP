@@ -38,7 +38,7 @@ func (m *MockCategoryUsecase) EXPECT() *MockCategoryUsecaseMockRecorder {
 // GetAllCategories mocks base method.
 func (m *MockCategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "GetAllCategories")
+	ret := m.ctrl.Call(m, "SelectCategories")
 	ret0, _ := ret[0].([]*models.Category)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
@@ -47,5 +47,5 @@ func (m *MockCategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Er
 // GetAllCategories indicates an expected call of GetAllCategories.
 func (mr *MockCategoryUsecaseMockRecorder) GetAllCategories() *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetAllCategories", reflect.TypeOf((*MockCategoryUsecase)(nil).GetAllCategories))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectCategories", reflect.TypeOf((*MockCategoryUsecase)(nil).GetAllCategories))
 }

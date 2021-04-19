@@ -2,6 +2,8 @@ package usecase
 
 import (
 	"database/sql"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
+	"mime/multipart"
 	"os"
 	"time"
 
@@ -13,11 +15,13 @@ import (
 
 type ProductUsecase struct {
 	productRepo product.ProductRepository
+	uploadRepo  upload.UploadRepository
 }
 
-func NewProductUsecase(repo product.ProductRepository) product.ProductUsecase {
+func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadRepository) product.ProductUsecase {
 	return &ProductUsecase{
 		productRepo: repo,
+		uploadRepo:  uploadRepo,
 	}
 }
 
@@ -32,17 +36,26 @@ func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
 	return nil
 }
 
-func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*models.ProductData, *errors.Error) {
+func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, files []*multipart.FileHeader) *errors.Error {
 	product, errE := pu.GetByID(productID)
 	if errE != nil {
-		return nil, errE
+		return errE
+	}
+
+	if product.OwnerID != ownerID {
+		return errors.Cause(errors.WrongOwner)
+	}
+
+	imgUrls, err := pu.uploadRepo.InsertPhotos(files, "static/product/")
+	if err != nil {
+		return errors.UnexpectedInternal(err)
 	}
 
 	oldPhotos := product.LinkImages
-	product.LinkImages = newPhoto
-	err := pu.productRepo.InsertPhoto(product)
+	product.LinkImages = imgUrls
+	err = pu.productRepo.InsertPhoto(product)
 	if err != nil {
-		return nil, errors.UnexpectedInternal(err)
+		return errors.UnexpectedInternal(err)
 	}
 
 	if len(oldPhotos) != 0 {
@@ -50,12 +63,12 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*mod
 			origWd, _ := os.Getwd()
 			err := os.Remove(origWd + photo)
 			if err != nil {
-				return nil, errors.UnexpectedInternal(err)
+				return errors.UnexpectedInternal(err)
 			}
 		}
 	}
 
-	return product, nil
+	return nil
 }
 
 func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *errors.Error) {

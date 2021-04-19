@@ -40,6 +40,7 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 		w.Write(errors.JSONError(errCategories))
 		return
 	}
+	logger.Debug("categories", categories)
 
 	body, err := json.Marshal(categories)
 	if err != nil {

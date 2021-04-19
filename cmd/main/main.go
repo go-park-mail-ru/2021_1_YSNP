@@ -34,6 +34,8 @@ import (
 	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
 	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
+
+	uploadRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/repository/FileSystem"
 )
 
 func main() {
@@ -58,10 +60,11 @@ func main() {
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
+	uploadRepo := uploadRepo.NewUploadRepository()
 
-	userUcase := userUsecase.NewUserUsecase(userRepo)
+	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
-	prodUcase := productUsecase.NewProductUsecase(prodRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
