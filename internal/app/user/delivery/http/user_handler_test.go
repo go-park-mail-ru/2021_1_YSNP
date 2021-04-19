@@ -31,20 +31,7 @@ var userTest = &models.UserData{
 	LinkImages: "",
 }
 
-//var byteData = bytes.NewReader([]byte(`
-//			{
-//			"name":"Максим",
-//			"surname":"Торжков",
-//			"sex":"male",
-//			"email":"a@a.ru",
-//			"telephone":"+7916923076",
-//			"password1":"Qwerty12",
-//			"password2":"Qwerty12",
-//			"dateBirth":"2021-03-08"
-//			}
-//	`))
-
-func TestUserHandler_SignUpHandler_OK(t *testing.T) {
+func TestUserHandler_SignUpHandler_Success(t *testing.T) {
 	//t.Parallel()
 
 	ctrl := gomock.NewController(t)
@@ -939,7 +926,7 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 			}
 	`))
 
-	position := &models.PositionData{
+	position := &models.LocationChangeRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,
@@ -961,7 +948,7 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 
 	userUcase.EXPECT().UpdatePosition(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -983,7 +970,7 @@ func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
 			}
 	`))
 
-	position := &models.PositionData{
+	position := &models.LocationChangeRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,
@@ -1001,7 +988,7 @@ func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
 
 	userUcase.EXPECT().UpdatePosition(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -1036,7 +1023,7 @@ func TestUserHandler_ChangeUSerPositionHandler_DecodeError(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1071,7 +1058,7 @@ func TestUserHandler_ChangeUSerPositionHandler_ValidationError(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1096,7 +1083,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NotAuth(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
@@ -1133,7 +1120,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 
 	userUcase.EXPECT().UpdatePosition(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 

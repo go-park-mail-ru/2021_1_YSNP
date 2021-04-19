@@ -245,7 +245,7 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 	userRepo := mock.NewMockUserRepository(ctrl)
 	userUcase := NewUserUsecase(userRepo)
 
-	position := &models.PositionData{
+	position := &models.LocationChangeRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,
@@ -295,7 +295,7 @@ func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
 	userRepo := mock.NewMockUserRepository(ctrl)
 	userUcase := NewUserUsecase(userRepo)
 
-	position := &models.PositionData{
+	position := &models.LocationChangeRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,

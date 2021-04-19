@@ -21,15 +21,25 @@ func NewProductUsecase(repo product.ProductRepository) product.ProductUsecase {
 	}
 }
 
-func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
-	product.Date = time.Now().UTC().Format("2006-01-02")
+func (pu *ProductUsecase) Create(userID uint64, productRequest *models.ProductCreateRequest) (*models.ProductData, *errors.Error) {
+	product := &models.ProductData{
+		Name:        productRequest.Name,
+		Description: productRequest.Description,
+		Category:    productRequest.Category,
+		Amount:      productRequest.Amount,
+		Latitude:    productRequest.Latitude,
+		Longitude:   productRequest.Longitude,
+		Address:     productRequest.Address,
+		Date:        time.Now().UTC().Format("2006-01-02"),
+		OwnerID:     userID,
+	}
 
 	err := pu.productRepo.Insert(product)
 	if err != nil {
-		return errors.UnexpectedInternal(err)
+		return nil, errors.UnexpectedInternal(err)
 	}
 
-	return nil
+	return product, nil
 }
 
 func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*models.ProductData, *errors.Error) {

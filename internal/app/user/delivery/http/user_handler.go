@@ -43,7 +43,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUserLocationHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -54,8 +54,8 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	defer r.Body.Close()
 
-	signUp := models.SignUpRequest{}
-	err := json.NewDecoder(r.Body).Decode(&signUp)
+	signUpData := models.SignUpRequest{}
+	err := json.NewDecoder(r.Body).Decode(&signUpData)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
@@ -63,20 +63,20 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info("user data ", signUp)
+	logger.Info("user data ", signUpData)
 
 	sanitizer := bluemonday.UGCPolicy()
-	signUp.Name = sanitizer.Sanitize(signUp.Name)
-	signUp.Surname = sanitizer.Sanitize(signUp.Surname)
-	signUp.Sex = sanitizer.Sanitize(signUp.Sex)
-	signUp.Email = sanitizer.Sanitize(signUp.Email)
-	signUp.Telephone = sanitizer.Sanitize(signUp.Telephone)
-	signUp.Password1 = sanitizer.Sanitize(signUp.Password1)
-	signUp.Password2 = sanitizer.Sanitize(signUp.Password2)
-	signUp.DateBirth = sanitizer.Sanitize(signUp.DateBirth)
-	logger.Debug("sanitize user data ", signUp)
+	signUpData.Name = sanitizer.Sanitize(signUpData.Name)
+	signUpData.Surname = sanitizer.Sanitize(signUpData.Surname)
+	signUpData.Sex = sanitizer.Sanitize(signUpData.Sex)
+	signUpData.Email = sanitizer.Sanitize(signUpData.Email)
+	signUpData.Telephone = sanitizer.Sanitize(signUpData.Telephone)
+	signUpData.Password1 = sanitizer.Sanitize(signUpData.Password1)
+	signUpData.Password2 = sanitizer.Sanitize(signUpData.Password2)
+	signUpData.DateBirth = sanitizer.Sanitize(signUpData.DateBirth)
+	logger.Debug("sanitize user data ", signUpData)
 
-	_, err = govalidator.ValidateStruct(signUp)
+	_, err = govalidator.ValidateStruct(signUpData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
@@ -87,18 +87,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	user := &models.UserData{
-		Name:       signUp.Name,
-		Surname:    signUp.Surname,
-		Sex:        signUp.Sex,
-		Email:      signUp.Email,
-		Telephone:  signUp.Telephone,
-		Password:   signUp.Password1,
-		DateBirth:  signUp.DateBirth,
-		LinkImages: signUp.LinkImages,
-	}
-
-	errE := uh.userUcase.Create(user)
+	user, errE := uh.userUcase.Create(&signUpData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -301,16 +290,16 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	}
 	logger.Info("user id ", userID)
 
-	user, errE := uh.userUcase.GetSellerByID(sellerID)
+	seller, errE := uh.userUcase.GetSellerByID(sellerID)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Debug("seller ", user)
+	logger.Debug("seller ", seller)
 
-	body, err := json.Marshal(user)
+	body, err := json.Marshal(seller)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)
@@ -341,8 +330,8 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	}
 	logger.Info("user id ", userID)
 
-	changeData := models.SignUpRequest{}
-	err := json.NewDecoder(r.Body).Decode(&changeData)
+	profileData := models.ProfileChangeRequest{}
+	err := json.NewDecoder(r.Body).Decode(&profileData)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
@@ -350,18 +339,17 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info("user data ", changeData)
+	logger.Info("profile data ", profileData)
 
 	sanitizer := bluemonday.UGCPolicy()
-	changeData.Name = sanitizer.Sanitize(changeData.Name)
-	changeData.Surname = sanitizer.Sanitize(changeData.Surname)
-	changeData.Sex = sanitizer.Sanitize(changeData.Sex)
-	changeData.Email = sanitizer.Sanitize(changeData.Email)
-	changeData.Telephone = sanitizer.Sanitize(changeData.Telephone)
-	changeData.DateBirth = sanitizer.Sanitize(changeData.DateBirth)
-	logger.Debug("sanitize user data ", changeData)
+	profileData.Name = sanitizer.Sanitize(profileData.Name)
+	profileData.Surname = sanitizer.Sanitize(profileData.Surname)
+	profileData.Sex = sanitizer.Sanitize(profileData.Sex)
+	profileData.Email = sanitizer.Sanitize(profileData.Email)
+	profileData.DateBirth = sanitizer.Sanitize(profileData.DateBirth)
+	logger.Debug("sanitize profile data ", profileData)
 
-	_, err = govalidator.ValidateStruct(changeData)
+	_, err = govalidator.ValidateStruct(profileData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
@@ -372,17 +360,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
-	user := &models.UserData{
-		Name:      changeData.Name,
-		Surname:   changeData.Surname,
-		Sex:       changeData.Sex,
-		Email:     changeData.Email,
-		Telephone: changeData.Telephone,
-		DateBirth: changeData.DateBirth,
-	}
-	logger.Debug("user ", user)
-
-	_, errE := uh.userUcase.UpdateProfile(userID, user)
+	_, errE := uh.userUcase.UpdateProfile(userID, &profileData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -452,7 +430,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	w.Write(errors.JSONSuccess("Successful change."))
 }
 
-func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -470,8 +448,8 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 	}
 	logger.Info("user id ", userID)
 
-	positionData := models.PositionData{}
-	err := json.NewDecoder(r.Body).Decode(&positionData)
+	locationData := models.LocationChangeRequest{}
+	err := json.NewDecoder(r.Body).Decode(&locationData)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
@@ -479,13 +457,13 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info("user position ", positionData)
+	logger.Info("user position ", locationData)
 
 	sanitizer := bluemonday.UGCPolicy()
-	positionData.Address = sanitizer.Sanitize(positionData.Address)
-	logger.Debug("sanitize user position ", positionData)
+	locationData.Address = sanitizer.Sanitize(locationData.Address)
+	logger.Debug("sanitize user position ", locationData)
 
-	_, err = govalidator.ValidateStruct(positionData)
+	_, err = govalidator.ValidateStruct(locationData)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
@@ -496,7 +474,7 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 		}
 	}
 
-	_, errE := uh.userUcase.UpdatePosition(userID, &positionData)
+	_, errE := uh.userUcase.UpdatePosition(userID, &locationData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

@@ -41,11 +41,19 @@ type SellerData struct {
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
-type PositionData struct {
+type LocationChangeRequest struct {
 	Latitude  float64 `json:"latitude" valid:"latitude"`
 	Longitude float64 `json:"longitude" valid:"longitude"`
 	Radius    uint64  `json:"radius" valid:"numeric"`
 	Address   string  `json:"address" valid:"type(string)"`
+}
+
+type ProfileChangeRequest struct {
+	Name      string `json:"name" valid:"stringlength(1|30)"`
+	Surname   string `json:"surname" valid:"stringlength(1|30)"`
+	Sex       string `json:"sex" valid:"in(male|female)"`
+	Email     string `json:"email" valid:"email"`
+	DateBirth string `json:"dateBirth" valid:"-"`
 }
 
 type SignUpRequest struct {

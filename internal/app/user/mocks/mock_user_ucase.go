@@ -139,7 +139,7 @@ func (mr *MockUserUsecaseMockRecorder) UpdatePassword(arg0, arg1 interface{}) *g
 }
 
 // UpdatePosition mocks base method.
-func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.PositionData) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.LocationChangeRequest) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePosition", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)

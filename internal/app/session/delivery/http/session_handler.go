@@ -70,6 +70,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//TODO(Maxim) Мне кажется это должно быть в usecase
 	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
 	if errE != nil {
 		logger.Error(errE.Message)

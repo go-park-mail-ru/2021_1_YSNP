@@ -26,5 +26,6 @@ func (su *SearchUsecase) SelectByFilter(userID *uint64, data *models.Search) ([]
 	if len(res) == 0 {
 		return nil, errors.Cause(errors.EmptySearch)
 	}
+
 	return res, nil
 }

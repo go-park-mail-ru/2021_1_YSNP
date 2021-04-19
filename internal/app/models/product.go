@@ -38,3 +38,13 @@ type Page struct {
 type Category struct {
 	Title string `json:"title"`
 }
+
+type ProductCreateRequest struct {
+	Name        string  `json:"name" valid:"stringlength(1|100)"`
+	Description string  `json:"description" valid:"stringlength(10|4000)"`
+	Category    string  `json:"category" valid:"type(string)"`
+	Amount      int     `json:"amount" valid:"numeric"`
+	Address     string  `json:"address" valid:"type(string)"`
+	Longitude   float64 `json:"longitude" valid:"longitude"`
+	Latitude    float64 `json:"latitude" valid:"latitude"`
+}

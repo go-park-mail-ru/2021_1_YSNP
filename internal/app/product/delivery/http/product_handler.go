@@ -65,8 +65,8 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	}
 	logger.Info("user id ", userID)
 
-	productData := &models.ProductData{}
-	err := json.NewDecoder(r.Body).Decode(&productData)
+	productCreate := &models.ProductCreateRequest{}
+	err := json.NewDecoder(r.Body).Decode(&productCreate)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
@@ -74,16 +74,15 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Info("product data ", productData)
-	productData.OwnerID = userID
+	logger.Info("product data ", productCreate)
 
 	sanitizer := bluemonday.UGCPolicy()
-	productData.Name = sanitizer.Sanitize(productData.Name)
-	productData.Description = sanitizer.Sanitize(productData.Description)
-	productData.Category = sanitizer.Sanitize(productData.Category)
-	logger.Debug("sanitize user data ", productData)
+	productCreate.Name = sanitizer.Sanitize(productCreate.Name)
+	productCreate.Description = sanitizer.Sanitize(productCreate.Description)
+	productCreate.Category = sanitizer.Sanitize(productCreate.Category)
+	logger.Debug("sanitize product data ", productCreate)
 
-	_, err = govalidator.ValidateStruct(productData)
+	_, err = govalidator.ValidateStruct(productCreate)
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
@@ -94,17 +93,17 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		}
 	}
 
-	errE := ph.productUcase.Create(productData)
+	product, errE := ph.productUcase.Create(userID, productCreate)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
-	logger.Debug("product id ", productData.ID)
+	logger.Debug("product id ", product.ID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
+	w.Write(errors.JSONSuccess("Successful creation.", product.ID))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
