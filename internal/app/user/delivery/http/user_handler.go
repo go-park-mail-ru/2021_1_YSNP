@@ -474,7 +474,7 @@ func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.
 		}
 	}
 
-	_, errE := uh.userUcase.UpdatePosition(userID, &locationData)
+	_, errE := uh.userUcase.UpdateLocation(userID, &locationData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

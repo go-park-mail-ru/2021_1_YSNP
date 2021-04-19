@@ -141,7 +141,7 @@ func (mr *MockUserUsecaseMockRecorder) UpdatePassword(arg0, arg1 interface{}) *g
 // UpdatePosition mocks base method.
 func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.LocationChangeRequest) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePosition", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdateLocation", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
@@ -150,7 +150,7 @@ func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.LocationChang
 // UpdatePosition indicates an expected call of UpdatePosition.
 func (mr *MockUserUsecaseMockRecorder) UpdatePosition(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePosition", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePosition), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLocation", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePosition), arg0, arg1)
 }
 
 // UpdateProfile mocks base method.

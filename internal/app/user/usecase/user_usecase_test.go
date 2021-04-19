@@ -283,7 +283,7 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userLocalTest, nil)
 	userRepo.EXPECT().Update(gomock.Eq(userWithPosit)).Return(nil)
 
-	_, err := userUcase.UpdatePosition(userTest.ID, position)
+	_, err := userUcase.UpdateLocation(userTest.ID, position)
 	assert.Equal(t, err, (*errors.Error)(nil))
 }
 
@@ -304,7 +304,7 @@ func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
-	_, err := userUcase.UpdatePosition(userTest.ID, position)
+	_, err := userUcase.UpdateLocation(userTest.ID, position)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
 }
 

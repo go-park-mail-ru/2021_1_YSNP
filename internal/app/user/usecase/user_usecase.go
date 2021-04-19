@@ -21,16 +21,16 @@ func NewUserUsecase(repo user.UserRepository) user.UserUsecase {
 	}
 }
 
-func (uu *UserUsecase) Create(signUp *models.SignUpRequest) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) Create(signUpData *models.SignUpRequest) (*models.UserData, *errors.Error) {
 	user := &models.UserData{
-		Name:       signUp.Name,
-		Surname:    signUp.Surname,
-		Sex:        signUp.Sex,
-		Email:      signUp.Email,
-		Telephone:  signUp.Telephone,
-		Password:   signUp.Password1,
-		DateBirth:  signUp.DateBirth,
-		LinkImages: signUp.LinkImages,
+		Name:       signUpData.Name,
+		Surname:    signUpData.Surname,
+		Sex:        signUpData.Sex,
+		Email:      signUpData.Email,
+		Telephone:  signUpData.Telephone,
+		Password:   signUpData.Password1,
+		DateBirth:  signUpData.DateBirth,
+		LinkImages: signUpData.LinkImages,
 	}
 
 	if _, err := uu.GetByTelephone(user.Telephone); err == nil {
@@ -120,13 +120,13 @@ func (uu *UserUsecase) GetSellerByID(userID uint64) (*models.SellerData, *errors
 	return seller, nil
 }
 
-func (uu *UserUsecase) UpdateProfile(userID uint64, changeData *models.ProfileChangeRequest) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateProfile(userID uint64, profileData *models.ProfileChangeRequest) (*models.UserData, *errors.Error) {
 	user := &models.UserData{
-		Name:      changeData.Name,
-		Surname:   changeData.Surname,
-		Sex:       changeData.Sex,
-		Email:     changeData.Email,
-		DateBirth: changeData.DateBirth,
+		Name:      profileData.Name,
+		Surname:   profileData.Surname,
+		Sex:       profileData.Sex,
+		Email:     profileData.Email,
+		DateBirth: profileData.DateBirth,
 	}
 
 	oldUser, err := uu.userRepo.SelectByID(userID)
@@ -167,16 +167,16 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	return user, nil
 }
 
-func (uu *UserUsecase) UpdatePosition(userID uint64, data *models.LocationChangeRequest) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateLocation(userID uint64, locationData *models.LocationChangeRequest) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)
 	}
 
-	user.Latitude = data.Latitude
-	user.Longitude = data.Longitude
-	user.Radius = data.Radius
-	user.Address = data.Address
+	user.Latitude = locationData.Latitude
+	user.Longitude = locationData.Longitude
+	user.Radius = locationData.Radius
+	user.Address = locationData.Address
 
 	err = uu.userRepo.Update(user)
 	if err != nil {

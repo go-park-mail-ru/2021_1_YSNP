@@ -16,7 +16,7 @@ type UserUsecase interface {
 
 	UpdateProfile(userID uint64, changeData *models.ProfileChangeRequest) (*models.UserData, *errors.Error)
 	UpdatePassword(userID uint64, password string) (*models.UserData, *errors.Error)
-	UpdatePosition(userID uint64, data *models.LocationChangeRequest) (*models.UserData, *errors.Error)
+	UpdateLocation(userID uint64, data *models.LocationChangeRequest) (*models.UserData, *errors.Error)
 
 	GetByTelephone(telephone string) (*models.UserData, *errors.Error)
 	CheckPassword(user *models.UserData, password string) *errors.Error
