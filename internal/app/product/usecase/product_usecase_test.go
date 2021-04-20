@@ -5,9 +5,11 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/assert"
+	"mime/multipart"
 	"testing"
 )
 
@@ -28,7 +30,8 @@ func TestProductUsecase_Create_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().Insert(gomock.Eq(prodTest)).Return(nil)
 
@@ -42,7 +45,8 @@ func TestProductUsecase_GetByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(gomock.Eq(prodTest.ID)).Return(prodTest, nil)
 
@@ -57,7 +61,8 @@ func TestProductUsecase_GetByID_ProductNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(gomock.Eq(prodTest.ID)).Return(nil, sql.ErrNoRows)
 
@@ -71,7 +76,8 @@ func TestProductUsecase_ListLatest_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -103,7 +109,8 @@ func TestProductUsecase_ListLatest_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -125,7 +132,8 @@ func TestProductUsecase_UserAdList_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -155,7 +163,8 @@ func TestProductUsecase_UserAdList_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -175,7 +184,8 @@ func TestProductUsecase_GetUserFavorite_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -205,7 +215,8 @@ func TestProductUsecase_GetUserFavorite_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -225,7 +236,8 @@ func TestProductUsecase_LikeProduct_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(nil)
 
@@ -239,7 +251,8 @@ func TestProductUsecase_LikeProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(pgx.PgError{Code: "23505"})
 
@@ -253,7 +266,8 @@ func TestProductUsecase_DislikeProduct_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().DeleteProductLike(uint64(0), uint64(0)).Return(nil)
 
@@ -267,7 +281,8 @@ func TestProductUsecase_SetTariff_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().UpdateTariff(uint64(0), 0).Return(nil)
 
@@ -280,14 +295,13 @@ func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	newAv := []string{"new_photo.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
 	prodRepo.EXPECT().InsertPhoto(gomock.Eq(prodTest)).Return(nil)
 
-	prod, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
+	prod, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
 	assert.Equal(t, err, (*errors.Error)(nil))
 	assert.Equal(t, prod, prodTest)
 }
@@ -298,13 +312,12 @@ func TestProductUsecase_UpdatePhoto_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	newAv := []string{"new_ava.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(nil, sql.ErrNoRows)
 
-	_, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
+	_, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
 	assert.Equal(t, err, errors.Cause(errors.ProductNotExist))
 }
 
@@ -314,14 +327,12 @@ func TestProductUsecase_UpdatePhoto_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	prodTest.LinkImages = []string{"old_photo.jpg"}
-	newAv := []string{"new_photo.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
 	prodRepo.EXPECT().InsertPhoto(gomock.Eq(prodTest)).Return(nil)
 
-	_, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
+	_, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
 	assert.Equal(t, err.ErrorCode, errors.InternalError)
 }

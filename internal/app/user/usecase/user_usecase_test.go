@@ -4,9 +4,11 @@ import (
 	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"mime/multipart"
 	"testing"
 )
 
@@ -28,7 +30,8 @@ func TestUserUsecase_Create_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(nil, sql.ErrNoRows)
 	userRepo.EXPECT().Insert(gomock.Eq(userTest)).Return(nil)
@@ -43,7 +46,8 @@ func TestUserUsecase_Create_TelephoneAlreadyExists(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
@@ -57,7 +61,8 @@ func TestUserUsecase_GetByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userTestProfile := &models.ProfileData{
 		Name:       "Максим",
@@ -82,7 +87,8 @@ func TestUserUsecase_GetByID_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
@@ -97,7 +103,8 @@ func TestUserUsecase_GetByTelephone_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
@@ -112,7 +119,8 @@ func TestUserUsecase_GetByTelephone_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(nil, sql.ErrNoRows)
 
@@ -127,7 +135,8 @@ func TestUserUsecase_UpdateProfile_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
@@ -142,7 +151,8 @@ func TestUserUsecase_UpdateProfile_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
@@ -156,7 +166,8 @@ func TestUserUsecase_UpdatePassword_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
@@ -171,7 +182,8 @@ func TestUserUsecase_UpdatePassword_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
@@ -185,14 +197,15 @@ func TestUserUsecase_UpdateAvatar(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
 
 	userTest.LinkImages = ""
 
-	_, err := userUcase.UpdateAvatar(userTest.ID, "")
+	_, err := userUcase.UpdateAvatar(userTest.ID, []*multipart.FileHeader{})
 	assert.Equal(t, err, (*errors.Error)(nil))
 }
 
@@ -202,11 +215,12 @@ func TestUserUsecase_UpdateAvatar_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
-	_, err := userUcase.UpdateAvatar(userTest.ID, "")
+	_, err := userUcase.UpdateAvatar(userTest.ID, []*multipart.FileHeader{})
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
 }
 
@@ -216,12 +230,13 @@ func TestUserUsecase_UpdateAvatar_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
 
-	_, err := userUcase.UpdateAvatar(userTest.ID, "")
+	_, err := userUcase.UpdateAvatar(userTest.ID, []*multipart.FileHeader{})
 	assert.Equal(t, err.ErrorCode, errors.InternalError)
 }
 
@@ -231,7 +246,8 @@ func TestUserUsecase_CheckPassword_WrongPassword(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	err := userUcase.CheckPassword(userTest, "password")
 	assert.Equal(t, err, errors.Cause(errors.WrongPassword))
@@ -243,7 +259,8 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	position := &models.PositionData{
 		Latitude:  1,
@@ -293,7 +310,8 @@ func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	position := &models.PositionData{
 		Latitude:  1,
@@ -314,7 +332,8 @@ func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userTestProfile := &models.SellerData{
 		ID:         userTest.ID,
@@ -337,7 +356,8 @@ func TestUserUsecase_GetSellerByID_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userRepo := mock.NewMockUserRepository(ctrl)
-	userUcase := NewUserUsecase(userRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 

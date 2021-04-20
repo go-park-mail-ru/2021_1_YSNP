@@ -5,6 +5,7 @@
 package mock
 
 import (
+	multipart "mime/multipart"
 	reflect "reflect"
 
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
@@ -109,7 +110,7 @@ func (mr *MockUserUsecaseMockRecorder) GetSellerByID(arg0 interface{}) *gomock.C
 }
 
 // UpdateAvatar mocks base method.
-func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 []*multipart.FileHeader) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)

@@ -2,14 +2,10 @@ package delivery
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
@@ -161,67 +157,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	file, handler, err := r.FormFile("file-upload")
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("photo ", handler.Header)
-	defer file.Close()
-	extension := filepath.Ext(handler.Filename)
-
-	r.FormValue("file-upload")
-
-	str, err := os.Getwd()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	photoPath := "static/avatar/"
-	os.Chdir(photoPath)
-
-	photoID, err := uuid.NewRandom()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("new photo name ", photoID)
-
-	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	defer f.Close()
-
-	os.Chdir(str)
-
-	_, err = io.Copy(f, file)
-	if err != nil {
-		_ = os.Remove(photoID.String() + extension)
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	avatar := "/static/avatar/" + photoID.String() + extension
-
-	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
+	files := r.MultipartForm.File["file-upload"]
+	_, errE := uh.userUcase.UpdateAvatar(userID, files)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -229,17 +166,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	body, err := json.Marshal(avatar)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
