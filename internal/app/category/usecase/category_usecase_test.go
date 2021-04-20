@@ -17,7 +17,7 @@ func TestCategoryUsecase_GetAllCategories(t *testing.T) {
 	catRepo := mock.NewMockCategoryRepository(ctrl)
 	catUcase := NewCategoryUsecase(catRepo)
 
-	catRepo.EXPECT().GetAllCategories().Return([]*models.Category{}, nil)
+	catRepo.EXPECT().SelectCategories().Return([]*models.Category{}, nil)
 
 	_, err := catUcase.GetAllCategories()
 	assert.Equal(t, err, (*errors.Error)(nil))

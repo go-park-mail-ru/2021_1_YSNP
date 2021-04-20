@@ -33,11 +33,11 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 		logger.Warn("no logger")
 	}
 
-	categories, errCategories := cat.categoryUcase.GetAllCategories()
-	if errCategories != nil {
-		logger.Error(errCategories.Message)
-		w.WriteHeader(errCategories.HttpError)
-		w.Write(errors.JSONError(errCategories))
+	categories, errE := cat.categoryUcase.GetAllCategories()
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
