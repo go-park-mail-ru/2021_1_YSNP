@@ -14,7 +14,7 @@ type UserUsecase interface {
 	GetByID(userID uint64) (*models.ProfileData, *errors.Error)
 	GetSellerByID(userID uint64) (*models.SellerData, *errors.Error)
 	UpdateProfile(userID uint64, newUserData *models.UserData) (*models.UserData, *errors.Error)
-	UpdateAvatar(userID uint64, files []*multipart.FileHeader) (*models.UserData, *errors.Error)
+	UpdateAvatar(userID uint64, fileHeader *multipart.FileHeader) (*models.UserData, *errors.Error)
 	CheckPassword(user *models.UserData, password string) *errors.Error
 	UpdatePassword(userID uint64, password string) (*models.UserData, *errors.Error)
 	UpdateLocation(userID uint64, data *models.LocationRequest) (*models.UserData, *errors.Error)

@@ -157,8 +157,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	files := r.MultipartForm.File["file-upload"]
-	_, errE := uh.userUcase.UpdateAvatar(userID, files)
+	file := r.MultipartForm.File["file-upload"][0]
+	_, errE := uh.userUcase.UpdateAvatar(userID, file)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

@@ -110,7 +110,7 @@ func (mr *MockUserUsecaseMockRecorder) GetSellerByID(arg0 interface{}) *gomock.C
 }
 
 // UpdateAvatar mocks base method.
-func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 []*multipart.FileHeader) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 *multipart.FileHeader) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)

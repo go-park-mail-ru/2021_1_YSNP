@@ -118,19 +118,19 @@ func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData
 	return newUserData, nil
 }
 
-func (uu *UserUsecase) UpdateAvatar(userID uint64, files []*multipart.FileHeader) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateAvatar(userID uint64, fileHeader *multipart.FileHeader) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)
 	}
 
-	imgUrl, err := uu.uploadRepo.InsertPhotos(files, "static/avatar/")
+	imgUrl, err := uu.uploadRepo.InsertPhoto(fileHeader, "static/avatar/")
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
 
 	oldAvatar := user.LinkImages
-	user.LinkImages = imgUrl[0]
+	user.LinkImages = imgUrl
 	err = uu.userRepo.Update(user)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)

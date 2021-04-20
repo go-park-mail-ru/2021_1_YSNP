@@ -36,7 +36,7 @@ func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
 	return nil
 }
 
-func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, files []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
+func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, filesHeaders []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
 	product, errE := pu.GetByID(productID)
 	if errE != nil {
 		return nil, errE
@@ -46,7 +46,7 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, files []
 		return nil, errors.Cause(errors.WrongOwner)
 	}
 
-	imgUrls, err := pu.uploadRepo.InsertPhotos(files, "static/product/")
+	imgUrls, err := pu.uploadRepo.InsertPhotos(filesHeaders, "static/product/")
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

@@ -34,6 +34,21 @@ func (m *MockUploadRepository) EXPECT() *MockUploadRepositoryMockRecorder {
 	return m.recorder
 }
 
+// InsertPhoto mocks base method.
+func (m *MockUploadRepository) InsertPhoto(arg0 *multipart.FileHeader, arg1 string) (string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertPhoto", arg0, arg1)
+	ret0, _ := ret[0].(string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// InsertPhoto indicates an expected call of InsertPhoto.
+func (mr *MockUploadRepositoryMockRecorder) InsertPhoto(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertPhoto", reflect.TypeOf((*MockUploadRepository)(nil).InsertPhoto), arg0, arg1)
+}
+
 // InsertPhotos mocks base method.
 func (m *MockUploadRepository) InsertPhotos(arg0 []*multipart.FileHeader, arg1 string) ([]string, error) {
 	m.ctrl.T.Helper()
