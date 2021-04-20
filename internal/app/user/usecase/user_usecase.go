@@ -173,7 +173,7 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	return user, nil
 }
 
-func (uu *UserUsecase) UpdatePosition(userID uint64, data *models.PositionData) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateLocation(userID uint64, data *models.LocationRequest) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)

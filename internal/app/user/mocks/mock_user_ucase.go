@@ -124,6 +124,21 @@ func (mr *MockUserUsecaseMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUserUsecase)(nil).UpdateAvatar), arg0, arg1)
 }
 
+// UpdateLocation mocks base method.
+func (m *MockUserUsecase) UpdateLocation(arg0 uint64, arg1 *models.LocationRequest) (*models.UserData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLocation", arg0, arg1)
+	ret0, _ := ret[0].(*models.UserData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// UpdateLocation indicates an expected call of UpdateLocation.
+func (mr *MockUserUsecaseMockRecorder) UpdateLocation(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLocation", reflect.TypeOf((*MockUserUsecase)(nil).UpdateLocation), arg0, arg1)
+}
+
 // UpdatePassword mocks base method.
 func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
@@ -137,21 +152,6 @@ func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.User
 func (mr *MockUserUsecaseMockRecorder) UpdatePassword(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePassword), arg0, arg1)
-}
-
-// UpdatePosition mocks base method.
-func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.PositionData) (*models.UserData, *errors.Error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePosition", arg0, arg1)
-	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
-	return ret0, ret1
-}
-
-// UpdatePosition indicates an expected call of UpdatePosition.
-func (mr *MockUserUsecaseMockRecorder) UpdatePosition(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePosition", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePosition), arg0, arg1)
 }
 
 // UpdateProfile mocks base method.
