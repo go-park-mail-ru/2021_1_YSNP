@@ -70,6 +70,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//TODO(Maxim) мне кажется для GetByTelephone и CheckPassword должен быть свой usecase
 	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
 	if errE != nil {
 		logger.Error(errE.Message)

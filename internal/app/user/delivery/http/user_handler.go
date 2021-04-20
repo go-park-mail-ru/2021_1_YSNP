@@ -87,6 +87,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:       signUp.Name,
 		Surname:    signUp.Surname,
@@ -372,6 +373,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:      changeData.Name,
 		Surname:   changeData.Surname,

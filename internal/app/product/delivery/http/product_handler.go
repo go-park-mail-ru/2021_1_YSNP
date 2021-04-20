@@ -75,13 +75,14 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	logger.Info("product data ", productData)
+	//TODO(Maxim) по идее должна быть отдельная модель ProductRequest и именно ее прокидывать в функцию Create
 	productData.OwnerID = userID
 
 	sanitizer := bluemonday.UGCPolicy()
 	productData.Name = sanitizer.Sanitize(productData.Name)
 	productData.Description = sanitizer.Sanitize(productData.Description)
 	productData.Category = sanitizer.Sanitize(productData.Category)
-	logger.Debug("sanitize user data ", productData)
+	logger.Debug("sanitize product data ", productData)
 
 	_, err = govalidator.ValidateStruct(productData)
 	if err != nil {
