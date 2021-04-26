@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 	"strings"
 	"time"
 
@@ -70,7 +69,6 @@ func(pr *ProductRepository)  Close(product *models.ProductData, userID int) erro
 	if err != nil {
 		return err
 	}
-	fmt.Println(int(product.OwnerID) == userID)
 	if int(product.OwnerID) !=  userID {
 		return errors.New("userError")
 	}
@@ -180,7 +178,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&linkStr,
 		&product.Tariff,
 		&product.Close)
-		
+
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
