@@ -201,7 +201,9 @@ func TestUserUsecase_UpdateAvatar(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
+	uploadRepo.EXPECT().InsertPhoto(&multipart.FileHeader{}, "static/avatar/").Return("", nil)
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
+	uploadRepo.EXPECT().RemovePhoto(gomock.Any()).Return(nil)
 
 	userTest.LinkImages = ""
 
@@ -234,7 +236,7 @@ func TestUserUsecase_UpdateAvatar_Error(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
-	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
+	uploadRepo.EXPECT().InsertPhoto(gomock.Any(), "static/avatar/").Return("", sql.ErrConnDone)
 
 	_, err := userUcase.UpdateAvatar(userTest.ID,  &multipart.FileHeader{})
 	assert.Equal(t, err.ErrorCode, errors.InternalError)
