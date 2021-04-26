@@ -18,6 +18,7 @@ type ProductData struct {
 	OwnerName       string   `json:"ownerName" valid:"stringlength(1|30)"`
 	OwnerSurname    string   `json:"ownerSurname" valid:"stringlength(1|30)"`
 	OwnerLinkImages string   `json:"ownerLinkImages" valid:"type(string)"`
+	Close           bool  `json:"close" valid:"-"`
 }
 
 type ProductListData struct {

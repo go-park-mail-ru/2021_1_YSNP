@@ -149,7 +149,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 
 	query := tx.QueryRow(
 		`
-				SELECT p.id, p.name, p.date, p.amount, p.description, cat.title, p.owner_id, u.name, u.surname, u.avatar, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff
+				SELECT p.id, p.name, p.date, p.amount, p.description, cat.title, p.owner_id, u.name, u.surname, u.avatar, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff, p.close
 				FROM product AS p
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
@@ -178,7 +178,9 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&product.Latitude,
 		&product.Address,
 		&linkStr,
-		&product.Tariff)
+		&product.Tariff,
+		&product.Close)
+		
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
