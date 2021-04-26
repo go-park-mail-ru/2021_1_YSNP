@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"errors"
+	"fmt"
 	"strings"
 	"time"
 
@@ -54,6 +56,44 @@ func (pr *ProductRepository) Insert(product *models.ProductData) error {
 	err = tx.Commit()
 	if err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func(pr *ProductRepository)  Close(product *models.ProductData, userID int) error {
+	err := pr.dbConn.QueryRow(`
+	SELECT p.owner_id
+	FROM product AS p
+	WHERE p.id = $1`, product.ID).Scan(&product.OwnerID)
+
+	if err != nil {
+		return err
+	}
+	fmt.Println(int(product.OwnerID) == userID)
+	if int(product.OwnerID) !=  userID {
+		return errors.New("userError")
+	}
+
+	tx, errtx := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if errtx != nil {
+		return err
+	}
+	_, errU := tx.Exec(
+		`Update product set close = true where id = $1`,
+		product.ID)
+	if errU != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	errtx = tx.Commit()
+	if errtx != nil {
+		return errtx
 	}
 
 	return nil

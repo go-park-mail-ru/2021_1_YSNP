@@ -21,6 +21,14 @@ func NewProductUsecase(repo product.ProductRepository) product.ProductUsecase {
 	}
 }
 
+func (pu *ProductUsecase) Close(product *models.ProductData, userID int) *errors.Error {
+	err := pu.productRepo.Close(product, userID)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+	return nil
+}
+
 func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
 	product.Date = time.Now().UTC().Format("2006-01-02")
 

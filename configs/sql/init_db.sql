@@ -52,6 +52,7 @@ CREATE TABLE IF NOT EXISTS product
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
+    close       boolean               DEFAULT false,
 
     FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION
