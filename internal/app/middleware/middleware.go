@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"context"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 	"time"
 
@@ -9,8 +11,6 @@ import (
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
@@ -120,13 +120,13 @@ func (m *Middleware) CSFRErrorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger, ok := r.Context().Value(ContextLogger).(*logrus.Entry)
 		if !ok {
-			logger = log.GetDefaultLogger()
+			logger = logger2.GetDefaultLogger()
 			logger.Warn("no logger")
 		}
 
-		errE := errors.Cause(errors.InvalidCSRFToken)
+		errE := errors2.Cause(errors2.InvalidCSRFToken)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 	}
 }

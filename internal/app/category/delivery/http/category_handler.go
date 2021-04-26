@@ -2,13 +2,13 @@ package http
 
 import (
 	"encoding/json"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/sirupsen/logrus"
 	"net/http"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/gorilla/mux"
 )
 
@@ -29,7 +29,7 @@ func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) 
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -37,16 +37,16 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
 	body, err := json.Marshal(categories)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors2.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 

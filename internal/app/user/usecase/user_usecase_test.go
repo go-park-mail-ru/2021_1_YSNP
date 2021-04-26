@@ -2,8 +2,8 @@ package usecase
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	"github.com/golang/mock/gomock"
@@ -37,7 +37,7 @@ func TestUserUsecase_Create_Success(t *testing.T) {
 	userRepo.EXPECT().Insert(gomock.Eq(userTest)).Return(nil)
 
 	err := userUcase.Create(userTest)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestUserUsecase_Create_TelephoneAlreadyExists(t *testing.T) {
@@ -52,7 +52,7 @@ func TestUserUsecase_Create_TelephoneAlreadyExists(t *testing.T) {
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
 	err := userUcase.Create(userTest)
-	assert.Equal(t, err, errors.Cause(errors.TelephoneAlreadyExists))
+	assert.Equal(t, err, errors2.Cause(errors2.TelephoneAlreadyExists))
 }
 
 func TestUserUsecase_GetByID_Success(t *testing.T) {
@@ -77,7 +77,7 @@ func TestUserUsecase_GetByID_Success(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 
 	user, err := userUcase.GetByID(userTest.ID)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, user, userTestProfile)
 }
 
@@ -93,7 +93,7 @@ func TestUserUsecase_GetByID_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	user, err := userUcase.GetByID(userTest.ID)
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 	assert.Equal(t, user, (*models.ProfileData)(nil))
 }
 
@@ -109,7 +109,7 @@ func TestUserUsecase_GetByTelephone_Success(t *testing.T) {
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(userTest, nil)
 
 	user, err := userUcase.GetByTelephone(userTest.Telephone)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, user, userTest)
 }
 
@@ -125,7 +125,7 @@ func TestUserUsecase_GetByTelephone_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByTelephone(gomock.Eq(userTest.Telephone)).Return(nil, sql.ErrNoRows)
 
 	user, err := userUcase.GetByTelephone(userTest.Telephone)
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 	assert.Equal(t, user, (*models.UserData)(nil))
 }
 
@@ -142,7 +142,7 @@ func TestUserUsecase_UpdateProfile_Success(t *testing.T) {
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
 
 	_, err := userUcase.UpdateProfile(userTest.ID, userTest)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestUserUsecase_UpdateProfile_UserNotExist(t *testing.T) {
@@ -157,7 +157,7 @@ func TestUserUsecase_UpdateProfile_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	_, err := userUcase.UpdateProfile(userTest.ID, userTest)
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 }
 
 func TestUserUsecase_UpdatePassword_Success(t *testing.T) {
@@ -173,7 +173,7 @@ func TestUserUsecase_UpdatePassword_Success(t *testing.T) {
 	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
 
 	_, err := userUcase.UpdatePassword(userTest.ID, "random_pass")
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestUserUsecase_UpdatePassword_UserNotExist(t *testing.T) {
@@ -188,7 +188,7 @@ func TestUserUsecase_UpdatePassword_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	_, err := userUcase.UpdatePassword(userTest.ID, "random_password")
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 }
 
 func TestUserUsecase_UpdateAvatar(t *testing.T) {
@@ -208,7 +208,7 @@ func TestUserUsecase_UpdateAvatar(t *testing.T) {
 	userTest.LinkImages = ""
 
 	_, err := userUcase.UpdateAvatar(userTest.ID, &multipart.FileHeader{})
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestUserUsecase_UpdateAvatar_UserNotExist(t *testing.T) {
@@ -223,7 +223,7 @@ func TestUserUsecase_UpdateAvatar_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	_, err := userUcase.UpdateAvatar(userTest.ID,  &multipart.FileHeader{})
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 }
 
 func TestUserUsecase_UpdateAvatar_Error(t *testing.T) {
@@ -239,7 +239,7 @@ func TestUserUsecase_UpdateAvatar_Error(t *testing.T) {
 	uploadRepo.EXPECT().InsertPhoto(gomock.Any(), "static/avatar/").Return("", sql.ErrConnDone)
 
 	_, err := userUcase.UpdateAvatar(userTest.ID,  &multipart.FileHeader{})
-	assert.Equal(t, err.ErrorCode, errors.InternalError)
+	assert.Equal(t, err.ErrorCode, errors2.InternalError)
 }
 
 func TestUserUsecase_CheckPassword_WrongPassword(t *testing.T) {
@@ -252,7 +252,7 @@ func TestUserUsecase_CheckPassword_WrongPassword(t *testing.T) {
 	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
 	err := userUcase.CheckPassword(userTest, "password")
-	assert.Equal(t, err, errors.Cause(errors.WrongPassword))
+	assert.Equal(t, err, errors2.Cause(errors2.WrongPassword))
 }
 
 func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
@@ -303,7 +303,7 @@ func TestUserUsecase_UpdatePosition_OK(t *testing.T) {
 	userRepo.EXPECT().Update(gomock.Eq(userWithPosit)).Return(nil)
 
 	_, err := userUcase.UpdateLocation(userTest.ID, position)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
@@ -325,7 +325,7 @@ func TestUserUsecase_UpdatePosition_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	_, err := userUcase.UpdateLocation(userTest.ID, position)
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 }
 
 func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
@@ -348,7 +348,7 @@ func TestUserUsecase_GetSellerByID_Success(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 
 	user, err := userUcase.GetSellerByID(userTest.ID)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, user, userTestProfile)
 }
 
@@ -364,6 +364,6 @@ func TestUserUsecase_GetSellerByID_UserNotExist(t *testing.T) {
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(nil, sql.ErrNoRows)
 
 	user, err := userUcase.GetSellerByID(userTest.ID)
-	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.UserNotExist))
 	assert.Equal(t, user, (*models.SellerData)(nil))
 }
