@@ -1,18 +1,18 @@
 package usecase
 
 import (
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 )
 
 type SessionUsecase struct {
-	sessRepo session.SessionRepository
+	sessRepo auth.SessionRepository
 }
 
-func NewSessionUsecase(repo session.SessionRepository) session.SessionUsecase {
+func NewSessionUsecase(repo auth.SessionRepository) auth.SessionUsecase {
 	return &SessionUsecase{
 		sessRepo: repo,
 	}
