@@ -5,10 +5,10 @@
 package mock
 
 import (
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	reflect "reflect"
 
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,11 +36,11 @@ func (m *MockSessionUsecase) EXPECT() *MockSessionUsecaseMockRecorder {
 }
 
 // Check mocks base method.
-func (m *MockSessionUsecase) Check(arg0 string) (*models.Session, *errors2.Error) {
+func (m *MockSessionUsecase) Check(arg0 string) (*models.Session, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Check", arg0)
 	ret0, _ := ret[0].(*models.Session)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -51,10 +51,10 @@ func (mr *MockSessionUsecaseMockRecorder) Check(arg0 interface{}) *gomock.Call {
 }
 
 // Create mocks base method.
-func (m *MockSessionUsecase) Create(arg0 *models.Session) *errors2.Error {
+func (m *MockSessionUsecase) Create(arg0 *models.Session) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -65,10 +65,10 @@ func (mr *MockSessionUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call 
 }
 
 // Delete mocks base method.
-func (m *MockSessionUsecase) Delete(arg0 string) *errors2.Error {
+func (m *MockSessionUsecase) Delete(arg0 string) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Delete", arg0)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -79,11 +79,11 @@ func (mr *MockSessionUsecaseMockRecorder) Delete(arg0 interface{}) *gomock.Call 
 }
 
 // Get mocks base method.
-func (m *MockSessionUsecase) Get(arg0 string) (*models.Session, *errors2.Error) {
+func (m *MockSessionUsecase) Get(arg0 string) (*models.Session, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Get", arg0)
 	ret0, _ := ret[0].(*models.Session)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 

@@ -5,11 +5,11 @@
 package mock
 
 import (
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	multipart "mime/multipart"
 	reflect "reflect"
 
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -37,10 +37,10 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 }
 
 // CheckPassword mocks base method.
-func (m *MockUserUsecase) CheckPassword(arg0 *models.UserData, arg1 string) *errors2.Error {
+func (m *MockUserUsecase) CheckPassword(arg0 *models.UserData, arg1 string) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckPassword", arg0, arg1)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -51,10 +51,10 @@ func (mr *MockUserUsecaseMockRecorder) CheckPassword(arg0, arg1 interface{}) *go
 }
 
 // Create mocks base method.
-func (m *MockUserUsecase) Create(arg0 *models.UserData) *errors2.Error {
+func (m *MockUserUsecase) Create(arg0 *models.UserData) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -65,11 +65,11 @@ func (mr *MockUserUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call {
 }
 
 // GetByID mocks base method.
-func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors2.Error) {
+func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0)
 	ret0, _ := ret[0].(*models.ProfileData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -80,11 +80,11 @@ func (mr *MockUserUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 }
 
 // GetByTelephone mocks base method.
-func (m *MockUserUsecase) GetByTelephone(arg0 string) (*models.UserData, *errors2.Error) {
+func (m *MockUserUsecase) GetByTelephone(arg0 string) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByTelephone", arg0)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -95,11 +95,11 @@ func (mr *MockUserUsecaseMockRecorder) GetByTelephone(arg0 interface{}) *gomock.
 }
 
 // GetSellerByID mocks base method.
-func (m *MockUserUsecase) GetSellerByID(arg0 uint64) (*models.SellerData, *errors2.Error) {
+func (m *MockUserUsecase) GetSellerByID(arg0 uint64) (*models.SellerData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSellerByID", arg0)
 	ret0, _ := ret[0].(*models.SellerData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -110,11 +110,11 @@ func (mr *MockUserUsecaseMockRecorder) GetSellerByID(arg0 interface{}) *gomock.C
 }
 
 // UpdateAvatar mocks base method.
-func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 *multipart.FileHeader) (*models.UserData, *errors2.Error) {
+func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 *multipart.FileHeader) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -125,11 +125,11 @@ func (mr *MockUserUsecaseMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *gom
 }
 
 // UpdateLocation mocks base method.
-func (m *MockUserUsecase) UpdateLocation(arg0 uint64, arg1 *models.LocationRequest) (*models.UserData, *errors2.Error) {
+func (m *MockUserUsecase) UpdateLocation(arg0 uint64, arg1 *models.LocationRequest) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateLocation", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -140,11 +140,11 @@ func (mr *MockUserUsecaseMockRecorder) UpdateLocation(arg0, arg1 interface{}) *g
 }
 
 // UpdatePassword mocks base method.
-func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.UserData, *errors2.Error) {
+func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -155,11 +155,11 @@ func (mr *MockUserUsecaseMockRecorder) UpdatePassword(arg0, arg1 interface{}) *g
 }
 
 // UpdateProfile mocks base method.
-func (m *MockUserUsecase) UpdateProfile(arg0 uint64, arg1 *models.UserData) (*models.UserData, *errors2.Error) {
+func (m *MockUserUsecase) UpdateProfile(arg0 uint64, arg1 *models.UserData) (*models.UserData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateProfile", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 

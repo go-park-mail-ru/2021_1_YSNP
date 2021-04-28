@@ -1,4 +1,5 @@
 static/
+config.json
 
 ### Code ###
 .vscode/*
