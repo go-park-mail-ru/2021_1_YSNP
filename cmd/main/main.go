@@ -2,13 +2,15 @@ package main
 
 import (
 	"fmt"
+	sessHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
+	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -23,14 +25,9 @@ import (
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
 	userUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/usecase"
 
-	sessionHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
-	sessionRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/repository/tarantool"
-	sessionUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
-
 	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
-
 	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
 	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
@@ -50,26 +47,26 @@ func main() {
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases2.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
-	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 	uploadRepo := uploadRepo.NewUploadRepository()
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
-	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
+	sessionGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer sessionGRPCConn.Close()
+	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
+
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
-	sessHandler := sessionHandler.NewSessionHandler(sessUcase, userUcase)
+	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
@@ -86,8 +83,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-		csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
