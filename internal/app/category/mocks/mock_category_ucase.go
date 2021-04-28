@@ -5,9 +5,9 @@
 package mock
 
 import (
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	reflect "reflect"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -36,11 +36,11 @@ func (m *MockCategoryUsecase) EXPECT() *MockCategoryUsecaseMockRecorder {
 }
 
 // GetAllCategories mocks base method.
-func (m *MockCategoryUsecase) GetAllCategories() ([]*models.Category, *errors.Error) {
+func (m *MockCategoryUsecase) GetAllCategories() ([]*models.Category, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetAllCategories")
 	ret0, _ := ret[0].([]*models.Category)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 

@@ -2,20 +2,16 @@ package delivery
 
 import (
 	"encoding/json"
-	"io"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
@@ -43,13 +39,13 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUserLocationHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
@@ -58,9 +54,9 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&signUp)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+		errE := errors2.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user data ", signUp)
@@ -80,13 +76,14 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
+			errE := errors2.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
+			w.Write(errors2.JSONError(errE))
 			return
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:       signUp.Name,
 		Surname:    signUp.Surname,
@@ -102,7 +99,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Debug("user ", user)
@@ -112,7 +109,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Debug("session ", session)
@@ -129,23 +126,23 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful login."))
+	w.Write(errors2.JSONSuccess("Successful login."))
 }
 
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Debug("user id ", userID)
@@ -154,106 +151,38 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	err := r.ParseMultipartForm(3 * 1024 * 1024)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+		errE := errors2.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
-	file, handler, err := r.FormFile("file-upload")
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("photo ", handler.Header)
-	defer file.Close()
-	extension := filepath.Ext(handler.Filename)
-
-	r.FormValue("file-upload")
-
-	str, err := os.Getwd()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	photoPath := "static/avatar/"
-	os.Chdir(photoPath)
-
-	photoID, err := uuid.NewRandom()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("new photo name ", photoID)
-
-	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	defer f.Close()
-
-	os.Chdir(str)
-
-	_, err = io.Copy(f, file)
-	if err != nil {
-		_ = os.Remove(photoID.String() + extension)
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	avatar := "/static/avatar/" + photoID.String() + extension
-
-	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
+	file := r.MultipartForm.File["file-upload"][0]
+	_, errE := uh.userUcase.UpdateAvatar(userID, file)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	body, err := json.Marshal(avatar)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors2.JSONSuccess("Successful upload."))
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -262,7 +191,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Debug("user ", user)
@@ -270,9 +199,9 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	body, err := json.Marshal(user)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors2.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
@@ -283,7 +212,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -293,10 +222,10 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -305,7 +234,7 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Debug("seller ", user)
@@ -313,9 +242,9 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	body, err := json.Marshal(user)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors2.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
@@ -326,17 +255,17 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -345,9 +274,9 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	err := json.NewDecoder(r.Body).Decode(&changeData)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+		errE := errors2.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user data ", changeData)
@@ -365,13 +294,14 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
+			errE := errors2.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
+			w.Write(errors2.JSONError(errE))
 			return
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:      changeData.Name,
 		Surname:   changeData.Surname,
@@ -386,28 +316,28 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful change."))
+	w.Write(errors2.JSONSuccess("Successful change."))
 }
 
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -416,9 +346,9 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	err := json.NewDecoder(r.Body).Decode(&passwordData)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+		errE := errors2.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user password ", passwordData)
@@ -433,9 +363,9 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
+			errE := errors2.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
+			w.Write(errors2.JSONError(errE))
 			return
 		}
 	}
@@ -444,39 +374,39 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful change."))
+	w.Write(errors2.JSONSuccess("Successful change."))
 }
 
-func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = log.GetDefaultLogger()
+		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors.Cause(errors.UserUnauthorized)
+		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
 
-	positionData := models.PositionData{}
+	positionData := models.LocationRequest{}
 	err := json.NewDecoder(r.Body).Decode(&positionData)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
+		errE := errors2.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 	logger.Info("user position ", positionData)
@@ -489,21 +419,21 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors.UnexpectedBadRequest(allErrs)
+			errE := errors2.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
+			w.Write(errors2.JSONError(errE))
 			return
 		}
 	}
 
-	_, errE := uh.userUcase.UpdatePosition(userID, &positionData)
+	_, errE := uh.userUcase.UpdateLocation(userID, &positionData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
+		w.Write(errors2.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful change."))
+	w.Write(errors2.JSONSuccess("Successful change."))
 }

@@ -5,9 +5,10 @@
 package mock
 
 import (
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	multipart "mime/multipart"
 	reflect "reflect"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	gomock "github.com/golang/mock/gomock"
 )
@@ -36,10 +37,10 @@ func (m *MockUserUsecase) EXPECT() *MockUserUsecaseMockRecorder {
 }
 
 // CheckPassword mocks base method.
-func (m *MockUserUsecase) CheckPassword(arg0 *models.UserData, arg1 string) *errors.Error {
+func (m *MockUserUsecase) CheckPassword(arg0 *models.UserData, arg1 string) *errors2.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "CheckPassword", arg0, arg1)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(*errors2.Error)
 	return ret0
 }
 
@@ -50,10 +51,10 @@ func (mr *MockUserUsecaseMockRecorder) CheckPassword(arg0, arg1 interface{}) *go
 }
 
 // Create mocks base method.
-func (m *MockUserUsecase) Create(arg0 *models.UserData) *errors.Error {
+func (m *MockUserUsecase) Create(arg0 *models.UserData) *errors2.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0)
-	ret0, _ := ret[0].(*errors.Error)
+	ret0, _ := ret[0].(*errors2.Error)
 	return ret0
 }
 
@@ -64,11 +65,11 @@ func (mr *MockUserUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call {
 }
 
 // GetByID mocks base method.
-func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors.Error) {
+func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0)
 	ret0, _ := ret[0].(*models.ProfileData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 
@@ -79,11 +80,11 @@ func (mr *MockUserUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 }
 
 // GetByTelephone mocks base method.
-func (m *MockUserUsecase) GetByTelephone(arg0 string) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) GetByTelephone(arg0 string) (*models.UserData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByTelephone", arg0)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 
@@ -94,11 +95,11 @@ func (mr *MockUserUsecaseMockRecorder) GetByTelephone(arg0 interface{}) *gomock.
 }
 
 // GetSellerByID mocks base method.
-func (m *MockUserUsecase) GetSellerByID(arg0 uint64) (*models.SellerData, *errors.Error) {
+func (m *MockUserUsecase) GetSellerByID(arg0 uint64) (*models.SellerData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetSellerByID", arg0)
 	ret0, _ := ret[0].(*models.SellerData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 
@@ -109,11 +110,11 @@ func (mr *MockUserUsecaseMockRecorder) GetSellerByID(arg0 interface{}) *gomock.C
 }
 
 // UpdateAvatar mocks base method.
-func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdateAvatar(arg0 uint64, arg1 *multipart.FileHeader) (*models.UserData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateAvatar", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 
@@ -123,12 +124,27 @@ func (mr *MockUserUsecaseMockRecorder) UpdateAvatar(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateAvatar", reflect.TypeOf((*MockUserUsecase)(nil).UpdateAvatar), arg0, arg1)
 }
 
+// UpdateLocation mocks base method.
+func (m *MockUserUsecase) UpdateLocation(arg0 uint64, arg1 *models.LocationRequest) (*models.UserData, *errors2.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateLocation", arg0, arg1)
+	ret0, _ := ret[0].(*models.UserData)
+	ret1, _ := ret[1].(*errors2.Error)
+	return ret0, ret1
+}
+
+// UpdateLocation indicates an expected call of UpdateLocation.
+func (mr *MockUserUsecaseMockRecorder) UpdateLocation(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateLocation", reflect.TypeOf((*MockUserUsecase)(nil).UpdateLocation), arg0, arg1)
+}
+
 // UpdatePassword mocks base method.
-func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdatePassword(arg0 uint64, arg1 string) (*models.UserData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePassword", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 
@@ -138,27 +154,12 @@ func (mr *MockUserUsecaseMockRecorder) UpdatePassword(arg0, arg1 interface{}) *g
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePassword", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePassword), arg0, arg1)
 }
 
-// UpdatePosition mocks base method.
-func (m *MockUserUsecase) UpdatePosition(arg0 uint64, arg1 *models.PositionData) (*models.UserData, *errors.Error) {
-	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePosition", arg0, arg1)
-	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
-	return ret0, ret1
-}
-
-// UpdatePosition indicates an expected call of UpdatePosition.
-func (mr *MockUserUsecaseMockRecorder) UpdatePosition(arg0, arg1 interface{}) *gomock.Call {
-	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePosition", reflect.TypeOf((*MockUserUsecase)(nil).UpdatePosition), arg0, arg1)
-}
-
 // UpdateProfile mocks base method.
-func (m *MockUserUsecase) UpdateProfile(arg0 uint64, arg1 *models.UserData) (*models.UserData, *errors.Error) {
+func (m *MockUserUsecase) UpdateProfile(arg0 uint64, arg1 *models.UserData) (*models.UserData, *errors2.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdateProfile", arg0, arg1)
 	ret0, _ := ret[0].(*models.UserData)
-	ret1, _ := ret[1].(*errors.Error)
+	ret1, _ := ret[1].(*errors2.Error)
 	return ret0, ret1
 }
 

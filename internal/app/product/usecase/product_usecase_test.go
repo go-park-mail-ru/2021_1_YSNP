@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/assert"
+	"mime/multipart"
 	"testing"
 )
 
@@ -28,12 +30,13 @@ func TestProductUsecase_Create_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().Insert(gomock.Eq(prodTest)).Return(nil)
 
 	err := prodUcase.Create(prodTest)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestProductUsecase_GetByID_Success(t *testing.T) {
@@ -42,12 +45,13 @@ func TestProductUsecase_GetByID_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(gomock.Eq(prodTest.ID)).Return(prodTest, nil)
 
 	product, err := prodUcase.GetByID(prodTest.ID)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, product, prodTest)
 }
 
@@ -57,12 +61,13 @@ func TestProductUsecase_GetByID_ProductNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(gomock.Eq(prodTest.ID)).Return(nil, sql.ErrNoRows)
 
 	_, err := prodUcase.GetByID(prodTest.ID)
-	assert.Equal(t, err, errors.Cause(errors.ProductNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.ProductNotExist))
 }
 
 func TestProductUsecase_ListLatest_Success(t *testing.T) {
@@ -71,7 +76,8 @@ func TestProductUsecase_ListLatest_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -93,7 +99,7 @@ func TestProductUsecase_ListLatest_Success(t *testing.T) {
 	prodRepo.EXPECT().SelectLatest(&userID, gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
 
 	list, err := prodUcase.ListLatest(&userID, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, list[0], prodList)
 }
 
@@ -103,7 +109,8 @@ func TestProductUsecase_ListLatest_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -115,7 +122,7 @@ func TestProductUsecase_ListLatest_NoProduct(t *testing.T) {
 	prodRepo.EXPECT().SelectLatest(&userID, gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
 	list, err := prodUcase.ListLatest(&userID, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, len(list), 0)
 }
 
@@ -125,7 +132,8 @@ func TestProductUsecase_UserAdList_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -145,7 +153,7 @@ func TestProductUsecase_UserAdList_Success(t *testing.T) {
 	prodRepo.EXPECT().SelectUserAd(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
 
 	list, err := prodUcase.UserAdList(0, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, list[0], prodList)
 }
 
@@ -155,7 +163,8 @@ func TestProductUsecase_UserAdList_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -165,7 +174,7 @@ func TestProductUsecase_UserAdList_NoProduct(t *testing.T) {
 	prodRepo.EXPECT().SelectUserAd(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
 	list, err := prodUcase.UserAdList(0, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, len(list), 0)
 }
 
@@ -175,7 +184,8 @@ func TestProductUsecase_GetUserFavorite_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -195,7 +205,7 @@ func TestProductUsecase_GetUserFavorite_Success(t *testing.T) {
 	prodRepo.EXPECT().SelectUserFavorite(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{prodList}, nil)
 
 	list, err := prodUcase.GetUserFavorite(0, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, list[0], prodList)
 }
 
@@ -205,7 +215,8 @@ func TestProductUsecase_GetUserFavorite_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	page := &models.Page{
 		From:  0,
@@ -215,7 +226,7 @@ func TestProductUsecase_GetUserFavorite_NoProduct(t *testing.T) {
 	prodRepo.EXPECT().SelectUserFavorite(uint64(0), gomock.Eq(page)).Return([]*models.ProductListData{}, nil)
 
 	list, err := prodUcase.GetUserFavorite(0, page)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, len(list), 0)
 }
 
@@ -225,12 +236,13 @@ func TestProductUsecase_LikeProduct_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(nil)
 
 	err := prodUcase.LikeProduct(0, 0)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestProductUsecase_LikeProduct(t *testing.T) {
@@ -239,12 +251,13 @@ func TestProductUsecase_LikeProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(pgx.PgError{Code: "23505"})
 
 	err := prodUcase.LikeProduct(0, 0)
-	assert.Equal(t, err, errors.Cause(errors.ProductAlreadyLiked))
+	assert.Equal(t, err, errors2.Cause(errors2.ProductAlreadyLiked))
 }
 
 func TestProductUsecase_DislikeProduct_Success(t *testing.T) {
@@ -253,12 +266,13 @@ func TestProductUsecase_DislikeProduct_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().DeleteProductLike(uint64(0), uint64(0)).Return(nil)
 
 	err := prodUcase.DislikeProduct(0, 0)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestProductUsecase_SetTariff_Success(t *testing.T) {
@@ -267,12 +281,13 @@ func TestProductUsecase_SetTariff_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().UpdateTariff(uint64(0), 0).Return(nil)
 
 	err := prodUcase.SetTariff(0, 0)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
@@ -280,15 +295,16 @@ func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	newAv := []string{"new_photo.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
-	prodRepo.EXPECT().InsertPhoto(gomock.Eq(prodTest)).Return(nil)
+	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}),"static/product/").Return([]string{}, nil)
+	prodRepo.EXPECT().InsertPhoto(gomock.Any()).Return(nil)
+	uploadRepo.EXPECT().RemovePhotos(gomock.Any()).Return(nil)
 
-	prod, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
-	assert.Equal(t, err, (*errors.Error)(nil))
+	prod, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, prod, prodTest)
 }
 
@@ -298,14 +314,13 @@ func TestProductUsecase_UpdatePhoto_NoProduct(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	newAv := []string{"new_ava.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(nil, sql.ErrNoRows)
 
-	_, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
-	assert.Equal(t, err, errors.Cause(errors.ProductNotExist))
+	_, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
+	assert.Equal(t, err, errors2.Cause(errors2.ProductNotExist))
 }
 
 func TestProductUsecase_UpdatePhoto_Error(t *testing.T) {
@@ -314,14 +329,12 @@ func TestProductUsecase_UpdatePhoto_Error(t *testing.T) {
 	defer ctrl.Finish()
 
 	prodRepo := mock.NewMockProductRepository(ctrl)
-	prodUcase := NewProductUsecase(prodRepo)
-
-	prodTest.LinkImages = []string{"old_photo.jpg"}
-	newAv := []string{"new_photo.jpg"}
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
-	prodRepo.EXPECT().InsertPhoto(gomock.Eq(prodTest)).Return(nil)
+	uploadRepo.EXPECT().InsertPhotos(gomock.Any(), "static/product/").Return([]string{}, sql.ErrConnDone)
 
-	_, err := prodUcase.UpdatePhoto(prodTest.ID, newAv)
-	assert.Equal(t, err.ErrorCode, errors.InternalError)
+	_, err := prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
+	assert.Equal(t, err.ErrorCode, errors2.InternalError)
 }

@@ -3,10 +3,10 @@ package http
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -267,7 +267,7 @@ func TestProductHandler_ProductIDHandler_ProductNotExist(t *testing.T) {
 	prodHandler := NewProductHandler(prodUcase)
 	prodHandler.Configure(router, rout, nil)
 
-	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(nil, errors.Cause(errors.ProductNotExist))
+	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(nil, errors2.Cause(errors2.ProductNotExist))
 
 	prodHandler.ProductIDHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)
@@ -701,7 +701,7 @@ func TestProductHandler_LikeProductHandler_Error(t *testing.T) {
 	prodHandler := NewProductHandler(prodUcase)
 	prodHandler.Configure(router, rout, nil)
 
-	prodUcase.EXPECT().LikeProduct(gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).Return(errors.Cause(errors.ProductAlreadyLiked))
+	prodUcase.EXPECT().LikeProduct(gomock.Eq(uint64(1)), gomock.Eq(uint64(0))).Return(errors2.Cause(errors2.ProductAlreadyLiked))
 
 	prodHandler.LikeProductHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)

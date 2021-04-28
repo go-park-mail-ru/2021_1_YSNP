@@ -3,10 +3,10 @@ package delivery
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	sMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
 	"github.com/golang/mock/gomock"
@@ -205,7 +205,7 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().Create(userTest).Return(errors.Cause(errors.TelephoneAlreadyExists))
+	userUcase.EXPECT().Create(userTest).Return(errors2.Cause(errors2.TelephoneAlreadyExists))
 	userHandler.SignUpHandler(w, r.WithContext(ctx))
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -369,7 +369,7 @@ func TestUserHandler_GetProfileHandler_UserNotExist(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().GetByID(gomock.Eq(userTest.ID)).Return(nil, errors.Cause(errors.UserNotExist))
+	userUcase.EXPECT().GetByID(gomock.Eq(userTest.ID)).Return(nil, errors2.Cause(errors2.UserNotExist))
 
 	userHandler.GetProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -492,7 +492,7 @@ func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().GetSellerByID(uint64(0)).Return(nil, errors.Cause(errors.UserNotExist))
+	userUcase.EXPECT().GetSellerByID(uint64(0)).Return(nil, errors2.Cause(errors2.UserNotExist))
 
 	userHandler.GetSellerHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -718,7 +718,7 @@ func TestUserHandler_ChangeProfileHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdateProfile(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
+	userUcase.EXPECT().UpdateProfile(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
 
 	userHandler.ChangeProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -915,7 +915,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdatePassword(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
+	userUcase.EXPECT().UpdatePassword(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
 
 	userHandler.ChangeProfilePasswordHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -939,7 +939,7 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 			}
 	`))
 
-	position := &models.PositionData{
+	position := &models.LocationRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,
@@ -959,9 +959,9 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdatePosition(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
+	userUcase.EXPECT().UpdateLocation(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -983,7 +983,7 @@ func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
 			}
 	`))
 
-	position := &models.PositionData{
+	position := &models.LocationRequest{
 		Latitude:  1,
 		Longitude: 1,
 		Radius:    1,
@@ -999,9 +999,9 @@ func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdatePosition(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
+	userUcase.EXPECT().UpdateLocation(gomock.Eq(userTest.ID), gomock.Eq(position)).Return(userTest, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
@@ -1036,7 +1036,7 @@ func TestUserHandler_ChangeUSerPositionHandler_DecodeError(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1071,7 +1071,7 @@ func TestUserHandler_ChangeUSerPositionHandler_ValidationError(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
@@ -1096,7 +1096,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NotAuth(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
 
@@ -1131,9 +1131,9 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdatePosition(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
+	userUcase.EXPECT().UpdateLocation(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
 
-	userHandler.ChangeUSerPositionHandler(w, r.WithContext(ctx))
+	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 

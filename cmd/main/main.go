@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"log"
 	"net/http"
 	"time"
@@ -10,10 +12,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/databases"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
@@ -34,6 +34,8 @@ import (
 	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
 	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
+
+	uploadRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/repository/FileSystem"
 )
 
 func main() {
@@ -42,13 +44,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases2.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases2.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,10 +60,11 @@ func main() {
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
+	uploadRepo := uploadRepo.NewUploadRepository()
 
-	userUcase := userUsecase.NewUserUsecase(userRepo)
+	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
-	prodUcase := productUsecase.NewProductUsecase(prodRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
@@ -71,7 +74,7 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
+	logger := logger2.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
