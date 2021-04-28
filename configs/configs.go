@@ -12,6 +12,11 @@ type Config struct {
 		Port string `json:"port"`
 	} `json:"server"`
 
+	Auth struct {
+		Host string `json:"host"`
+		Port string `json:"port"`
+	} `json:"auth_microservice"`
+
 	Logger struct {
 		Mode string `json:"mode"`
 	} `json:"logger"`
@@ -53,6 +58,14 @@ func (c *Config) GetServerHost() string {
 
 func (c *Config) GetServerPort() string {
 	return c.Server.Port
+}
+
+func (c *Config) GetAuthHost() string {
+	return c.Auth.Host
+}
+
+func (c *Config) GetAuthPort() string {
+	return c.Auth.Port
 }
 
 func (c *Config) GetLoggerMode() string {

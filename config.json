@@ -3,12 +3,16 @@
     "host": "89.208.199.170",
     "port": "8080"
   },
+  "auth_microservice": {
+    "host": "localhost",
+    "port": "8081"
+  },
   "logger": {
     "mode": "development"
   },
   "postgres": {
-    "user": "ysnp",
-    "password": "koyaforever",
+    "user": "postgres",
+    "password": "postgres",
     "name": "ysnpkoyadb",
     "host": "localhost",
     "port": 5432
