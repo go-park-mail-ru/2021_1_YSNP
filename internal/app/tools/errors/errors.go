@@ -2,6 +2,7 @@ package errors
 
 import (
 	"encoding/json"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
 
@@ -167,4 +168,14 @@ func UnexpectedBadRequest(err error) *Error {
 	unexpErr.Message = err.Error()
 
 	return unexpErr
+}
+
+func GRPCError(err error) *Error {
+	grpcErr, has := CustomErrors[ErrorType(status.Code(err))]
+	grpcErr.Message = err.Error()
+	if !has {
+		// for grpc connection error
+		return UnexpectedInternal(err)
+	}
+	return grpcErr
 }

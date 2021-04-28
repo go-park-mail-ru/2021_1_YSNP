@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+option go_package = "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/proto/auth";
+
+package auth;
+
+import "google/protobuf/empty.proto";
+import "google/protobuf/timestamp.proto";
+
+message Session {
+  string Value = 1;
+  uint64 UserID = 2;
+  google.protobuf.Timestamp ExpiresAt = 3;
+}
+
+message SessionValue {
+  string Value = 1;
+}
+
+service AuthHandler {
+  rpc Create(Session) returns (google.protobuf.Empty) {}
+  rpc Get(SessionValue) returns (Session) {}
+  rpc Delete(SessionValue) returns (google.protobuf.Empty) {}
+  rpc Check(SessionValue) returns (Session) {}
+}
