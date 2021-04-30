@@ -3,37 +3,37 @@ package models
 import "time"
 
 type Chat struct {
-	ID int
+	ID uint64
 
 	CreationTime time.Time
-	LastMsgID int
+	LastMsgID uint64
 	LastMsgContent string
 	LastMsgTime time.Time
 
-	PartnerID int
+	PartnerID uint64
 	PartnerName string
 	PartnerSurname string
 	PartnerAvatarLink string
 
-	ProductID int
+	ProductID uint64
 	ProductName string
 	ProductAvatarLink string
 
-	LastReadMsgId int
+	LastReadMsgId uint64
 	NewMessages int
 }
 
 
 
 type ChatCreateReq struct {
-	ProductID int  `json:"productID"`
-	PartnerID int `json:"partnerID"`
+	ProductID uint64  `json:"productID"`
+	PartnerID uint64 `json:"partnerID"`
 }
 
 
 
 type ChatResponse struct {
-	ID int `json:"id"`
+	ID uint64 `json:"id"`
 	CreationTime time.Time `json:"creation_time"`
 	LastMsgContent string `json:"last_msg_content"`
 	LastMsgTime time.Time  `json:"last_msg_time"`
@@ -49,34 +49,34 @@ type ChatResponse struct {
 }
 
 type Message struct {
-	ID int
+	ID uint64
 	Content string
 	CreationTime time.Time
-	ChatID int
-	UserID int
+	ChatID uint64
+	UserID uint64
 }
 
 type CreateMessageReq struct {
-	ChatID int  `json:"chat_id"`
+	ChatID uint64  `json:"chat_id"`
 	Content string  `json:"content"`
 }
 
 type GetLastNMessagesReq struct {
-	ChatID int	`json:"chat_id"`
+	ChatID uint64	`json:"chat_id"`
 	Count int `json:"messages"`
 }
 
 type GetNMessagesBeforeReq struct {
-	ChatID int  `json:"chat_id"`
+	ChatID uint64  `json:"chat_id"`
 	Count int `json:"n_messages"`
-	LastMessageID int  `json:"message_id"`
+	LastMessageID uint64  `json:"message_id"`
 }
 
 type MessageResp struct {
-	ID int  `json:"id"`
+	ID uint64  `json:"id"`
 	Content string  `json:"content"`
 	CreationTime time.Time  `json:"time"`
-	ChatID int `json:"chat_id"`
-	UserID int `json:"user_id"`
+	ChatID uint64 `json:"chat_id"`
+	UserID uint64 `json:"user_id"`
 }
 
