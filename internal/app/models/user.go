@@ -42,7 +42,7 @@ type SellerData struct {
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
 
-type PositionData struct {
+type LocationRequest struct {
 	Latitude  float64 `json:"latitude" valid:"latitude"`
 	Longitude float64 `json:"longitude" valid:"longitude"`
 	Radius    uint64  `json:"radius" valid:"numeric"`

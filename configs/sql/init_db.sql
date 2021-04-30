@@ -81,7 +81,6 @@ CREATE TABLE IF NOT EXISTS user_favorite
 INSERT INTO users (email, telephone, password, name, surname, sex)
 VALUES ('asd', '123', '123', '123', '123', 'M');
 
-
 INSERT INTO category (title)
 VALUES ('Транспорт'),
        ('Недвижмость'),
@@ -91,7 +90,6 @@ VALUES ('Транспорт'),
        ('Бытовая электрика'),
        ('Личные вещи'),
        ('Животные');
-
 
 INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude)
 VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
@@ -105,7 +103,6 @@ VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
        ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
        ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
        ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
-
 
 INSERT INTO product_images (product_id, img_link)
 VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),

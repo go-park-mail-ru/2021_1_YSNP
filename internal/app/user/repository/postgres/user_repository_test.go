@@ -38,7 +38,7 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -75,7 +75,7 @@ func TestUserRepository_SelectByID_Error(t *testing.T) {
 
 	userRepo := NewUserRepository(db)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -114,7 +114,7 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -151,7 +151,7 @@ func TestUserRepository_SelectByTelephone_Error(t *testing.T) {
 
 	userRepo := NewUserRepository(db)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password","name", "surname", "sex",  "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,

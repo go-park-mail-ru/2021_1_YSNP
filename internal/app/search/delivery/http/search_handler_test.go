@@ -2,10 +2,10 @@ package delivery
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/mocks"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -27,7 +27,7 @@ func TestSearchHandler_SearchHandler_Success(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
@@ -61,7 +61,7 @@ func TestSearchHandler_SearchHandler_LoggerError(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
@@ -119,7 +119,7 @@ func TestSearchHandler_SearchHandler_NotFoundErr(t *testing.T) {
 	var userID uint64 = 1
 
 	search := &models.Search{
-		Category:   "Шуба",
+		Category: "Шуба",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
@@ -136,7 +136,7 @@ func TestSearchHandler_SearchHandler_NotFoundErr(t *testing.T) {
 	searchHandler := NewSearchHandler(searchUcase)
 	searchHandler.Configure(router, nil)
 
-	searchUcase.EXPECT().SelectByFilter(&userID, search).Return(nil, errors.Cause(errors.EmptySearch))
+	searchUcase.EXPECT().SelectByFilter(&userID, search).Return(nil, errors2.Cause(errors2.EmptySearch))
 
 	searchHandler.SearchHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)

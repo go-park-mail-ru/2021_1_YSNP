@@ -24,6 +24,7 @@ const (
 	InvalidCSRFToken
 	EmptySearch
 	ProductClose
+	WrongOwner
 )
 
 type Error struct {
@@ -144,6 +145,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ProductClose,
 		HttpError: http.StatusBadRequest,
 		Message:   "Product already close",
+	},
+	WrongOwner: {
+		ErrorCode: WrongOwner,
+		HttpError: http.StatusForbidden,
+		Message:   "Forbidden - wrong owner",
 	},
 }
 

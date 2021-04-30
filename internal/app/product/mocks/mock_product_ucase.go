@@ -5,10 +5,11 @@
 package mock
 
 import (
+	multipart "mime/multipart"
 	reflect "reflect"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -166,18 +167,18 @@ func (mr *MockProductUsecaseMockRecorder) SetTariff(arg0, arg1 interface{}) *gom
 }
 
 // UpdatePhoto mocks base method.
-func (m *MockProductUsecase) UpdatePhoto(arg0 uint64, arg1 []string) (*models.ProductData, *errors.Error) {
+func (m *MockProductUsecase) UpdatePhoto(arg0, arg1 uint64, arg2 []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1)
+	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.ProductData)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // UpdatePhoto indicates an expected call of UpdatePhoto.
-func (mr *MockProductUsecaseMockRecorder) UpdatePhoto(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockProductUsecaseMockRecorder) UpdatePhoto(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePhoto", reflect.TypeOf((*MockProductUsecase)(nil).UpdatePhoto), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePhoto", reflect.TypeOf((*MockProductUsecase)(nil).UpdatePhoto), arg0, arg1, arg2)
 }
 
 // UserAdList mocks base method.

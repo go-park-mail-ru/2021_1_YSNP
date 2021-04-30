@@ -1,8 +1,10 @@
 package product
 
 import (
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	"mime/multipart"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 //go:generate mockgen -destination=./mocks/mock_product_ucase.go -package=mock github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product ProductUsecase
@@ -10,7 +12,7 @@ import (
 type ProductUsecase interface {
 	Create(product *models.ProductData) *errors.Error
 	Close(productID uint64, ownerID uint64) *errors.Error
-	UpdatePhoto(productID uint64, newAvatar []string) (*models.ProductData, *errors.Error)
+	UpdatePhoto(productID uint64, ownerID uint64, filesHeaders []*multipart.FileHeader) (*models.ProductData, *errors.Error)
 	SetTariff(productID uint64, tariff int) *errors.Error
 
 	GetProduct(productID uint64) (*models.ProductData, *errors.Error)

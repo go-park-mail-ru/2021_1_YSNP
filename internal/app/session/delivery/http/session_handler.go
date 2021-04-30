@@ -10,11 +10,11 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -70,6 +70,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//TODO(Maxim) мне кажется для GetByTelephone и CheckPassword должен быть свой usecase
 	user, errE := sh.userUcase.GetByTelephone(login.Telephone)
 	if errE != nil {
 		logger.Error(errE.Message)

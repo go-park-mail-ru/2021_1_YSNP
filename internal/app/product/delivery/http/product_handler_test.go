@@ -3,18 +3,20 @@ package http
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 var prodTest = &models.ProductData{
