@@ -16,7 +16,7 @@ func NewChatUsecase(repo chat.ChatRepository) chat.ChatUsecase{
 	}
 }
 
-func (c ChatUsecase) CreateChat(req *models.ChatCreateReq, userID int) (*models.ChatResponse, *errors.Error) {
+func (c *ChatUsecase) CreateChat(req *models.ChatCreateReq, userID uint64) (*models.ChatResponse, *errors.Error) {
 	chat := &models.Chat{
 		PartnerID: req.PartnerID,
 		ProductID: req.ProductID,
@@ -40,7 +40,7 @@ func (c ChatUsecase) CreateChat(req *models.ChatCreateReq, userID int) (*models.
 	}, nil
 }
 
-func (c ChatUsecase) GetChatById(chatID int, userID int) (*models.ChatResponse, *errors.Error) {
+func (c *ChatUsecase) GetChatById(chatID uint64, userID uint64) (*models.ChatResponse, *errors.Error) {
 	chat, err := c.chatRepo.GetChatById(chatID, userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -60,7 +60,7 @@ func (c ChatUsecase) GetChatById(chatID int, userID int) (*models.ChatResponse, 
 	}, nil
 }
 
-func (c ChatUsecase) GetUserChats(userID int) ([]*models.ChatResponse, *errors.Error) {
+func (c *ChatUsecase) GetUserChats(userID uint64) ([]*models.ChatResponse, *errors.Error) {
 	chats, err := c.chatRepo.GetUserChats(userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -85,7 +85,7 @@ func (c ChatUsecase) GetUserChats(userID int) ([]*models.ChatResponse, *errors.E
 	return chatResp, nil
 }
 
-func (c ChatUsecase) CreateMessage(req *models.CreateMessageReq, userID int) (*models.MessageResp, *errors.Error) {
+func (c *ChatUsecase) CreateMessage(req *models.CreateMessageReq, userID uint64) (*models.MessageResp, *errors.Error) {
 	msg, err := c.chatRepo.InsertMessage(req, userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -100,7 +100,7 @@ func (c ChatUsecase) CreateMessage(req *models.CreateMessageReq, userID int) (*m
 	}, nil
 }
 
-func (c ChatUsecase) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.MessageResp, *errors.Error) {
+func (c *ChatUsecase) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.MessageResp, *errors.Error) {
 	msgs, err := c.chatRepo.GetLastNMessages(req)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -120,7 +120,7 @@ func (c ChatUsecase) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*model
 	return msgsResp, nil
 }
 
-func (c ChatUsecase) GetNMessagesBefore(req *models.GetNMessagesBeforeReq) ([]*models.MessageResp, *errors.Error) {
+func (c *ChatUsecase) GetNMessagesBefore(req *models.GetNMessagesBeforeReq) ([]*models.MessageResp, *errors.Error) {
 	msgs, err := c.chatRepo.GetNMessagesBefore(req)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)

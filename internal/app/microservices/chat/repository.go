@@ -5,10 +5,10 @@ import (
 )
 
 type ChatRepository interface {
-	InsertChat(chat *models.Chat, userID int) error
-	GetChatById(chatId int, userID int) (*models.Chat, error)
-	GetUserChats(userId int) ([]*models.Chat, error)
-	InsertMessage(req *models.CreateMessageReq, userId int) (*models.Message, error)
+	InsertChat(chat *models.Chat, userID uint64) error
+	GetChatById(chatId uint64, userID uint64) (*models.Chat, error)
+	GetUserChats(userId uint64) ([]*models.Chat, error)
+	InsertMessage(req *models.CreateMessageReq, userId uint64) (*models.Message, error)
 	GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.Message, error)
 	GetNMessagesBefore(req *models.GetNMessagesBeforeReq) ([]*models.Message, error)
 }
