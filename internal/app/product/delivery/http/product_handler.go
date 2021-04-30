@@ -2,25 +2,21 @@ package http
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 )
 
 type ProductHandler struct {
@@ -116,13 +112,14 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	logger.Info("product data ", productData)
+	//TODO(Maxim) по идее должна быть отдельная модель ProductRequest и именно ее прокидывать в функцию Create
 	productData.OwnerID = userID
 
 	sanitizer := bluemonday.UGCPolicy()
 	productData.Name = sanitizer.Sanitize(productData.Name)
 	productData.Description = sanitizer.Sanitize(productData.Description)
 	productData.Category = sanitizer.Sanitize(productData.Category)
-	logger.Debug("sanitize user data ", productData)
+	logger.Debug("sanitize product data ", productData)
 
 	_, err = govalidator.ValidateStruct(productData)
 	if err != nil {
@@ -180,69 +177,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	files := r.MultipartForm.File["photos"]
-	imgs := make(map[string][]string)
-	for i := range files {
-		file, err := files[i].Open()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedBadRequest(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		logger.Debug("photo ", files[i].Header)
-
-		defer file.Close()
-		extension := filepath.Ext(files[i].Filename)
-
-		str, err := os.Getwd()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-
-		photoPath := "static/product/"
-		os.Chdir(photoPath)
-
-		photoID, err := uuid.NewRandom()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		logger.Debug("new photo name ", photoID)
-
-		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		defer f.Close()
-
-		os.Chdir(str)
-
-		_, err = io.Copy(f, file)
-		if err != nil {
-			_ = os.Remove(photoID.String() + extension)
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-
-		imgs["linkImages"] = append(imgs["linkImages"], "/static/product/"+photoID.String()+extension)
-	}
-
-	_, errE := ph.productUcase.UpdatePhoto(productID, imgs["linkImages"])
+	_, errE := ph.productUcase.UpdatePhoto(productID, userId, files)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -250,17 +185,9 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	body, err := json.Marshal(imgs)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {

@@ -27,4 +27,3 @@ services:
     volumes:
       - './configs/lua/:/opt/tarantool/'
     command: tarantool /opt/tarantool/app.lua
-

@@ -2,22 +2,24 @@ package usecase
 
 import (
 	"database/sql"
-	"os"
-
 	"golang.org/x/crypto/bcrypt"
+	"mime/multipart"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
 type UserUsecase struct {
-	userRepo user.UserRepository
+	userRepo   user.UserRepository
+	uploadRepo upload.UploadRepository
 }
 
-func NewUserUsecase(repo user.UserRepository) user.UserUsecase {
+func NewUserUsecase(repo user.UserRepository, uploadRepo upload.UploadRepository) user.UserUsecase {
 	return &UserUsecase{
-		userRepo: repo,
+		userRepo:   repo,
+		uploadRepo: uploadRepo,
 	}
 }
 
@@ -117,24 +119,27 @@ func (uu *UserUsecase) UpdateProfile(userID uint64, newUserData *models.UserData
 	return newUserData, nil
 }
 
-func (uu *UserUsecase) UpdateAvatar(userID uint64, newAvatar string) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateAvatar(userID uint64, fileHeader *multipart.FileHeader) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)
 	}
 
+	imgUrl, err := uu.uploadRepo.InsertPhoto(fileHeader, "static/avatar/")
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
 	oldAvatar := user.LinkImages
-	user.LinkImages = newAvatar
+	user.LinkImages = imgUrl
 	err = uu.userRepo.Update(user)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
 
-	if oldAvatar != "" {
-		err := os.Remove(oldAvatar)
-		if err != nil {
-			return nil, errors.UnexpectedInternal(err)
-		}
+	err = uu.uploadRepo.RemovePhoto(oldAvatar)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
 	}
 
 	return user, nil
@@ -169,7 +174,7 @@ func (uu *UserUsecase) UpdatePassword(userID uint64, password string) (*models.U
 	return user, nil
 }
 
-func (uu *UserUsecase) UpdatePosition(userID uint64, data *models.PositionData) (*models.UserData, *errors.Error) {
+func (uu *UserUsecase) UpdateLocation(userID uint64, data *models.LocationRequest) (*models.UserData, *errors.Error) {
 	user, err := uu.userRepo.SelectByID(userID)
 	if err != nil {
 		return nil, errors.Cause(errors.UserNotExist)

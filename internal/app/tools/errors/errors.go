@@ -23,6 +23,7 @@ const (
 	PromoteEmptyLabel
 	InvalidCSRFToken
 	EmptySearch
+	WrongOwner
 )
 
 type Error struct {
@@ -138,6 +139,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: InvalidCSRFToken,
 		HttpError: http.StatusForbidden,
 		Message:   "Forbidden - CSRF token invalid",
+	},
+	WrongOwner: {
+		ErrorCode: WrongOwner,
+		HttpError: http.StatusForbidden,
+		Message:   "Forbidden - wrong owner",
 	},
 }
 

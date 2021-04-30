@@ -3,10 +3,11 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 	"math"
 	"strings"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 )
 
 func NewSearchRepository(conn *sql.DB) search.SearchRepository {

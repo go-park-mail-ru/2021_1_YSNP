@@ -2,22 +2,26 @@ package usecase
 
 import (
 	"database/sql"
-	"os"
+	"mime/multipart"
 	"time"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	"github.com/jackc/pgx"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
-	"github.com/jackc/pgx"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
 )
 
 type ProductUsecase struct {
 	productRepo product.ProductRepository
+	uploadRepo  upload.UploadRepository
 }
 
-func NewProductUsecase(repo product.ProductRepository) product.ProductUsecase {
+func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadRepository) product.ProductUsecase {
 	return &ProductUsecase{
 		productRepo: repo,
+		uploadRepo:  uploadRepo,
 	}
 }
 
@@ -40,27 +44,31 @@ func (pu *ProductUsecase) Create(product *models.ProductData) *errors.Error {
 	return nil
 }
 
-func (pu *ProductUsecase) UpdatePhoto(productID uint64, newPhoto []string) (*models.ProductData, *errors.Error) {
+func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, filesHeaders []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
 	product, errE := pu.GetByID(productID)
 	if errE != nil {
 		return nil, errE
 	}
 
-	oldPhotos := product.LinkImages
-	product.LinkImages = newPhoto
-	err := pu.productRepo.InsertPhoto(product)
+	if product.OwnerID != ownerID {
+		return nil, errors.Cause(errors.WrongOwner)
+	}
+
+	imgUrls, err := pu.uploadRepo.InsertPhotos(filesHeaders, "static/product/")
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
 
-	if len(oldPhotos) != 0 {
-		for _, photo := range oldPhotos {
-			origWd, _ := os.Getwd()
-			err := os.Remove(origWd + photo)
-			if err != nil {
-				return nil, errors.UnexpectedInternal(err)
-			}
-		}
+	oldPhotos := product.LinkImages
+	product.LinkImages = imgUrls
+	err = pu.productRepo.InsertPhoto(product)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	err = pu.uploadRepo.RemovePhotos(oldPhotos)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
 	}
 
 	return product, nil

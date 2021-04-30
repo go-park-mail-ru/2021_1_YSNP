@@ -7,8 +7,8 @@ package mock
 import (
 	reflect "reflect"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 

@@ -1,9 +1,9 @@
 package usecase
 
 import (
-	errs "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
@@ -25,7 +25,7 @@ func TestSessionUsecase_Create_OK(t *testing.T) {
 	sessionRep.EXPECT().Insert(gomock.Eq(session)).Return(nil)
 
 	err := sessionUcase.Create(session)
-	assert.Equal(t, err, (*errs.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestSessionUsecase_Delete_OK(t *testing.T) {
@@ -43,7 +43,7 @@ func TestSessionUsecase_Delete_OK(t *testing.T) {
 	sessionRep.EXPECT().DeleteByValue(session.Value).Return(nil)
 
 	err := sessionUcase.Delete(session.Value)
-	assert.Equal(t, err, (*errs.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 }
 
 func TestSessionUsecase_Delete_SessionNotExist(t *testing.T) {
@@ -60,7 +60,7 @@ func TestSessionUsecase_Delete_SessionNotExist(t *testing.T) {
 	sessionRep.EXPECT().SelectByValue(session.Value).Return(nil, errors.New("session not exist"))
 
 	err := sessionUcase.Delete(session.Value)
-	assert.Equal(t, err, errs.Cause(errs.SessionNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.SessionNotExist))
 }
 
 func TestSessionUsecase_Get_OK(t *testing.T) {
@@ -78,7 +78,7 @@ func TestSessionUsecase_Get_OK(t *testing.T) {
 
 	sess, err := sessionUcase.Get(session.Value)
 
-	assert.Equal(t, err, (*errs.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, sess, session)
 }
 
@@ -97,7 +97,7 @@ func TestSessionUsecase_Get_SessionNotExist(t *testing.T) {
 
 	sess, err := sessionUcase.Get(session.Value)
 
-	assert.Equal(t, err, errs.Cause(errs.SessionNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.SessionNotExist))
 	assert.Equal(t, sess, (*models.Session)(nil))
 }
 
@@ -116,7 +116,7 @@ func TestSessionUsecase_Check_OK(t *testing.T) {
 
 	sess, err := sessionUcase.Check(session.Value)
 
-	assert.Equal(t, err, (*errs.Error)(nil))
+	assert.Equal(t, err, (*errors2.Error)(nil))
 	assert.Equal(t, sess, session)
 }
 
@@ -135,7 +135,7 @@ func TestSessionUsecase_Check_SessionNotExist(t *testing.T) {
 
 	_, err := sessionUcase.Check(session.Value)
 
-	assert.Equal(t, err, errs.Cause(errs.SessionNotExist))
+	assert.Equal(t, err, errors2.Cause(errors2.SessionNotExist))
 }
 
 func TestSessionUsecase_Check_Expired(t *testing.T) {
@@ -155,5 +155,5 @@ func TestSessionUsecase_Check_Expired(t *testing.T) {
 
 	_, err := sessionUcase.Check(session.Value)
 
-	assert.Equal(t, err, errs.Cause(errs.SessionExpired))
+	assert.Equal(t, err, errors2.Cause(errors2.SessionExpired))
 }

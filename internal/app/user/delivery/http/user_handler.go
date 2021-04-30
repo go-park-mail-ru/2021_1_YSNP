@@ -2,23 +2,19 @@ package delivery
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -43,7 +39,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUSerPositionHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUserLocationHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +83,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:       signUp.Name,
 		Surname:    signUp.Surname,
@@ -160,67 +157,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	file, handler, err := r.FormFile("file-upload")
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("photo ", handler.Header)
-	defer file.Close()
-	extension := filepath.Ext(handler.Filename)
-
-	r.FormValue("file-upload")
-
-	str, err := os.Getwd()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	photoPath := "static/avatar/"
-	os.Chdir(photoPath)
-
-	photoID, err := uuid.NewRandom()
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Debug("new photo name ", photoID)
-
-	f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	defer f.Close()
-
-	os.Chdir(str)
-
-	_, err = io.Copy(f, file)
-	if err != nil {
-		_ = os.Remove(photoID.String() + extension)
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	avatar := "/static/avatar/" + photoID.String() + extension
-
-	_, errE := uh.userUcase.UpdateAvatar(userID, avatar)
+	file := r.MultipartForm.File["file-upload"][0]
+	_, errE := uh.userUcase.UpdateAvatar(userID, file)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -228,17 +166,8 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	body, err := json.Marshal(avatar)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
@@ -372,6 +301,7 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 		}
 	}
 
+	//TODO(Maxim) мне кажется это нужно делать в usecase
 	user := &models.UserData{
 		Name:      changeData.Name,
 		Surname:   changeData.Surname,
@@ -452,7 +382,7 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	w.Write(errors.JSONSuccess("Successful change."))
 }
 
-func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -470,7 +400,7 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 	}
 	logger.Info("user id ", userID)
 
-	positionData := models.PositionData{}
+	positionData := models.LocationRequest{}
 	err := json.NewDecoder(r.Body).Decode(&positionData)
 	if err != nil {
 		logger.Error(err)
@@ -496,7 +426,7 @@ func (uh *UserHandler) ChangeUSerPositionHandler(w http.ResponseWriter, r *http.
 		}
 	}
 
-	_, errE := uh.userUcase.UpdatePosition(userID, &positionData)
+	_, errE := uh.userUcase.UpdateLocation(userID, &positionData)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
