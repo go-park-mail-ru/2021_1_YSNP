@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 
 type UserInterested struct {
 	UserID uint64 `json:"userID"`
@@ -19,6 +21,7 @@ type Trands struct {
 type Popular struct {
 	Count uint64
 	Title string
+	Date time.Time
 }
 
 type PopularSorter []Popular

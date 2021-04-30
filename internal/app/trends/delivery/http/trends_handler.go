@@ -37,18 +37,3 @@ func (th *TrendsHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	ui.UserID = 7
 	th.trendsUsecase.InsertOrUpdate(ui)
 }
-
-
-/*
-
-{
-	userId: id
-	info: { [
-			
-		title: stirng
-		count: int
-	
-		]
-	}
-}
-*/

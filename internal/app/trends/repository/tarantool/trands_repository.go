@@ -2,12 +2,15 @@ package repository
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"github.com/tarantool/go-tarantool"
+	"sort"
+	"time"
 	"unicode/utf8"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
-	"sort"
+	"github.com/tarantool/go-tarantool"
 )
 
 type TrandsRepository struct {
@@ -21,11 +24,12 @@ func NewTrandsRepository(conn *tarantool.Connection) trends.TrandsRepository {
 }
 
 func (tr *TrandsRepository) updateData(ui1 *models.Trands, ui2 *models.Trands) {
-	for _, item := range ui1.Popular{ 
+	for _, item := range ui1.Popular { 
 		found := false
 		for i, item_2 := range ui2.Popular { 
 			if item.Title == item_2.Title {
 				ui2.Popular[i].Count += 1
+				ui2.Popular[i].Date = item.Date
 				found = true
 				break
 			}
@@ -36,14 +40,28 @@ func (tr *TrandsRepository) updateData(ui1 *models.Trands, ui2 *models.Trands) {
 			ui2.Popular = append(ui2.Popular, item)
 		}
 	}
-	sort.Sort(models.PopularSorter(ui2.Popular))
-	if len(ui2.Popular) > 10 {
-		ui2.Popular = ui2.Popular[:10]
+
+    i := 0
+	for i < len(ui2.Popular) {
+		if ui2.Popular[i].Date.Unix() < time.Now().Add(-10 * time.Hour).Unix() {
+			ui2.Popular = remove(ui2.Popular, i)
+			i -= 1
+		} 
+		i += 1
 	}
+
+	sort.Sort(models.PopularSorter(ui2.Popular))
+
+
 	fmt.Println(ui2)
 }
 
-func RemoveLastChar(str string) string {
+func remove(slice []models.Popular, i int) []models.Popular {
+	slice[i] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+  }
+
+func removeLastChar(str string) string {
       for len(str) > 0 {
               _, size := utf8.DecodeLastRuneInString(str)
               return str[2:len(str)-size - 1]
@@ -61,13 +79,15 @@ func (tr *TrandsRepository) InsertOrUpdate(ui *models.Trands) error {
 	dataStr := string(data)
 
 	resp, _ := tr.dbConn.Insert("trends", []interface{}{ui.UserID, dataStr})
-	fmt.Println(resp.Data...)
+
 	if resp.Code == 3 {
 		val, _ := tr.dbConn.Call("get_user_trend", []interface{}{ui.UserID})
 		d  := fmt.Sprintf("%v", val.Data)
 		oldModel := &models.Trands{}
-		json.Unmarshal([]byte(RemoveLastChar(d)), &oldModel)
+		json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
+		fmt.Println(oldModel)
 		tr.updateData(ui, oldModel)
+
 		data, err = json.Marshal(oldModel)
 
 		if err != nil {
@@ -78,7 +98,5 @@ func (tr *TrandsRepository) InsertOrUpdate(ui *models.Trands) error {
 		_, err1 := tr.dbConn.Replace("trends", []interface{}{ui.UserID, dataStr})
 		return err1
 	}
-	return nil
+	return errors.New(resp.Error)
 }
-
-
