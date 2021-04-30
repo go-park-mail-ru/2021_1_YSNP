@@ -25,6 +25,15 @@ func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadR
 	}
 }
 
+func (pu *ProductUsecase) Edit(product *models.ProductData) *errors.Error {
+	err := pu.productRepo.Update(product)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
+}
+
 func (pu *ProductUsecase) Close(product *models.ProductData, userID int) *errors.Error {
 	err := pu.productRepo.Close(product, userID)
 	if err != nil {

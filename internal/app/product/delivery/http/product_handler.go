@@ -32,6 +32,7 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/close", mw.CheckAuthMiddleware(ph.ProductCloseHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/edit", mw.CheckAuthMiddleware(ph.ProductEditHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
 	rNoCSRF.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
 
@@ -42,6 +43,69 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
+}
+
+
+func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+	defer r.Body.Close()
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	productData := &models.ProductData{}
+	err := json.NewDecoder(r.Body).Decode(&productData)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("product data ", productData)
+	//TODO(Ivan) проверка на айди пользователя и айди владельца
+	
+	productData.OwnerID = userID
+
+	sanitizer := bluemonday.UGCPolicy()
+	productData.Name = sanitizer.Sanitize(productData.Name)
+	productData.Description = sanitizer.Sanitize(productData.Description)
+	productData.Category = sanitizer.Sanitize(productData.Category)
+	logger.Debug("sanitize product data ", productData)
+
+	_, err = govalidator.ValidateStruct(productData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+
+	errE := ph.productUcase.Edit(productData)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Debug("product id ", productData.ID)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
 }
 
 func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Request) {

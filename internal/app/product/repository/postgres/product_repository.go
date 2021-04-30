@@ -21,6 +21,52 @@ func NewProductRepository(conn *sql.DB) product.ProductRepository {
 	}
 }
 
+func (pr *ProductRepository) Update(product *models.ProductData) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+	query := tx.QueryRow(
+		`
+		UPDATE product set 
+			name = $1,
+			amount = $2,
+			description = $3,
+			category_id = (SELECT cat.id from category as cat where cat.title = $4),
+			longitude = $5,
+			latitude = $6,
+			address = $7
+		WHERE id = $8
+		RETURNING id;
+		`,
+		product.Name,
+		product.Amount,
+		product.Description,
+		product.Category,
+		product.Longitude,
+		product.Latitude,
+		product.Address,
+		product.ID,
+	)
+
+	err = query.Scan(&product.ID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (pr *ProductRepository) Insert(product *models.ProductData) error {
 	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
 	if err != nil {
