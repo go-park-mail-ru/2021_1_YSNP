@@ -2,6 +2,7 @@ package databases
 
 import (
 	"database/sql"
+
 	_ "github.com/jackc/pgx/stdlib"
 )
 

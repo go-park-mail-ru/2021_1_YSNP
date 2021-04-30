@@ -2,8 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 	"strconv"
 	"strings"
@@ -17,6 +15,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 )
 
 type ProductHandler struct {
@@ -46,17 +46,17 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -65,9 +65,9 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	err := json.NewDecoder(r.Body).Decode(&productData)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("product data ", productData)
@@ -84,9 +84,9 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors2.UnexpectedBadRequest(allErrs)
+			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors2.JSONError(errE))
+			w.Write(errors.JSONError(errE))
 			return
 		}
 	}
@@ -95,19 +95,19 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Debug("product id ", productData.ID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful creation.", productData.ID))
+	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -117,10 +117,10 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 
 	userId, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userId)
@@ -129,9 +129,9 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	err := r.ParseMultipartForm(10 * 1024 * 1024)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -140,37 +140,37 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful upload."))
+	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	err := r.ParseForm()
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	label := r.PostFormValue("label")
 	if label == "" {
-		errE := errors2.Cause(errors2.PromoteEmptyLabel)
+		errE := errors.Cause(errors.PromoteEmptyLabel)
 		logger.Error(errE)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Debug("label ", label)
@@ -179,9 +179,9 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	productID, err := strconv.ParseUint(data[0], 10, 64)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("product id ", productID)
@@ -189,9 +189,9 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	tariff, err := strconv.Atoi(data[1])
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("tariff ", tariff)
@@ -200,18 +200,18 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful promotion."))
+	w.Write(errors.JSONSuccess("Successful promotion."))
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -223,7 +223,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Debug("product by id ", product)
@@ -231,9 +231,9 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 	body, err := json.Marshal(product)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -245,7 +245,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -255,9 +255,9 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	err := decoder.Decode(page, r.URL.Query())
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("page ", page)
@@ -269,7 +269,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -278,9 +278,9 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	err = json.NewEncoder(w).Encode(products)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 }
@@ -288,16 +288,16 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -308,9 +308,9 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	err := decoder.Decode(page, r.URL.Query())
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("page ", page)
@@ -319,7 +319,7 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -328,9 +328,9 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	err = json.NewEncoder(w).Encode(products)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 }
@@ -338,16 +338,16 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -358,9 +358,9 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 	err := decoder.Decode(page, r.URL.Query())
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("page ", page)
@@ -369,7 +369,7 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -378,9 +378,9 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 	err = json.NewEncoder(w).Encode(products)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 }
@@ -388,16 +388,16 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -410,27 +410,27 @@ func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Requ
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful like."))
+	w.Write(errors.JSONSuccess("Successful like."))
 }
 
 func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
 	if !ok {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user id ", userID)
@@ -443,10 +443,10 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful dislike."))
+	w.Write(errors.JSONSuccess("Successful dislike."))
 }

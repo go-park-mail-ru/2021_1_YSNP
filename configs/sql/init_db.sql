@@ -1,18 +1,17 @@
-CREATE USER ysnp WITH PASSWORD 'koyaforever';
-create database ysnpkoyaDB
-	with owner ysnp
-	encoding 'utf8'
-	LC_COLLATE = 'ru_RU.UTF-8'
-    LC_CTYPE = 'ru_RU.UTF-8'
-    TABLESPACE = pg_default
-    TEMPLATE template0
-	;
-
-GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO ysnp;
-\connect ysnpkoyadb
+-- create database ysnpkoyaDB
+-- 	with owner postgres
+-- 	encoding 'utf8'
+-- 	LC_COLLATE = 'ru_RU.UTF-8'
+--     LC_CTYPE = 'ru_RU.UTF-8'
+--     TABLESPACE = pg_default
+--     TEMPLATE template0
+-- 	;
 
 CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
+
+
+GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO postgres;
 
 create table if not exists users
 (
@@ -120,5 +119,3 @@ VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
        (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
        (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
        (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');
-
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ysnp;

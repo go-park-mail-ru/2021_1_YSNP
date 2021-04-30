@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"log"
 	"net/http"
 	"time"
@@ -13,6 +11,8 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -44,13 +44,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases2.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases2.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -74,7 +74,7 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
-	logger := logger2.NewLogger(configs.GetLoggerMode())
+	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
