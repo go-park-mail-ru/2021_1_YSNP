@@ -65,6 +65,13 @@ func main() {
 	defer sessionGRPCConn.Close()
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
+	chatGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), grpc.WithInsecure())
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer chatGRPCConn.Close()
+	//sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
+
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)

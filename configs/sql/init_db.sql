@@ -78,6 +78,45 @@ CREATE TABLE IF NOT EXISTS user_favorite
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
 );
 
+create table if not exists chats(
+                                    id serial primary key,
+                                    creation_time timestamp,
+
+                                    last_msg_id integer default 0,  -- trigger
+                                    last_msg_content text default '',  -- trigger
+                                    last_msg_time timestamp not null default NOW()  -- trigger
+);
+
+
+
+create table if not exists user_chats(
+                                      user_id integer not null,
+                                      partner_id integer not null,
+                                      product_id integer not null,
+                                      chat_id integer not null,
+                                      last_read_msg_id int default 0,
+
+                                      new_messages int default 0,  -- trigger
+
+                                      primary key (user_id, partner_id, product_id),
+                                      foreign key(user_id) references users(id) on delete cascade,
+                                      foreign key(partner_id) references users(id) on delete cascade,
+                                      foreign key (product_id) references product(id) on delete cascade,
+                                      foreign key(chat_id) references chats(id) on delete cascade
+);
+
+
+create table if not exists messages(
+                                       id serial primary key,
+                                       content text not null,
+                                       creation_time timestamp not null default NOW(),
+                                       chat_id integer not null,
+                                       user_id integer not null,
+
+                                       foreign key(user_id) references users(id) on delete cascade,
+                                       foreign key(chat_id) references chats(id) on delete cascade
+);
+
 INSERT INTO users (email, telephone, password, name, surname, sex)
 VALUES ('asd', '123', '123', '123', '123', 'M');
 
