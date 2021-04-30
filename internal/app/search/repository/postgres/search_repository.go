@@ -68,6 +68,7 @@ func (s SearchRepository) SelectByFilter(userID *uint64, data *models.Search) ([
 				WHERE LOWER(name) LIKE LOWER($2) AND
 					  cat.title LIKE $3  AND
 				      amount BETWEEN $4 AND $5
+					  and p.close=false
 			  `
 	var limit string
 

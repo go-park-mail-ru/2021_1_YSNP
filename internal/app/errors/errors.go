@@ -23,6 +23,7 @@ const (
 	PromoteEmptyLabel
 	InvalidCSRFToken
 	EmptySearch
+	ProductClose
 )
 
 type Error struct {
@@ -138,6 +139,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: InvalidCSRFToken,
 		HttpError: http.StatusForbidden,
 		Message:   "Forbidden - CSRF token invalid",
+	},
+	ProductClose: {
+		ErrorCode: ProductClose,
+		HttpError: http.StatusBadRequest,
+		Message:   "Product already close",
 	},
 }
 

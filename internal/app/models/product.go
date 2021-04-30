@@ -18,7 +18,7 @@ type ProductData struct {
 	OwnerName       string   `json:"ownerName" valid:"stringlength(1|30)"`
 	OwnerSurname    string   `json:"ownerSurname" valid:"stringlength(1|30)"`
 	OwnerLinkImages string   `json:"ownerLinkImages" valid:"type(string)"`
-	Close           bool  `json:"close" valid:"-"`
+	Close           bool     `json:"close" valid:"type(bool)"`
 }
 
 type ProductListData struct {
@@ -29,6 +29,7 @@ type ProductListData struct {
 	LinkImages []string `json:"linkImages" valid:"stringArray"`
 	UserLiked  bool     `json:"userLiked" valid:"type(bool)"`
 	Tariff     int      `json:"tariff" valid:"numeric"`
+	Close      bool     `json:"close" valid:"type(bool)"`
 }
 
 type Page struct {
