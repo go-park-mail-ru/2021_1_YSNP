@@ -33,6 +33,12 @@ func (tu *TrandsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Erro
 			Count: 1,
 		})
 	}
-	tu.trandsRepo.InsertOrUpdate(ua)
+	err := tu.trandsRepo.InsertOrUpdate(ua)
+	if err != nil {
+		return errors2.UnexpectedInternal(err)
+	}
+	go
 	return nil
 }
+
+

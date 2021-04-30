@@ -6,5 +6,6 @@ import "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 
 type TrandsRepository interface {
 	InsertOrUpdate(ui *models.Trands) error
+	CreateTrendsProducts(userID uint64) error
 }
 

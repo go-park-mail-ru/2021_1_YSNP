@@ -10,10 +10,13 @@ box.cfg {
 box.once('init', function()
     box.schema.space.create('sessions')
     box.schema.space.create('trends')
+    box.schema.space.create('trends_products')
     box.schema.user.passwd('pass')
     box.space.sessions:create_index('primary',
         { type = 'TREE', parts = {1, 'string'}})
     box.space.trends:create_index('primary',
+        { type = 'TREE', parts = {1, 'number'}})
+    box.space.trends_products:create_index('primary',
         { type = 'TREE', parts = {1, 'number'}})
 
 end)

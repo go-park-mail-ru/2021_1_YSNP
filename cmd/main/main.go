@@ -80,7 +80,7 @@ func main() {
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
 
-	trendsRepo := trendsRepo.NewTrandsRepository(tarantoolDB.GetDatabase())
+	trendsRepo := trendsRepo.NewTrandsRepository(tarantoolDB.GetDatabase(), postgresDB.GetDatabase())
 	trendsUsecase := trendsUsecase.NewTrandsUsecase(trendsRepo)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
 
