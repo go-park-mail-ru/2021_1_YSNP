@@ -28,7 +28,11 @@ function check_session(session_id)
 end
 
 function get_user_trend(userID)
-    local value = box.space.trends:select{session_id}[1][2]
+    local value = box.space.trends:select{userID}[1][2]
     return value
 end
 
+function get_user_trends_products(userID)
+    local value = box.space.trends_products:select{userID}[1][2]
+    return value
+end

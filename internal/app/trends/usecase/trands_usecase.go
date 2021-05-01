@@ -9,23 +9,23 @@ import (
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
-type TrandsUsecase struct {
-	trandsRepo trends.TrandsRepository
+type TrendsUsecase struct {
+	TrendsRepo trends.TrendsRepository
 }
 
-func NewTrandsUsecase(repo trends.TrandsRepository) trends.TrandsUsecase {
-	return &TrandsUsecase{
-		trandsRepo: repo,
+func NewTrendsUsecase(repo trends.TrendsRepository) trends.TrendsUsecase {
+	return &TrendsUsecase{
+		TrendsRepo: repo,
 	}
 }
 
 
-func (tu *TrandsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Error {
+func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Error {
 	cleanContent := stopwords.CleanString(ui.Text, "ru", true)
 	sn := strings.TrimSpace(cleanContent)
 	s := strings.FieldsFunc(sn, func(r rune) bool { return strings.ContainsRune(" .,:-", r) })
 
-	ua := &models.Trands{}
+	ua := &models.Trends{}
 	ua.UserID = ui.UserID
 	for _, item := range s {
 		ua.Popular = append(ua.Popular, models.Popular{
@@ -33,11 +33,15 @@ func (tu *TrandsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Erro
 			Count: 1,
 		})
 	}
-	err := tu.trandsRepo.InsertOrUpdate(ua)
+	err := tu.TrendsRepo.InsertOrUpdate(ua)
 	if err != nil {
 		return errors2.UnexpectedInternal(err)
 	}
-	go
+	err = tu.TrendsRepo.CreateTrendsProducts(ui.UserID)
+	if err != nil {
+		return errors2.UnexpectedInternal(err)
+	}
+
 	return nil
 }
 

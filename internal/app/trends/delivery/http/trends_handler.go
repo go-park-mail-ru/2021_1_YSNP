@@ -11,11 +11,11 @@ import (
 )
 
 type TrendsHandler struct {
-	trendsUsecase trends.TrandsUsecase
+	trendsUsecase trends.TrendsUsecase
 
 }
 
-func NewTrendsHandler(trendsUsecase trends.TrandsUsecase) *TrendsHandler {
+func NewTrendsHandler(trendsUsecase trends.TrendsUsecase) *TrendsHandler {
 	return &TrendsHandler{
 		trendsUsecase: trendsUsecase,
 	}
