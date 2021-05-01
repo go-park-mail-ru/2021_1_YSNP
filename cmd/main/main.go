@@ -5,6 +5,9 @@ import (
 	sessHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
 	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
 
+	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
+	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/usecase"
+
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"google.golang.org/grpc"
@@ -71,13 +74,14 @@ func main() {
 		log.Fatal(err)
 	}
 	defer chatGRPCConn.Close()
-	//sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
+	chatUcase := chatUsecase.NewChatClient(chatGRPCConn)
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
+	chatHandler := chatHandler.NewChatHandler(chatUcase)
 
 	logger := logger2.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
@@ -99,6 +103,7 @@ func main() {
 	prodHandler.Configure(api, router, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
+	chatHandler.Configure(api, mw)
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.GetServerPort()),

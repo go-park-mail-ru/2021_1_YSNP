@@ -8,7 +8,7 @@ package chat;
 
 service Chat {
   rpc CreateChat(ChatCreateReq) returns (ChatResp) {}
-  rpc GetChatById(GetChatByIDReq) returns (ChatResp) {}
+  rpc GetChatByID(GetChatByIDReq) returns (ChatResp) {}
   rpc GetUserChats(UserID) returns (ChatRespArray) {}
   rpc CreateMessage(CreateMessageReq) returns (MessageResp) {}
   rpc GetLastNMessages(GetLastNMessagesReq) returns (MessageRespArray) {}

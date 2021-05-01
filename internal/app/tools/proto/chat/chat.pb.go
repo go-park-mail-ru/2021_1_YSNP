@@ -748,7 +748,7 @@ var file_chat_proto_rawDesc = []byte{
 	0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x43, 0x68, 0x61, 0x74, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65,
 	0x52, 0x65, 0x71, 0x1a, 0x0e, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x43, 0x68, 0x61, 0x74, 0x52,
 	0x65, 0x73, 0x70, 0x22, 0x00, 0x12, 0x35, 0x0a, 0x0b, 0x47, 0x65, 0x74, 0x43, 0x68, 0x61, 0x74,
-	0x42, 0x79, 0x49, 0x64, 0x12, 0x14, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x43,
+	0x42, 0x79, 0x49, 0x44, 0x12, 0x14, 0x2e, 0x63, 0x68, 0x61, 0x74, 0x2e, 0x47, 0x65, 0x74, 0x43,
 	0x68, 0x61, 0x74, 0x42, 0x79, 0x49, 0x44, 0x52, 0x65, 0x71, 0x1a, 0x0e, 0x2e, 0x63, 0x68, 0x61,
 	0x74, 0x2e, 0x43, 0x68, 0x61, 0x74, 0x52, 0x65, 0x73, 0x70, 0x22, 0x00, 0x12, 0x33, 0x0a, 0x0c,
 	0x47, 0x65, 0x74, 0x55, 0x73, 0x65, 0x72, 0x43, 0x68, 0x61, 0x74, 0x73, 0x12, 0x0c, 0x2e, 0x63,
@@ -807,13 +807,13 @@ var file_chat_proto_depIdxs = []int32{
 	10, // 3: chat.MessageResp.CreationTime:type_name -> google.protobuf.Timestamp
 	8,  // 4: chat.MessageRespArray.Messages:type_name -> chat.MessageResp
 	0,  // 5: chat.Chat.CreateChat:input_type -> chat.ChatCreateReq
-	1,  // 6: chat.Chat.GetChatById:input_type -> chat.GetChatByIDReq
+	1,  // 6: chat.Chat.GetChatByID:input_type -> chat.GetChatByIDReq
 	2,  // 7: chat.Chat.GetUserChats:input_type -> chat.UserID
 	3,  // 8: chat.Chat.CreateMessage:input_type -> chat.CreateMessageReq
 	4,  // 9: chat.Chat.GetLastNMessages:input_type -> chat.GetLastNMessagesReq
 	5,  // 10: chat.Chat.GetNMessagesBefore:input_type -> chat.GetNMessagesReq
 	6,  // 11: chat.Chat.CreateChat:output_type -> chat.ChatResp
-	6,  // 12: chat.Chat.GetChatById:output_type -> chat.ChatResp
+	6,  // 12: chat.Chat.GetChatByID:output_type -> chat.ChatResp
 	7,  // 13: chat.Chat.GetUserChats:output_type -> chat.ChatRespArray
 	8,  // 14: chat.Chat.CreateMessage:output_type -> chat.MessageResp
 	9,  // 15: chat.Chat.GetLastNMessages:output_type -> chat.MessageRespArray
@@ -985,7 +985,7 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ChatClient interface {
 	CreateChat(ctx context.Context, in *ChatCreateReq, opts ...grpc.CallOption) (*ChatResp, error)
-	GetChatById(ctx context.Context, in *GetChatByIDReq, opts ...grpc.CallOption) (*ChatResp, error)
+	GetChatByID(ctx context.Context, in *GetChatByIDReq, opts ...grpc.CallOption) (*ChatResp, error)
 	GetUserChats(ctx context.Context, in *UserID, opts ...grpc.CallOption) (*ChatRespArray, error)
 	CreateMessage(ctx context.Context, in *CreateMessageReq, opts ...grpc.CallOption) (*MessageResp, error)
 	GetLastNMessages(ctx context.Context, in *GetLastNMessagesReq, opts ...grpc.CallOption) (*MessageRespArray, error)
@@ -1009,9 +1009,9 @@ func (c *chatClient) CreateChat(ctx context.Context, in *ChatCreateReq, opts ...
 	return out, nil
 }
 
-func (c *chatClient) GetChatById(ctx context.Context, in *GetChatByIDReq, opts ...grpc.CallOption) (*ChatResp, error) {
+func (c *chatClient) GetChatByID(ctx context.Context, in *GetChatByIDReq, opts ...grpc.CallOption) (*ChatResp, error) {
 	out := new(ChatResp)
-	err := c.cc.Invoke(ctx, "/chat.Chat/GetChatById", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/chat.Chat/GetChatByID", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -1057,7 +1057,7 @@ func (c *chatClient) GetNMessagesBefore(ctx context.Context, in *GetNMessagesReq
 // ChatServer is the server API for Chat service.
 type ChatServer interface {
 	CreateChat(context.Context, *ChatCreateReq) (*ChatResp, error)
-	GetChatById(context.Context, *GetChatByIDReq) (*ChatResp, error)
+	GetChatByID(context.Context, *GetChatByIDReq) (*ChatResp, error)
 	GetUserChats(context.Context, *UserID) (*ChatRespArray, error)
 	CreateMessage(context.Context, *CreateMessageReq) (*MessageResp, error)
 	GetLastNMessages(context.Context, *GetLastNMessagesReq) (*MessageRespArray, error)
@@ -1071,8 +1071,8 @@ type UnimplementedChatServer struct {
 func (*UnimplementedChatServer) CreateChat(context.Context, *ChatCreateReq) (*ChatResp, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateChat not implemented")
 }
-func (*UnimplementedChatServer) GetChatById(context.Context, *GetChatByIDReq) (*ChatResp, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetChatById not implemented")
+func (*UnimplementedChatServer) GetChatByID(context.Context, *GetChatByIDReq) (*ChatResp, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetChatByID not implemented")
 }
 func (*UnimplementedChatServer) GetUserChats(context.Context, *UserID) (*ChatRespArray, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetUserChats not implemented")
@@ -1109,20 +1109,20 @@ func _Chat_CreateChat_Handler(srv interface{}, ctx context.Context, dec func(int
 	return interceptor(ctx, in, info, handler)
 }
 
-func _Chat_GetChatById_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _Chat_GetChatByID_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(GetChatByIDReq)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ChatServer).GetChatById(ctx, in)
+		return srv.(ChatServer).GetChatByID(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/chat.Chat/GetChatById",
+		FullMethod: "/chat.Chat/GetChatByID",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ChatServer).GetChatById(ctx, req.(*GetChatByIDReq))
+		return srv.(ChatServer).GetChatByID(ctx, req.(*GetChatByIDReq))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1208,8 +1208,8 @@ var _Chat_serviceDesc = grpc.ServiceDesc{
 			Handler:    _Chat_CreateChat_Handler,
 		},
 		{
-			MethodName: "GetChatById",
-			Handler:    _Chat_GetChatById_Handler,
+			MethodName: "GetChatByID",
+			Handler:    _Chat_GetChatByID_Handler,
 		},
 		{
 			MethodName: "GetUserChats",
