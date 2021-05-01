@@ -58,12 +58,35 @@ func (pr *ProductRepository) Update(product *models.ProductData) error {
 
 		return err
 	}
-
-	err = tx.Commit()
+	_, err = tx.Exec(
+		`DELETE FROM product_images 
+                WHERE product_id=$1`,
+		product.ID)
 	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
 		return err
 	}
 
+	for _, photo := range product.LinkImages {
+		_, err = tx.Exec(
+			`INSERT INTO product_images(product_id, img_link)
+		            VALUES ($1, $2)`,
+					product.ID,
+			photo)
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return rollbackErr
+			}
+
+			return err
+		}
+	}
+	tx.Commit()
 	return nil
 }
 
@@ -149,7 +172,7 @@ func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
 		return err
 	}
 
-	_, err = tx.Exec(
+	/*_, err = tx.Exec(
 		`DELETE FROM product_images 
                 WHERE product_id=$1`,
 		content.ID)
@@ -160,7 +183,7 @@ func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
 		}
 
 		return err
-	}
+	}*/
 
 	for _, photo := range content.LinkImages {
 		_, err = tx.Exec(

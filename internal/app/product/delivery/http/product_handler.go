@@ -74,9 +74,14 @@ func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	logger.Info("product data ", productData)
-	//TODO(Ivan) проверка на айди пользователя и айди владельца
-	
-	productData.OwnerID = userID
+
+	if productData.OwnerID != userID {
+		errE := errors.Cause(errors.WrongOwner)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
 
 	sanitizer := bluemonday.UGCPolicy()
 	productData.Name = sanitizer.Sanitize(productData.Name)
@@ -176,8 +181,6 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 		return
 	}
 	logger.Info("product data ", productData)
-	//TODO(Maxim) по идее должна быть отдельная модель ProductRequest и именно ее прокидывать в функцию Create
-	productData.OwnerID = userID
 
 	sanitizer := bluemonday.UGCPolicy()
 	productData.Name = sanitizer.Sanitize(productData.Name)

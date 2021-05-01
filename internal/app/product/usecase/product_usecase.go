@@ -62,24 +62,23 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, filesHea
 	if product.OwnerID != ownerID {
 		return nil, errors.Cause(errors.WrongOwner)
 	}
-
 	imgUrls, err := pu.uploadRepo.InsertPhotos(filesHeaders, "static/product/")
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
 
-	oldPhotos := product.LinkImages
+//	oldPhotos := product.LinkImages
 	product.LinkImages = imgUrls
 	err = pu.productRepo.InsertPhoto(product)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
 
-	err = pu.uploadRepo.RemovePhotos(oldPhotos)
+/*	err = pu.uploadRepo.RemovePhotos(oldPhotos)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
-
+*/
 	return product, nil
 }
 

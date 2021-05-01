@@ -1,6 +1,7 @@
 package FileSystem
 
 import (
+	"fmt"
 	"io"
 	"mime/multipart"
 	"os"
@@ -60,6 +61,7 @@ func (ur *UploadRepository) InsertPhoto(fileHeader *multipart.FileHeader, photoP
 func (ur *UploadRepository) InsertPhotos(filesHeaders []*multipart.FileHeader, photoPath string) ([]string, error) {
 	imgUrls := make(map[string][]string)
 
+	fmt.Println("HELLOO")
 	for i := range filesHeaders {
 		url, err := ur.InsertPhoto(filesHeaders[i], photoPath)
 		if err != nil {
