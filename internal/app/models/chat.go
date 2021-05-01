@@ -1,6 +1,10 @@
 package models
 
-import "time"
+import (
+	proto "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"
+	"github.com/golang/protobuf/ptypes"
+	"time"
+)
 
 type Chat struct {
 	ID uint64
@@ -80,3 +84,32 @@ type MessageResp struct {
 	UserID uint64 `json:"user_id"`
 }
 
+func ModelChatRespToGRPC(chatModel *ChatResponse) *proto.ChatResp {
+	creationTime, _ := ptypes.TimestampProto(chatModel.CreationTime)
+	lastMsgTime, _ := ptypes.TimestampProto(chatModel.LastMsgTime)
+
+	return &proto.ChatResp{
+		ID:                int64(chatModel.ID),
+		CreationTime:      creationTime,
+		LastMsgContent:    chatModel.LastMsgContent,
+		LastMsgTime:       lastMsgTime,
+		PartnerName:       chatModel.PartnerName,
+		PartnerSurname:    chatModel.PartnerSurname,
+		PartnerAvatarLink: chatModel.PartnerAvatarLink,
+		ProductName:       chatModel.ProductName,
+		ProductAvatarLink: chatModel.ProductAvatarLink,
+		NewMessages:       int32(chatModel.NewMessages),
+	}
+}
+
+func ModelMessageRespToGRPC(msgResp *MessageResp) *proto.MessageResp {
+	creationTime, _ := ptypes.TimestampProto(msgResp.CreationTime)
+
+	return &proto.MessageResp{
+		ID:           int64(msgResp.ID),
+		Content:      msgResp.Content,
+		CreationTime: creationTime,
+		ChatID:       int64(msgResp.ChatID),
+		UserID:       int64(msgResp.UserID),
+	}
+}
