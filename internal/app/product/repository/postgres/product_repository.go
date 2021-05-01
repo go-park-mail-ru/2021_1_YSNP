@@ -177,6 +177,68 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	return product, nil
 }
 
+
+func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error) {
+	var products []*models.ProductListData
+
+	query, err := pr.dbConn.Query(
+		`
+		SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
+		FROM product as p
+		left join product_images as pi on pi.product_id=p.id
+		left join user_favorite uf on p.id = uf.product_id and uf.user_id = $1
+		WHERE p.id IN ($2)
+		GROUP BY p.id, uf.user_id
+		ORDER BY p.date DESC 
+		`,
+		*userID,
+		idArray,
+		)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	var linkStr string
+	var date time.Time
+
+	for query.Next() {
+		product := &models.ProductListData{}
+		var user sql.NullInt64
+
+		err := query.Scan(
+			&product.ID,
+			&product.Name,
+			&date,
+			&product.Amount,
+			&linkStr,
+			&user,
+			&product.Tariff)
+		if err != nil {
+			return nil, err
+		}
+
+		product.UserLiked = false
+		if userID != nil && user.Valid && uint64(user.Int64) == *userID {
+			product.UserLiked = true
+		}
+
+		product.Date = date.Format("2006-01-02")
+		linkStr = linkStr[1 : len(linkStr)-1]
+		if linkStr != "NULL" {
+			product.LinkImages = strings.Split(linkStr, ",")
+		}
+
+		products = append(products, product)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+	return products, err
+}
+
 func (pr *ProductRepository) SelectLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 

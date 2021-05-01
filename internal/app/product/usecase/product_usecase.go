@@ -2,9 +2,11 @@ package usecase
 
 import (
 	"database/sql"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"mime/multipart"
 	"time"
+
+	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
 
 	"github.com/jackc/pgx"
 
@@ -16,6 +18,8 @@ import (
 type ProductUsecase struct {
 	productRepo product.ProductRepository
 	uploadRepo  upload.UploadRepository
+	trendsRepo  trends.TrendsRepository
+	
 }
 
 func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadRepository) product.ProductUsecase {
@@ -76,6 +80,21 @@ func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *error
 	}
 
 	return product, nil
+}
+
+func (pu *ProductUsecase) TrendList(userID *uint64) ([]*models.ProductListData, *errors2.Error) {
+	productIdArray, err := pu.trendsRepo.GetTrendsProducts(userID)
+
+	products, err := pu.productRepo.SelectTrands(productIdArray, userID)
+	if err != nil {
+		return nil, errors2.UnexpectedInternal(err)
+	}
+
+	if len(products) == 0 {
+		return []*models.ProductListData{}, nil
+	}
+
+	return products, nil
 }
 
 func (pu *ProductUsecase) ListLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, *errors2.Error) {
