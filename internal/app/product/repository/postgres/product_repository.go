@@ -191,12 +191,17 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 	var val []interface{}
 	val = append(val, *userID)
 
+	hasId := false
 	for i, item := range idArray {
 		queries += " $" + strconv.Itoa(i + 2)  + ","
 		val = append(val, item)
+		hasId = true
+	}
+	
+	if 	hasId {
+		queries = queries[:len(queries) - 1]
 	}
 
-	queries = queries[:len(queries) - 1]
 	queries += `)
 			GROUP BY p.id, uf.user_id
 			ORDER BY p.date DESC 
