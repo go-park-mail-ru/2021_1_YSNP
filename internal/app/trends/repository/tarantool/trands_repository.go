@@ -32,8 +32,6 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	oldModel := &models.Trends{}
 	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-	fmt.Println("RECEIVED TRENDS ", oldModel.Popular)
-
 	selectQuery := `
 				SELECT p.id
 				FROM product as p
@@ -57,11 +55,8 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 				LIMIT 30
 				`
 
-	fmt.Println("QUERY SELECT ", selectQuery)
-	fmt.Println("TRENDS LIKE ", trendValue)
 	query, err := tr.dbConnPsql.Query(selectQuery, trendValue...)
 	if err != nil {
-		fmt.Println("ERROR", err)
 		return err
 	}
 
@@ -76,15 +71,14 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		}
 		productsID = append(productsID, id)
 	}
-	fmt.Println("NEW SELECTED PRODUCTS ", productsID)
 
 	oldProducts := &models.TrendProducts{}
-	for i, id := range productsID {
-		oldProducts.Popular[len(oldProducts.Popular) - i].ProductID = id
-		oldProducts.Popular[len(oldProducts.Popular) - i].Time = time.Now()
+	for _, id := range productsID {
+		var prod models.PopularProduct
+		prod.ProductID = id
+		prod.Time = time.Now()
+		oldProducts.Popular = append(oldProducts.Popular, prod)
 	}
-
-	fmt.Println("NEW TREND PRODUCTS", oldProducts.Popular)
 
 	data, err := json.Marshal(oldProducts)
 
@@ -98,24 +92,32 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		val, err = tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
 		d  = fmt.Sprintf("%v", val.Data)
 		json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
-		fmt.Println("OLD TREND PRODUCTS", oldProducts.Popular)
 
-		for i, item := range productsID {
+		for i := 0; i < len(productsID); i++ {
 			for _, prod := range oldProducts.Popular {
-				if item == prod.ProductID {
-					productsID = append(productsID[:i], productsID[i + 1:]...)
+				if productsID[i] == prod.ProductID {
+					if i + 1 != len(productsID) {
+						productsID = append(productsID[:i], productsID[i+1:]...)
+						i -= 1
+					}
 					prod.Time = time.Now()
 				}
 			}
 		}
 		sort.Sort(models.ProductSorter(oldProducts.Popular))
 		for i, id := range productsID {
-			oldProducts.Popular[len(oldProducts.Popular) - i].ProductID = id
-			oldProducts.Popular[len(oldProducts.Popular) - i].Time = time.Now()
+			if i >= len(oldProducts.Popular){
+				var prod models.PopularProduct
+				prod.ProductID = id
+				prod.Time = time.Now()
+				oldProducts.Popular = append(oldProducts.Popular, prod)
+			} else {
+				oldProducts.Popular[len(oldProducts.Popular)- i - 1].ProductID = id
+				oldProducts.Popular[len(oldProducts.Popular)-i - 1].Time = time.Now()
+			}
 		}
 
-		fmt.Println("NEW TREND PRODUCTS", oldProducts.Popular)
-
+		oldProducts.UserID = userID
 		data, err := json.Marshal(oldProducts)
 
 		if err != nil {
@@ -125,7 +127,6 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		dataStr := string(data)
 		_, err1 := tr.dbConn.Replace("trends_products", []interface{}{userID, dataStr})
 
-		fmt.Println("NEW TREND PRODUCTS IN STR", dataStr)
 		return err1
 	}
 	return nil
