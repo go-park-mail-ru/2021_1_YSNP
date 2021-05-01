@@ -150,6 +150,22 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 	return &oldProducts, nil
 }
 
+func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
+	products := &models.TrendProducts{}
+	val, err := tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
+	if err != nil {
+		return nil, err
+	}
+	d  := fmt.Sprintf("%v", val.Data)
+	json.Unmarshal([]byte(removeLastChar(d)), &products)
+
+	var productsID []uint64
+	for _, val := range products.Popular {
+		productsID = append(productsID, val.ProductID)
+	}
+	return productsID, nil
+}
+
 func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 	for _, item := range ui1.Popular{
 		found := false
