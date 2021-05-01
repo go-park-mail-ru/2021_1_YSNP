@@ -36,12 +36,45 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/product/trends", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
+
+
+func (ph *ProductHandler) TrendsPageHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = logger2.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	logger.Info("user id ", userID)
+
+	products, errE := ph.productUcase.TrendList(&userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors2.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors2.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors2.JSONError(errE))
+		return
+	}
+}
+
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
