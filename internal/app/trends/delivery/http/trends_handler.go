@@ -26,7 +26,7 @@ func NewTrendsHandler(trendsUsecase trends.TrendsUsecase) *TrendsHandler {
 }
 
 func (th *TrendsHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
-	r.HandleFunc("/stat", mw.SetCSRFToken(mw.CheckAuthMiddleware(th.LogoutHandler))).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/stat", mw.CheckAuthMiddleware(th.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 

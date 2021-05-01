@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"time"
 
-    "github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -40,7 +39,6 @@ import (
 	trendsHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/delivery/http"
 	trendsRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/repository/tarantool"
 	trendsUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/usecase"
-
 )
 
 func main() {
@@ -60,6 +58,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	trendsRepo := trendsRepo.NewTrendsRepository(tarantoolDB.GetDatabase(), postgresDB.GetDatabase())
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
 	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
@@ -69,7 +68,7 @@ func main() {
 	
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
-	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
@@ -80,7 +79,6 @@ func main() {
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
 
-	trendsRepo := trendsRepo.NewTrendsRepository(tarantoolDB.GetDatabase(), postgresDB.GetDatabase())
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
 
@@ -96,8 +94,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+	//csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)

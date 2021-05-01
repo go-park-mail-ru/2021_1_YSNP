@@ -22,10 +22,11 @@ type ProductUsecase struct {
 	
 }
 
-func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadRepository) product.ProductUsecase {
+func NewProductUsecase(repo product.ProductRepository, uploadRepo upload.UploadRepository, trendsRepo trends.TrendsRepository) product.ProductUsecase {
 	return &ProductUsecase{
 		productRepo: repo,
 		uploadRepo:  uploadRepo,
+		trendsRepo: trendsRepo,
 	}
 }
 
@@ -83,7 +84,7 @@ func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *error
 }
 
 func (pu *ProductUsecase) TrendList(userID *uint64) ([]*models.ProductListData, *errors2.Error) {
-	productIdArray, err := pu.trendsRepo.GetTrendsProducts(userID)
+	productIdArray, err := pu.trendsRepo.GetTrendsProducts(*userID)
 
 	products, err := pu.productRepo.SelectTrands(productIdArray, userID)
 	if err != nil {
