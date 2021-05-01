@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"strconv"
 	"strings"
 	"time"
 
@@ -181,18 +182,28 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 
-	query, err := pr.dbConn.Query(
+	queries :=  `SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
+	FROM product as p
+	left join product_images as pi on pi.product_id=p.id
+	left join user_favorite uf on p.id = uf.product_id and uf.user_id = $1
+	WHERE p.id IN (`
+
+	var val []interface{}
+	val = append(val, *userID)
+
+	for i, item := range idArray {
+		queries += " $" + strconv.Itoa(i + 1)  + ","
+		val = append(val, item)
+	}
+
+	queries = queries[:len(queries) - 1]
+	queries += `)
+			GROUP BY p.id, uf.user_id
+			ORDER BY p.date DESC 
 		`
-		SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
-		FROM product as p
-		left join product_images as pi on pi.product_id=p.id
-		left join user_favorite uf on p.id = uf.product_id and uf.user_id = $1
-		WHERE p.id IN ($2)
-		GROUP BY p.id, uf.user_id
-		ORDER BY p.date DESC 
-		`,
-		*userID,
-		idArray,
+	query, err := pr.dbConn.Query(
+		queries,
+		val...,
 		)
 	if err != nil {
 		return nil, err
