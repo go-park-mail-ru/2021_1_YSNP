@@ -151,15 +151,11 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 }
 
 func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
-	fmt.Println(userID)
 	products := &models.TrendProducts{}
 	val, err := tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println(val.Error)
 		return nil, err
 	}
-	fmt.Println(val.Data...)
 	d  := fmt.Sprintf("%v", val.Data)
 	json.Unmarshal([]byte(removeLastChar(d)), &products)
 
@@ -198,9 +194,6 @@ func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 	}
 
 	sort.Sort(models.PopularSorter(ui2.Popular))
-
-
-	fmt.Println(ui2)
 }
 
 func remove(slice []models.Popular, i int) []models.Popular {
@@ -233,7 +226,6 @@ func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
 		oldModel := &models.Trends{}
 		json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-		fmt.Println(oldModel)
 		tr.updateData(ui, oldModel)
 
 		data, err = json.Marshal(oldModel)

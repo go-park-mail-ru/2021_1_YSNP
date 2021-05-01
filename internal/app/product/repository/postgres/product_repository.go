@@ -192,7 +192,7 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 	val = append(val, *userID)
 
 	for i, item := range idArray {
-		queries += " $" + strconv.Itoa(i + 1)  + ","
+		queries += " $" + strconv.Itoa(i + 2)  + ","
 		val = append(val, item)
 	}
 
