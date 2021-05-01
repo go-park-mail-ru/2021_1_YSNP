@@ -33,7 +33,7 @@ func (cs *ChatServer) CreateChat(ctx context.Context, req *protoChat.ChatCreateR
 	return models.ModelChatRespToGRPC(chatResp), nil
 }
 
-func (cs *ChatServer) GetChatById(ctx context.Context, req *protoChat.GetChatByIDReq) (*protoChat.ChatResp, error) {
+func (cs *ChatServer) GetChatByID(ctx context.Context, req *protoChat.GetChatByIDReq) (*protoChat.ChatResp, error) {
 	chatResp, err := cs.chatUcase.GetChatById(uint64(req.GetChatID()), uint64(req.GetUserID()))
 	if err != nil {
 		return nil, status.Error(codes.Code(err.ErrorCode), err.Message)
