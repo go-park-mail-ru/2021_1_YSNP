@@ -3,6 +3,7 @@ package repository
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
@@ -29,7 +30,7 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	val, _ := tr.dbConn.Call("get_user_trend", []interface{}{userID})
 	d  := fmt.Sprintf("%v", val.Data)
 	oldModel := &models.Trends{}
-	json.Unmarshal([]byte(RemoveLastChar(d)), &oldModel)
+	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
 	fmt.Println("RECEIVED TRENDS ", oldModel.Popular)
 
@@ -96,7 +97,7 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	if resp.Code == 3 {
 		val, err = tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
 		d  = fmt.Sprintf("%v", val.Data)
-		json.Unmarshal([]byte(RemoveLastChar(d)), &oldProducts)
+		json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
 		fmt.Println("OLD TREND PRODUCTS", oldProducts.Popular)
 
 		for i, item := range productsID {
@@ -136,6 +137,7 @@ func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 		for i, item_2 := range ui2.Popular {
 			if item.Title == item_2.Title {
 				ui2.Popular[i].Count += 1
+				ui2.Popular[i].Date = item.Date
 				found = true
 				break
 			}
@@ -146,14 +148,28 @@ func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 			ui2.Popular = append(ui2.Popular, item)
 		}
 	}
-	sort.Sort(models.PopularSorter(ui2.Popular))
-	if len(ui2.Popular) > 10 {
-		ui2.Popular = ui2.Popular[:10]
+
+    i := 0
+	for i < len(ui2.Popular) {
+		if ui2.Popular[i].Date.Unix() < time.Now().Add(-10 * time.Hour).Unix() {
+			ui2.Popular = remove(ui2.Popular, i)
+			i -= 1
+		} 
+		i += 1
 	}
+
+	sort.Sort(models.PopularSorter(ui2.Popular))
+
+
 	fmt.Println(ui2)
 }
 
-func RemoveLastChar(str string) string {
+func remove(slice []models.Popular, i int) []models.Popular {
+	slice[i] = slice[len(slice)-1]
+	return slice[:len(slice)-1]
+  }
+
+func removeLastChar(str string) string {
       for len(str) > 0 {
               _, size := utf8.DecodeLastRuneInString(str)
               return str[2:len(str)-size - 1]
@@ -171,13 +187,16 @@ func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
 	dataStr := string(data)
 
 	resp, _ := tr.dbConn.Insert("trends", []interface{}{ui.UserID, dataStr})
-	fmt.Println(resp.Data...)
+
 	if resp.Code == 3 {
 		val, _ := tr.dbConn.Call("get_user_trend", []interface{}{ui.UserID})
 		d  := fmt.Sprintf("%v", val.Data)
 		oldModel := &models.Trends{}
-		json.Unmarshal([]byte(RemoveLastChar(d)), &oldModel)
+		json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
+
+		fmt.Println(oldModel)
 		tr.updateData(ui, oldModel)
+
 		data, err = json.Marshal(oldModel)
 
 		if err != nil {
@@ -188,7 +207,5 @@ func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
 		_, err1 := tr.dbConn.Replace("trends", []interface{}{ui.UserID, dataStr})
 		return err1
 	}
-	return nil
+	return errors.New(resp.Error)
 }
-
-

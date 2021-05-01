@@ -20,6 +20,7 @@ type Trends struct {
 type Popular struct {
 	Count uint64
 	Title string
+	Date time.Time
 }
 
 type TrendProducts struct {
