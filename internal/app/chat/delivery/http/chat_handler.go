@@ -173,15 +173,15 @@ func (ch *ChatHandler) ServeWs(srv *websocket.WSServer) func(w http.ResponseWrit
 		}
 		defer r.Body.Close()
 
-		//userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
-		//if !ok {
-		//	errE := errors.Cause(errors.UserUnauthorized)
-		//	logger.Error(errE.Message)
-		//	w.WriteHeader(errE.HttpError)
-		//	w.Write(errors.JSONError(errE))
-		//	return
-		//}
-		var userID uint64 = 2
+		userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+		if !ok {
+			errE := errors.Cause(errors.UserUnauthorized)
+			logger.Error(errE.Message)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+		//var userID uint64 = 2
 		logger.Info("user id ", userID)
 
 
