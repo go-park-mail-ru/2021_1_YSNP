@@ -136,7 +136,7 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 	}
 	sort.Sort(models.ProductSorter(oldProducts.Popular))
 	for i, id := range productsID {
-		if i >= len(oldProducts.Popular){
+		if i >= len(oldProducts.Popular) || len(oldProducts.Popular) < 30 {
 			var prod models.PopularProduct
 			prod.ProductID = id
 			prod.Time = time.Now()

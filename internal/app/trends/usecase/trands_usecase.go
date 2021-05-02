@@ -23,6 +23,9 @@ func NewTrendsUsecase(repo trends.TrendsRepository) trends.TrendsUsecase {
 }
 
 func checkSufix(word string) bool {
+	if len(word) < 5 {
+		return true
+	}
 	stop := []string{"ими", "ыми", "его", "ого", "ему", "ому", "ее", "ие",
 		"ые", "ое", "ей", "ий", "ый", "ой", "ем", "им", "ым",
 		"ом", "их", "ых", "ую", "юю", "ая", "яя", "ою", "ею"}

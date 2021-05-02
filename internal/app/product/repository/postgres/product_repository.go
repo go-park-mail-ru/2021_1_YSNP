@@ -200,6 +200,8 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 	
 	if 	hasId {
 		queries = queries[:len(queries) - 1]
+	} else {
+		queries += "null"
 	}
 
 	queries += `)
