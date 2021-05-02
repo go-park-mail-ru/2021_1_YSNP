@@ -2,10 +2,13 @@ package middleware
 
 import (
 	"context"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"net/http"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
@@ -21,6 +24,7 @@ type Middleware struct {
 	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
+	metricsM 	 *metrics.Metrics
 }
 
 type contextKey string
@@ -34,10 +38,11 @@ const (
 	ContextLogger = contextKey("logger")
 )
 
-func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
+func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase, metrics *metrics.Metrics) *Middleware {
 	return &Middleware{
 		sessUcase: sessUcase,
 		userUcase: userUcase,
+		metricsM: metrics,
 	}
 }
 
@@ -86,6 +91,13 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		m.logrusLogger.WithFields(logrus.Fields{
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
+
+		if r.URL.Path != "/metrics" {
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Inc()
+			m.metricsM.Timings.WithLabelValues(
+				strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Observe(float64(start.Second()))
+		}
+
 	})
 }
 

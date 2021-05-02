@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
+	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 
 	"github.com/gorilla/mux"
 
@@ -41,7 +43,11 @@ import (
 	trendsUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/usecase"
 )
 
+
+
+
 func main() {
+
 	configs, err := configs.LoadConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
@@ -86,8 +92,9 @@ func main() {
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
+	metricsProm := metrics.NewMetrics(router)
 
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw := middleware.NewMiddleware(sessUcase, userUcase, metricsProm)
 	mw.NewLogger(logger.GetLogger())
 
 	router.Use(middleware.CorsControlMiddleware)
