@@ -36,6 +36,7 @@ func (c *ChatUsecase) CreateChat(req *models.ChatCreateReq, userID uint64) (*mod
 		PartnerSurname:    chat.PartnerSurname,
 		PartnerAvatarLink: chat.PartnerAvatarLink,
 		ProductName: chat.ProductName,
+		ProductAmount: chat.ProductAmount,
 		ProductAvatarLink: chat.ProductAvatarLink,
 		NewMessages:       chat.NewMessages,
 	}, nil
@@ -59,6 +60,7 @@ func (c *ChatUsecase) GetChatById(chatID uint64, userID uint64) (*models.ChatRes
 		PartnerSurname:    chat.PartnerSurname,
 		PartnerAvatarLink: chat.PartnerAvatarLink,
 		ProductName: chat.ProductName,
+		ProductAmount: chat.ProductAmount,
 		ProductAvatarLink: chat.ProductAvatarLink,
 		NewMessages:       chat.NewMessages,
 	}, nil
@@ -81,6 +83,7 @@ func (c *ChatUsecase) GetUserChats(userID uint64) ([]*models.ChatResponse, *erro
 			PartnerSurname:    chat.PartnerSurname,
 			PartnerAvatarLink: chat.PartnerAvatarLink,
 			ProductName: chat.ProductName,
+			ProductAmount: chat.ProductAmount,
 			ProductAvatarLink: chat.ProductAvatarLink,
 			NewMessages:       chat.NewMessages,
 		})

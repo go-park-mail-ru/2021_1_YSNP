@@ -54,7 +54,7 @@ func (c *ChatRepository) InsertChat(chat *models.Chat, userID uint64) error {
 
 	query = tx.QueryRow(
 		`
-SELECT p.name, pi.img_link, u.name, u.surname, u.avatar
+SELECT p.name, p.amount, pi.img_link, u.name, u.surname, u.avatar
 				FROM product AS p
 				LEFT JOIN users AS u on p.owner_id = u.id and u.id = $2
 Left Join product_images pi on p.id = pi.product_id
@@ -62,7 +62,7 @@ Left Join product_images pi on p.id = pi.product_id
 LIMIT 1`,
 		chat.ProductID, chat.PartnerID)
 
-	err = query.Scan(&chat.ProductName, &chat.ProductAvatarLink, &chat.PartnerName, &chat.PartnerSurname, &chat.PartnerAvatarLink)
+	err = query.Scan(&chat.ProductName, &chat.ProductAmount, &chat.ProductAvatarLink, &chat.PartnerName, &chat.PartnerSurname, &chat.PartnerAvatarLink)
 	if err != nil {
 		rollbackErr := tx.Rollback()
 		if rollbackErr != nil {
@@ -86,7 +86,7 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 	//добавить ссылку на аватар товара
 	query := c.dbConn.QueryRow(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
@@ -104,6 +104,8 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 		&chat.PartnerSurname,
 		&chat.PartnerAvatarLink,
 		&chat.ProductName,
+		&chat.ProductAmount,
+		&chat.NewMessages,
 		)
 	if err != nil {
 		return nil, err
@@ -115,7 +117,7 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 	query, err := c.dbConn.Query(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
@@ -142,6 +144,8 @@ func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 			&chat.PartnerSurname,
 			&chat.PartnerAvatarLink,
 			&chat.ProductName,
+			&chat.ProductAmount,
+			&chat.NewMessages,
 		)
 		if err != nil {
 			return nil, err

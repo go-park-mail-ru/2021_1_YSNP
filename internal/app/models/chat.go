@@ -21,6 +21,7 @@ type Chat struct {
 
 	ProductID uint64
 	ProductName string
+	ProductAmount int
 	ProductAvatarLink string
 
 	LastReadMsgId uint64
@@ -47,6 +48,7 @@ type ChatResponse struct {
 	PartnerAvatarLink string `json:"partner_avatar"`
 
 	ProductName string `json:"product_name"`
+	ProductAmount int `json:"product_amount"`
 	ProductAvatarLink string `json:"product_avatar_link"`
 
 	NewMessages int `json:"new_messages"`
@@ -98,6 +100,7 @@ func ModelChatRespToGRPC(chatModel *ChatResponse) *proto.ChatResp {
 		PartnerSurname:    chatModel.PartnerSurname,
 		PartnerAvatarLink: chatModel.PartnerAvatarLink,
 		ProductName:       chatModel.ProductName,
+		ProductAmount: int32(chatModel.ProductAmount),
 		ProductAvatarLink: chatModel.ProductAvatarLink,
 		NewMessages:       int32(chatModel.NewMessages),
 	}

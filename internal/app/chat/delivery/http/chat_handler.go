@@ -181,7 +181,7 @@ func (ch *ChatHandler) ServeWs(srv *websocket.WSServer) func(w http.ResponseWrit
 		//	w.Write(errors.JSONError(errE))
 		//	return
 		//}
-		var userID uint64 = 1
+		var userID uint64 = 2
 		logger.Info("user id ", userID)
 
 		if err := srv.RegisterClient(w, r, userID); err != nil {
