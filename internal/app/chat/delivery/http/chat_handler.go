@@ -7,6 +7,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"net/http"
@@ -23,11 +24,11 @@ func NewChatHandler(chatUcase chat.ChatUsecase) *ChatHandler {
 	}
 }
 
-func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware, server *websocket.WSServer) {
 	r.HandleFunc("/newchat", mw.CheckAuthMiddleware(ch.CreateChat)).Methods(http.MethodPost)
 	r.HandleFunc("/chats", mw.SetCSRFToken(mw.CheckAuthMiddleware(ch.GetUserChats))).Methods(http.MethodGet)
 	r.HandleFunc("/chats/{cid:[0-9]+}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ch.GetChatByID))).Methods(http.MethodGet)
-	//r.HandleFunc("/ws",)
+	r.HandleFunc("/ws", mw.CheckAuthMiddleware(ch.ServeWs(server))).Methods(http.MethodGet)
 }
 
 func (ch *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
@@ -163,4 +164,35 @@ func (ch *ChatHandler) GetChatByID (w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+func (ch *ChatHandler) ServeWs(srv *websocket.WSServer) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+		if !ok {
+			logger = log.GetDefaultLogger()
+			logger.Warn("no logger")
+		}
+		defer r.Body.Close()
 
+		//userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+		//if !ok {
+		//	errE := errors.Cause(errors.UserUnauthorized)
+		//	logger.Error(errE.Message)
+		//	w.WriteHeader(errE.HttpError)
+		//	w.Write(errors.JSONError(errE))
+		//	return
+		//}
+		var userID uint64 = 2
+		logger.Info("user id ", userID)
+
+
+		if err := srv.RegisterClient(w, r, userID); err != nil {
+			errE := errors.UnexpectedInternal(err)
+			logger.Error(errE.Message)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+	}
+}
