@@ -1,8 +1,9 @@
 package websocket
 
 import (
+	errs "errors"
+	"fmt"
 	"github.com/gorilla/websocket"
-	"net/http"
 	"time"
 )
 
@@ -19,30 +20,142 @@ const (
 	// Maximum message size allowed from peer.
 	maxMessageSize = 1024
 
-	authTime = 60 * time.Minute
+	//authTime = 60 * time.Minute
 )
 
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	CheckOrigin: func(r *http.Request) bool { // Note: for tests
-		return true
-	},
+	//CheckOrigin: func(r *http.Request) bool { // Note: for tests
+	//	return true
+	//},
 }
 
 type Client struct {
-	userId int
-	//hub    *Hub
+	userID uint64
+	hub    *Hub
 	conn   *websocket.Conn
 	send   chan []byte
 }
 
 
-func NewClient(/*h *Hub,*/ conn *websocket.Conn, userId int) *Client {
+func NewClient(h *Hub, conn *websocket.Conn, userID uint64) *Client {
 	return &Client{
-		userId: userId,
-		//hub:    h,
+		userID: userID,
+		hub:    h,
 		conn:   conn,
 		send:   make(chan []byte, 256),
 	}
+}
+
+func (c *Client) Register() {
+	c.hub.register <- c
+}
+
+func (c *Client) readPump() {
+	defer func() {
+		c.hub.unregister <- c
+		c.conn.Close()
+		c.hub.wg.Done()
+	}()
+
+	c.conn.SetReadLimit(maxMessageSize)
+	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
+		//log err
+		fmt.Println(err)
+	}
+	c.conn.SetPongHandler(func(string) error {
+		return c.conn.SetReadDeadline(time.Now().Add(pongWait))
+	})
+
+	for {
+		_, message, err := c.conn.ReadMessage()
+		if err != nil {
+			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
+				//log err
+				fmt.Println(err)
+			} else {
+				//log err
+				fmt.Println(err)
+			}
+			break
+		}
+		//message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+		c.hub.toReceive <- &MSG{
+			Data:   message,
+			UserID: c.userID,
+		}
+
+		//log message
+		fmt.Println(message)
+	}
+}
+
+func (c *Client) writePump() {
+	ticker := time.NewTicker(pingPeriod)
+	//authTimer := time.NewTimer(authTime)
+
+	defer func() {
+		ticker.Stop()
+		//authTimer.Stop()
+		c.conn.Close()
+		c.hub.wg.Done()
+	}()
+	for {
+		select {
+		case message, ok := <-c.send:
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				//log err
+				fmt.Println(err)
+			}
+			if err := c.sendMessages(message, ok); err != nil {
+				return
+			}
+
+		case <-ticker.C:
+			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
+				//log err
+				fmt.Println(err)
+			}
+			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				//log err
+				fmt.Println(err)
+				return
+			}
+
+		//case <-authTimer.C:
+		//	if err := c.conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+		//		//log err
+		//	}
+		//	//log err
+		//	return
+		}
+	}
+}
+
+func (c *Client) sendMessages(message []byte, ok bool) error {
+	if !ok {
+		if err := c.conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
+			//log err
+			fmt.Println(err)
+		}
+		//log that hub closed the channel
+		fmt.Println("канал закрылся")
+		return errs.New("")
+	}
+
+	if err := c.conn.WriteMessage(websocket.TextMessage, message); err != nil {
+		//log err
+		return err
+	}
+
+	n := len(c.send)
+	for i := 0; i < n; i++ {
+		if err := c.conn.WriteMessage(websocket.TextMessage, <-c.send); err != nil {
+			//log err
+			return err
+		}
+	}
+
+	return nil
 }
