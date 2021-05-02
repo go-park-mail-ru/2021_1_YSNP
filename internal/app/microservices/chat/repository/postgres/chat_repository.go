@@ -86,12 +86,14 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 	//добавить ссылку на аватар товара
 	query := c.dbConn.QueryRow(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
 				JOIN product AS p ON p.id = uc.product_id
-				WHERE uc.user_id = $1 and c.id = $2`,
+				Left Join product_images pi on p.id = pi.product_id
+				WHERE uc.user_id = $1 and c.id = $2
+LIMIT 1`,
 				userID, chatID)
 
 	err := query.Scan(
@@ -106,6 +108,7 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 		&chat.ProductName,
 		&chat.ProductAmount,
 		&chat.NewMessages,
+		&chat.ProductAvatarLink,
 		)
 	if err != nil {
 		return nil, err
@@ -119,12 +122,14 @@ func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error 
 	//добавить ссылку на аватар товара
 	query := c.dbConn.QueryRow(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
 				JOIN product AS p ON p.id = uc.product_id
-				WHERE uc.user_id = $1 and uc.partner_id = $2 and uc.product_id = $3`,
+				Left Join product_images pi on p.id = pi.product_id
+				WHERE uc.user_id = $1 and uc.partner_id = $2 and uc.product_id = $3
+				LIMIT 1`,
 		userID, chat.PartnerID, chat.ProductID)
 
 	err := query.Scan(
@@ -139,6 +144,7 @@ func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error 
 		&chat.ProductName,
 		&chat.ProductAmount,
 		&chat.NewMessages,
+		&chat.ProductAvatarLink,
 	)
 	if err != nil {
 		return err
@@ -150,13 +156,22 @@ func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error 
 func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 	query, err := c.dbConn.Query(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
-				FROM chats AS c 
+				WITH ORDERED AS
+(SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name as uname, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link, ROW_NUMBER() OVER (PARTITION BY c.id) As rn
+				FROM chats AS c
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
 				JOIN product AS p ON p.id = uc.product_id
-				WHERE uc.user_id = $1
-				ORDER BY c.last_msg_time DESC, c.creation_time DESC`,
+				Left Join product_images pi on p.id = pi.product_id
+WHERE uc.user_id = $1
+    ORDER BY c.last_msg_time DESC, c.creation_time DESC
+)
+SELECT
+id, creation_time, last_msg_id, last_msg_content, last_msg_time, uname, surname, avatar, name,amount, new_messages, img_link
+FROM
+    ORDERED
+WHERE
+    rn = 1`,
 		userID)
 	if err != nil {
 		return nil, err
@@ -179,6 +194,7 @@ func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 			&chat.ProductName,
 			&chat.ProductAmount,
 			&chat.NewMessages,
+			&chat.ProductAvatarLink,
 		)
 		if err != nil {
 			return nil, err

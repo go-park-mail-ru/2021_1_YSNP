@@ -34,5 +34,6 @@ func TestChatHandler_CreateChat(t *testing.T) {
 	chatHandler.Configure(router, nil, nil)
 
 
+
 	chatHandler.CreateChat(w, r.WithContext(ctx))
 }
