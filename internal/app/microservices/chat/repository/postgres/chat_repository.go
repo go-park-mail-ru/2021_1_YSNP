@@ -18,7 +18,7 @@ func NewChatRepository (conn *sql.DB) chat.ChatRepository {
 	}
 }
 
-func (c *ChatRepository) InsertChat(chat *models.Chat, userID int) error {
+func (c *ChatRepository) InsertChat(chat *models.Chat, userID uint64) error {
 	tx, err := c.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -41,7 +41,7 @@ func (c *ChatRepository) InsertChat(chat *models.Chat, userID int) error {
 	}
 
 	_, err = tx.Exec(
-		`INSERT INTO uu_chat (user_id, partner_id, product_id, chat_id)  
+		`INSERT INTO user_chats (user_id, partner_id, product_id, chat_id)  
                 VALUES ($1, $2, $3, $4)`,
 		userID, chat.PartnerID, chat.ProductID, chat.ID)
 	if err != nil {
@@ -80,7 +80,7 @@ LIMIT 1`,
 	return nil
 }
 
-func (c *ChatRepository) GetChatById(chatID int, userID int) (*models.Chat, error) {
+func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat, error) {
 	chat := &models.Chat{}
 
 	//добавить ссылку на аватар товара
@@ -112,7 +112,7 @@ func (c *ChatRepository) GetChatById(chatID int, userID int) (*models.Chat, erro
 	return chat, nil
 }
 
-func (c *ChatRepository) GetUserChats(userID int) ([]*models.Chat, error) {
+func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 	query, err := c.dbConn.Query(
 		`
 				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name
@@ -156,7 +156,7 @@ func (c *ChatRepository) GetUserChats(userID int) ([]*models.Chat, error) {
 	return chats, nil
 }
 
-func (c *ChatRepository) InsertMessage(req *models.CreateMessageReq, userId int) (*models.Message, error) {
+func (c *ChatRepository) InsertMessage(req *models.CreateMessageReq, userId uint64) (*models.Message, error) {
 	msg := &models.Message{}
 	query := c.dbConn.QueryRow(
 		`INSERT INTO messages (content, creation_time, chat_id, user_id)

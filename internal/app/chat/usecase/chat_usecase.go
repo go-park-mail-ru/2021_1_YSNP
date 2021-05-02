@@ -44,7 +44,7 @@ func (cc *ChatClient) CreateChat(req *models.ChatCreateReq, userID uint64) (*mod
 }
 
 func (cc *ChatClient) GetChatById(chatID uint64, userID uint64) (*models.ChatResponse, *errors.Error) {
-	resp, err := cc.client.GetChatById(context.Background(), &chat.GetChatByIDReq{
+	resp, err := cc.client.GetChatByID(context.Background(), &chat.GetChatByIDReq{
 		UserID: int64(userID),
 		ChatID: int64(chatID),
 	})

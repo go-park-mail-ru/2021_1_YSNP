@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
@@ -42,7 +43,10 @@ func (c *ChatUsecase) CreateChat(req *models.ChatCreateReq, userID uint64) (*mod
 
 func (c *ChatUsecase) GetChatById(chatID uint64, userID uint64) (*models.ChatResponse, *errors.Error) {
 	chat, err := c.chatRepo.GetChatById(chatID, userID)
-	if err != nil {
+	switch {
+	case err == sql.ErrNoRows:
+		return nil, errors.Cause(errors.ChatNotExist)
+	case err != nil:
 		return nil, errors.UnexpectedInternal(err)
 	}
 
