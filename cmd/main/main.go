@@ -6,7 +6,9 @@ import (
 	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
 
 	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
+	chatWSHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/websocket"
 	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/usecase"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
@@ -82,6 +84,7 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
+	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 
 	logger := logger2.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
@@ -98,12 +101,17 @@ func main() {
 	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
 	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
+	wsSrv := websocket.NewWSServer()
+	wsSrv.Run()
+	defer wsSrv.Stop()
+
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, router, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
-	chatHandler.Configure(api, mw)
+	chatHandler.Configure(api, mw, wsSrv)
+	chatWSHandler.Configure(api, mw, wsSrv)
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.GetServerPort()),
