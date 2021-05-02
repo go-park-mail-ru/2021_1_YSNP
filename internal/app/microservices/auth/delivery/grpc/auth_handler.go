@@ -28,7 +28,7 @@ func (a *AuthHandlerServer) Create (ctx context.Context, sess *proto.Session) (*
 }
 
 func (a *AuthHandlerServer) Get(ctx context.Context, sessVal *proto.SessionValue) (*proto.Session, error) {
-	sess, err := a.authUcase.Get(sessVal.GetValue());
+	sess, err := a.authUcase.Get(sessVal.GetValue())
 	if err != nil {
 		return nil, status.Error(codes.Code(err.ErrorCode), err.Message)
 	}
@@ -36,7 +36,7 @@ func (a *AuthHandlerServer) Get(ctx context.Context, sessVal *proto.SessionValue
 }
 
 func (a *AuthHandlerServer) Check(ctx context.Context, sessVal *proto.SessionValue) (*proto.Session, error) {
-	sess, err := a.authUcase.Check(sessVal.GetValue());
+	sess, err := a.authUcase.Check(sessVal.GetValue())
 	if err != nil {
 		return nil, status.Error(codes.Code(err.ErrorCode), err.Message)
 	}
