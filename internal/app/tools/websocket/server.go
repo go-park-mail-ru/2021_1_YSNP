@@ -8,9 +8,9 @@ import (
 )
 
 type WSContext struct {
-	Request *models.WSMessageReq
+	Request  *models.WSMessageReq
 	Response *models.WSMessageResp
-	handler func(ctx *WSContext)
+	handler  func(ctx *WSContext)
 }
 
 func (c *WSContext) WriteResponse(status int, userID uint64, msgType string, data []byte) {
@@ -23,10 +23,10 @@ func (c *WSContext) WriteResponse(status int, userID uint64, msgType string, dat
 }
 
 type WSServer struct {
-	hub      *Hub
+	hub *Hub
 	*WSRouter
 	toReceive chan *MSG
-	toSend   chan *MSG
+	toSend    chan *MSG
 }
 
 type WSRouter struct {
@@ -39,17 +39,17 @@ func NewWSRouter() *WSRouter {
 	}
 }
 
-func (r *WSRouter) SetHandlerFunc(msgType string, handler func(c *WSContext))  {
+func (r *WSRouter) SetHandlerFunc(msgType string, handler func(c *WSContext)) {
 	r.routes[msgType] = handler
 }
 
 func NewWSServer() *WSServer {
 	h := NewHub()
 	return &WSServer{
-		hub: h,
-		WSRouter: NewWSRouter(),
+		hub:       h,
+		WSRouter:  NewWSRouter(),
 		toReceive: h.toReceive,
-		toSend: h.toSend,
+		toSend:    h.toSend,
 	}
 }
 
@@ -63,6 +63,7 @@ func (s *WSServer) Stop() {
 }
 
 func (s *WSServer) RegisterClient(w http.ResponseWriter, r *http.Request, userID uint64) error {
+	Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		//log err
@@ -118,6 +119,6 @@ func (s *WSServer) SendMessage(msg *models.WSMessageResp) {
 
 	s.toSend <- &MSG{
 		UserID: msg.UserID,
-		Data: data,
+		Data:   data,
 	}
 }
