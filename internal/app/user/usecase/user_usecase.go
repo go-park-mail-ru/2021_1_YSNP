@@ -65,6 +65,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors2.Err
 	}
 
 	profile := &models.ProfileData{
+		ID: 		userID,
 		Name:       user.Name,
 		Surname:    user.Surname,
 		Sex:        user.Sex,

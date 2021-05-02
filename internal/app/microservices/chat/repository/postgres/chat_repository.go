@@ -114,6 +114,39 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 	return chat, nil
 }
 
+func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error {
+
+	//добавить ссылку на аватар товара
+	query := c.dbConn.QueryRow(
+		`
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages
+				FROM chats AS c 
+				JOIN user_chats AS uc ON c.id = uc.chat_id
+				JOIN users AS u ON u.id = uc.partner_id
+				JOIN product AS p ON p.id = uc.product_id
+				WHERE uc.user_id = $1 and uc.partner_id = $2 and uc.product_id = $3`,
+		userID, chat.PartnerID, chat.ProductID)
+
+	err := query.Scan(
+		&chat.ID,
+		&chat.CreationTime,
+		&chat.LastMsgID,
+		&chat.LastMsgContent,
+		&chat.LastMsgTime,
+		&chat.PartnerName,
+		&chat.PartnerSurname,
+		&chat.PartnerAvatarLink,
+		&chat.ProductName,
+		&chat.ProductAmount,
+		&chat.NewMessages,
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 	query, err := c.dbConn.Query(
 		`

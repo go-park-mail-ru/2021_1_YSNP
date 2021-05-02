@@ -22,8 +22,14 @@ func (c *ChatUsecase) CreateChat(req *models.ChatCreateReq, userID uint64) (*mod
 		PartnerID: req.PartnerID,
 		ProductID: req.ProductID,
 	}
-	err := c.chatRepo.InsertChat(chat, userID)
-	if err != nil {
+	err := c.chatRepo.CheckChatExist(chat, userID)
+	switch {
+	case err == sql.ErrNoRows:
+		err := c.chatRepo.InsertChat(chat, userID)
+		if err != nil {
+			return nil, errors.UnexpectedInternal(err)
+		}
+	case err != nil:
 		return nil, errors.UnexpectedInternal(err)
 	}
 

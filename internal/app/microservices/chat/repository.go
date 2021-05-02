@@ -11,4 +11,5 @@ type ChatRepository interface {
 	InsertMessage(req *models.CreateMessageReq, userID uint64) (*models.Message, error)
 	GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.Message, error)
 	GetNMessagesBefore(req *models.GetNMessagesBeforeReq) ([]*models.Message, error)
+	CheckChatExist(chat *models.Chat, userID uint64) error
 }
