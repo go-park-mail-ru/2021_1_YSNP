@@ -5,11 +5,11 @@
 package mock
 
 import (
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	multipart "mime/multipart"
 	reflect "reflect"
 
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -37,10 +37,10 @@ func (m *MockProductUsecase) EXPECT() *MockProductUsecaseMockRecorder {
 }
 
 // Create mocks base method.
-func (m *MockProductUsecase) Create(arg0 *models.ProductData) *errors2.Error {
+func (m *MockProductUsecase) Create(arg0 *models.ProductData) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -51,10 +51,10 @@ func (mr *MockProductUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call 
 }
 
 // DislikeProduct mocks base method.
-func (m *MockProductUsecase) DislikeProduct(arg0, arg1 uint64) *errors2.Error {
+func (m *MockProductUsecase) DislikeProduct(arg0, arg1 uint64) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "DislikeProduct", arg0, arg1)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -65,11 +65,11 @@ func (mr *MockProductUsecaseMockRecorder) DislikeProduct(arg0, arg1 interface{})
 }
 
 // GetByID mocks base method.
-func (m *MockProductUsecase) GetByID(arg0 uint64) (*models.ProductData, *errors2.Error) {
+func (m *MockProductUsecase) GetByID(arg0 uint64) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetByID", arg0)
 	ret0, _ := ret[0].(*models.ProductData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -80,11 +80,11 @@ func (mr *MockProductUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call
 }
 
 // GetUserFavorite mocks base method.
-func (m *MockProductUsecase) GetUserFavorite(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors2.Error) {
+func (m *MockProductUsecase) GetUserFavorite(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserFavorite", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -95,10 +95,10 @@ func (mr *MockProductUsecaseMockRecorder) GetUserFavorite(arg0, arg1 interface{}
 }
 
 // LikeProduct mocks base method.
-func (m *MockProductUsecase) LikeProduct(arg0, arg1 uint64) *errors2.Error {
+func (m *MockProductUsecase) LikeProduct(arg0, arg1 uint64) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "LikeProduct", arg0, arg1)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -109,11 +109,11 @@ func (mr *MockProductUsecaseMockRecorder) LikeProduct(arg0, arg1 interface{}) *g
 }
 
 // ListLatest mocks base method.
-func (m *MockProductUsecase) ListLatest(arg0 *uint64, arg1 *models.Page) ([]*models.ProductListData, *errors2.Error) {
+func (m *MockProductUsecase) ListLatest(arg0 *uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "ListLatest", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -124,10 +124,10 @@ func (mr *MockProductUsecaseMockRecorder) ListLatest(arg0, arg1 interface{}) *go
 }
 
 // SetTariff mocks base method.
-func (m *MockProductUsecase) SetTariff(arg0 uint64, arg1 int) *errors2.Error {
+func (m *MockProductUsecase) SetTariff(arg0 uint64, arg1 int) *errors.Error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SetTariff", arg0, arg1)
-	ret0, _ := ret[0].(*errors2.Error)
+	ret0, _ := ret[0].(*errors.Error)
 	return ret0
 }
 
@@ -138,11 +138,11 @@ func (mr *MockProductUsecaseMockRecorder) SetTariff(arg0, arg1 interface{}) *gom
 }
 
 // UpdatePhoto mocks base method.
-func (m *MockProductUsecase) UpdatePhoto(arg0, arg1 uint64, arg2 []*multipart.FileHeader) (*models.ProductData, *errors2.Error) {
+func (m *MockProductUsecase) UpdatePhoto(arg0, arg1 uint64, arg2 []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.ProductData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
@@ -153,11 +153,11 @@ func (mr *MockProductUsecaseMockRecorder) UpdatePhoto(arg0, arg1, arg2 interface
 }
 
 // UserAdList mocks base method.
-func (m *MockProductUsecase) UserAdList(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors2.Error) {
+func (m *MockProductUsecase) UserAdList(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "UserAdList", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 

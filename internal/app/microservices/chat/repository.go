@@ -4,6 +4,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 
+//go:generate mockgen -destination=./mocks/mock_chat_repo.go -package=mock github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat  ChatRepository
+
 type ChatRepository interface {
 	InsertChat(chat *models.Chat, userID uint64) error
 	GetChatById(chatId uint64, userID uint64) (*models.Chat, error)

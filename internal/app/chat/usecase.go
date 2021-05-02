@@ -5,6 +5,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
+//go:generate mockgen -destination=./mocks/mock_chat_ucase.go -package=mock github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat  ChatUsecase
+
 type ChatUsecase interface {
 	CreateChat(req *models.ChatCreateReq, userID uint64) (*models.ChatResponse, *errors.Error)
 	GetChatById(chatID uint64, userID uint64) (*models.ChatResponse, *errors.Error)
