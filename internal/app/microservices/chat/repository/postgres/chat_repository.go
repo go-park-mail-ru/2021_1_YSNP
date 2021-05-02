@@ -42,7 +42,7 @@ func (c *ChatRepository) InsertChat(chat *models.Chat, userID uint64) error {
 
 	_, err = tx.Exec(
 		`INSERT INTO user_chats (user_id, partner_id, product_id, chat_id)  
-                VALUES ($1, $2, $3, $4)`,
+                VALUES ($1, $2, $3, $4), ($2, $1, $3, $4)`,
 		userID, chat.PartnerID, chat.ProductID, chat.ID)
 	if err != nil {
 		rollbackErr := tx.Rollback()
@@ -173,7 +173,12 @@ func (c *ChatRepository) InsertMessage(req *models.CreateMessageReq, userId uint
 }
 
 func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.Message, error) {
-	query, err := c.dbConn.Query(
+	tx, err := c.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	query, err := tx.Query(
 		`SELECT id, content, creation_time, chat_id, user_id
 				FROM messages
 				WHERE chat_id = $1
@@ -181,6 +186,10 @@ func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*m
 				LIMIT $2`,
 				req.ChatID, req.Count)
 	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
 		return nil, err
 	}
 
@@ -191,6 +200,10 @@ func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*m
 		msg := &models.Message{}
 		err := query.Scan(&msg.ID, &msg.Content, &msg.CreationTime, &msg.ChatID, &msg.UserID)
 		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return nil, rollbackErr
+			}
 			return nil, err
 		}
 
@@ -198,6 +211,33 @@ func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*m
 	}
 
 	if err := query.Err(); err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	_, err = tx.Exec(
+		"UPDATE user_chats "+
+			"SET new_messages = 0, "+
+			"last_read_msg_id = chats.last_msg_id "+
+			"FROM chats "+
+			"WHERE chat_id = chats.id AND "+
+			"user_id = $1 AND "+
+			"chat_id = $2 ",
+		req.UserID, req.ChatID)
+
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
+	err = tx.Commit()
+	if err != nil {
 		return nil, err
 	}
 

@@ -59,6 +59,7 @@ func (ch *ChatWSHandler) CreateMessage(ctx *websocket.WSContext) {
 func (ch *ChatWSHandler) GetLastNMessages(ctx *websocket.WSContext){
 	userID := ctx.Request.UserID
 	req := &models.GetLastNMessagesReq{}
+	req.UserID = userID
 	err := json.Unmarshal(ctx.Request.Data, req)
 	if err != nil {
 		//log err

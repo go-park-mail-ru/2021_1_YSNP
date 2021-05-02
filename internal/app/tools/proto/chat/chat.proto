@@ -37,8 +37,9 @@ message CreateMessageReq {
 }
 
 message GetLastNMessagesReq {
-  int64 ChatID = 1;
-  int32 Count = 2;
+  int64 UserID = 1;
+  int64 ChatID = 2;
+  int32 Count = 3;
 }
 
 

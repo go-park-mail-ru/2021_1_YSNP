@@ -73,6 +73,7 @@ func (cs *ChatServer) CreateMessage(ctx context.Context, req *protoChat.CreateMe
 
 func (cs *ChatServer) GetLastNMessages(ctx context.Context, req *protoChat.GetLastNMessagesReq) (*protoChat.MessageRespArray, error) {
 	msgReq := &models.GetLastNMessagesReq{
+		UserID: uint64(req.UserID),
 		ChatID: uint64(req.GetChatID()),
 		Count:  int(req.GetCount()),
 	}

@@ -114,6 +114,7 @@ func (cc *ChatClient) CreateMessage(req *models.CreateMessageReq, userID uint64)
 
 func (cc *ChatClient) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*models.MessageResp, *errors.Error) {
 	resps, err := cc.client.GetLastNMessages(context.Background(), &chat.GetLastNMessagesReq{
+		UserID: int64(req.UserID),
 		ChatID: int64(req.ChatID),
 		Count:  int32(req.Count),
 	})

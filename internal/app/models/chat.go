@@ -66,13 +66,14 @@ type CreateMessageReq struct {
 }
 
 type GetLastNMessagesReq struct {
+	UserID uint64 `json:"-"`
 	ChatID uint64	`json:"chat_id"`
-	Count int `json:"messages"`
+	Count int `json:"count"`
 }
 
 type GetNMessagesBeforeReq struct {
 	ChatID uint64  `json:"chat_id"`
-	Count int `json:"n_messages"`
+	Count int `json:"count"`
 	LastMessageID uint64  `json:"message_id"`
 }
 
