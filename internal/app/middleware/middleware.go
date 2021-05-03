@@ -74,6 +74,31 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+type responseObserver struct {
+	http.ResponseWriter
+	status      int
+	written     int64
+	wroteHeader bool
+}
+
+func (o *responseObserver) Write(p []byte) (n int, err error) {
+	if !o.wroteHeader {
+		o.WriteHeader(http.StatusOK)
+	}
+	n, err = o.ResponseWriter.Write(p)
+	o.written += int64(n)
+	return
+}
+
+func (o *responseObserver) WriteHeader(code int) {
+	o.ResponseWriter.WriteHeader(code)
+	if o.wroteHeader {
+		return
+	}
+	o.wroteHeader = true
+	o.status = code
+}
+
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.logrusLogger = m.logrusLogger.WithFields(logrus.Fields{
@@ -86,16 +111,17 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
-		next.ServeHTTP(w, r.WithContext(ctx))
+		o := &responseObserver{ResponseWriter: w}
+		next.ServeHTTP(o, r.WithContext(ctx))
 
 		m.logrusLogger.WithFields(logrus.Fields{
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
 
 		if r.URL.Path != "/metrics" {
-			m.metricsM.Hits.WithLabelValues(strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Inc()
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.status), r.URL.String(), r.Method).Inc()
 			m.metricsM.Timings.WithLabelValues(
-				strconv.Itoa(http.StatusOK), r.URL.String(), r.Method).Observe(float64(start.Second()))
+				strconv.Itoa(o.status), r.URL.String(), r.Method).Observe(float64(start.Second()))
 		}
 
 	})

@@ -14,16 +14,15 @@ type Metrics struct {
 func NewMetrics(r *mux.Router) *Metrics {
 	var metrics Metrics
 
-	metrics.Hits = prometheus.NewCounterVec(prometheus.CounterOpts{
+	metrics.Hits = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
 		Name: "hits",
 	}, []string{"status", "path", "method"})
 
 	metrics.Timings = prometheus.NewHistogramVec(
 		prometheus.HistogramOpts{
 			Name: "timings",
-		},
-		[]string{"status", "path", "method"},
-	)
+	}, []string{"status", "path", "method"})
 
 	prometheus.MustRegister(metrics.Hits, metrics.Timings)
 
