@@ -86,7 +86,7 @@ func (c *ChatRepository) GetChatById(chatID uint64, userID uint64) (*models.Chat
 	//добавить ссылку на аватар товара
 	query := c.dbConn.QueryRow(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.id, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
@@ -102,6 +102,7 @@ LIMIT 1`,
 		&chat.LastMsgID,
 		&chat.LastMsgContent,
 		&chat.LastMsgTime,
+		&chat.PartnerID,
 		&chat.PartnerName,
 		&chat.PartnerSurname,
 		&chat.PartnerAvatarLink,
@@ -122,7 +123,7 @@ func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error 
 	//добавить ссылку на аватар товара
 	query := c.dbConn.QueryRow(
 		`
-				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
+				SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.id, u.name, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link
 				FROM chats AS c 
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
@@ -138,6 +139,7 @@ func (c *ChatRepository) CheckChatExist(chat *models.Chat, userID uint64) error 
 		&chat.LastMsgID,
 		&chat.LastMsgContent,
 		&chat.LastMsgTime,
+		&chat.PartnerID,
 		&chat.PartnerName,
 		&chat.PartnerSurname,
 		&chat.PartnerAvatarLink,
@@ -157,7 +159,7 @@ func (c *ChatRepository) GetUserChats(userID uint64) ([]*models.Chat, error) {
 	query, err := c.dbConn.Query(
 		`
 				WITH ORDERED AS
-(SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.name as uname, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link, ROW_NUMBER() OVER (PARTITION BY c.id) As rn
+(SELECT c.id, c.creation_time, c.last_msg_id, c.last_msg_content, c.last_msg_time, u.id as uid, u.name as uname, u.surname, u.avatar, p.name, p.amount, uc.new_messages, pi.img_link, ROW_NUMBER() OVER (PARTITION BY c.id) As rn
 				FROM chats AS c
 				JOIN user_chats AS uc ON c.id = uc.chat_id
 				JOIN users AS u ON u.id = uc.partner_id
@@ -167,7 +169,7 @@ WHERE uc.user_id = $1
     ORDER BY c.last_msg_time DESC, c.creation_time DESC
 )
 SELECT
-id, creation_time, last_msg_id, last_msg_content, last_msg_time, uname, surname, avatar, name,amount, new_messages, img_link
+id, creation_time, last_msg_id, last_msg_content, last_msg_time, uid, uname, surname, avatar, name,amount, new_messages, img_link
 FROM
     ORDERED
 WHERE
@@ -188,6 +190,7 @@ WHERE
 			&chat.LastMsgID,
 			&chat.LastMsgContent,
 			&chat.LastMsgTime,
+			&chat.PartnerID,
 			&chat.PartnerName,
 			&chat.PartnerSurname,
 			&chat.PartnerAvatarLink,
