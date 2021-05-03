@@ -99,11 +99,20 @@ func (s *WSServer) handleMessages() {
 
 		handler(c)
 
-		s.SendMessage(c.Response)
+		s.SendMessage(c.Response, c.Response.UserID)
+		if msg.Type == "CreateMessageReq" {
+			typeData := &models.CreateMsgAdditData{}
+			if err := json.Unmarshal(msg.Data.TypeData, &typeData); err != nil {
+				//log err
+				fmt.Println(err)
+				return
+			}
+			s.SendMessage(c.Response, typeData.PartnerID)
+		}
 	}
 }
 
-func (s *WSServer) SendMessage(msg *models.WSMessageResp) {
+func (s *WSServer) SendMessage(msg *models.WSMessageResp, reciever uint64) {
 	defer func() {
 		if recover() != nil {
 			//log recover
@@ -118,7 +127,7 @@ func (s *WSServer) SendMessage(msg *models.WSMessageResp) {
 	}
 
 	s.toSend <- &MSG{
-		UserID: msg.UserID,
+		UserID: reciever,
 		Data:   data,
 	}
 }

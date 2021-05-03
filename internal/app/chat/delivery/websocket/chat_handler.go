@@ -30,7 +30,7 @@ func (ch *ChatWSHandler) Configure(r *mux.Router, mw *middleware.Middleware, ser
 func (ch *ChatWSHandler) CreateMessage(ctx *websocket.WSContext) {
 	userID := ctx.Request.UserID
 	req := &models.CreateMessageReq{}
-	err := json.Unmarshal(ctx.Request.Data, req)
+	err := json.Unmarshal(ctx.Request.Data.RequestData, req)
 	if err != nil {
 		//log err
 		errE := errors.UnexpectedBadRequest(err)
@@ -60,7 +60,7 @@ func (ch *ChatWSHandler) GetLastNMessages(ctx *websocket.WSContext){
 	userID := ctx.Request.UserID
 	req := &models.GetLastNMessagesReq{}
 	req.UserID = userID
-	err := json.Unmarshal(ctx.Request.Data, req)
+	err := json.Unmarshal(ctx.Request.Data.RequestData, req)
 	if err != nil {
 		//log err
 		errE := errors.UnexpectedBadRequest(err)
@@ -89,7 +89,7 @@ func (ch *ChatWSHandler) GetLastNMessages(ctx *websocket.WSContext){
 func (ch *ChatWSHandler) GetNMessagesBefore(ctx *websocket.WSContext){
 	userID := ctx.Request.UserID
 	req := &models.GetNMessagesBeforeReq{}
-	err := json.Unmarshal(ctx.Request.Data, req)
+	err := json.Unmarshal(ctx.Request.Data.RequestData, req)
 	if err != nil {
 		//log err
 		errE := errors.UnexpectedBadRequest(err)

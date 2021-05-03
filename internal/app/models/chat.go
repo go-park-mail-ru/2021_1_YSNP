@@ -43,6 +43,7 @@ type ChatResponse struct {
 	LastMsgContent string `json:"last_msg_content"`
 	LastMsgTime time.Time  `json:"last_msg_time"`
 
+	PartnerID uint64 `json:"partner_id"`
 	PartnerName string `json:"partner_name"`
 	PartnerSurname string `json:"partner_surname"`
 	PartnerAvatarLink string `json:"partner_avatar"`
@@ -87,6 +88,10 @@ type MessageResp struct {
 	UserID uint64 `json:"user_id"`
 }
 
+type CreateMsgAdditData struct {
+	PartnerID uint64 `json:"partner_id"`
+}
+
 func ModelChatRespToGRPC(chatModel *ChatResponse) *proto.ChatResp {
 	creationTime, _ := ptypes.TimestampProto(chatModel.CreationTime)
 	lastMsgTime, _ := ptypes.TimestampProto(chatModel.LastMsgTime)
@@ -96,6 +101,7 @@ func ModelChatRespToGRPC(chatModel *ChatResponse) *proto.ChatResp {
 		CreationTime:      creationTime,
 		LastMsgContent:    chatModel.LastMsgContent,
 		LastMsgTime:       lastMsgTime,
+		PartnerID: int64(chatModel.PartnerID),
 		PartnerName:       chatModel.PartnerName,
 		PartnerSurname:    chatModel.PartnerSurname,
 		PartnerAvatarLink: chatModel.PartnerAvatarLink,
