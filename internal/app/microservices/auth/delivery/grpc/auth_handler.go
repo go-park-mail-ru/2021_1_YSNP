@@ -9,7 +9,6 @@ import (
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"time"
@@ -31,13 +30,10 @@ func (a *AuthHandlerServer) NewLogger(logger *logrus.Entry) {
 }
 
 func (a *AuthHandlerServer) AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-
 	a.logrusLogger = a.logrusLogger.WithFields(logrus.Fields{
 		"method":  info.FullMethod,
 		"request": req,
 		"work_id": uuid.New(),
-		"metadata": md,
 	})
 	a.logrusLogger.Info("Get connection")
 
@@ -46,10 +42,15 @@ func (a *AuthHandlerServer) AuthInterceptor(ctx context.Context, req interface{}
 
 	reply, err := handler(ctx, req)
 
+	if err != nil {
+		a.logrusLogger.WithFields(logrus.Fields{
+			"req": req,
+			"error": err.Error(),
+		}).Error("Error occurred")
+	}
+
 	a.logrusLogger.WithFields(logrus.Fields{
 		"work_time": time.Since(start),
-		"reply": reply,
-		"error": err,
 	}).Info("Fulfilled connection")
 	return reply, err
 }

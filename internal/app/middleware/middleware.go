@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"google.golang.org/grpc"
 	"net/http"
 	"time"
 
@@ -41,8 +42,45 @@ func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase)
 	}
 }
 
+func NewMiddlewareForGRPC() *Middleware {
+	return &Middleware{
+	}
+}
+
 func (m *Middleware) NewLogger(logger *logrus.Entry) {
 	m.logrusLogger = logger
+}
+
+func (m *Middleware) TimingInterceptor(
+	ctx context.Context,
+	method string,
+	req interface{},
+	reply interface{},
+	cc *grpc.ClientConn,
+	invoker grpc.UnaryInvoker,
+	opts ...grpc.CallOption,
+) error {
+	m.logrusLogger = m.logrusLogger.WithFields(logrus.Fields{
+		"method":  method,
+		"request": req,
+		"work_id": uuid.New(),
+	})
+	m.logrusLogger.Info("Connect to ", cc.Target())
+
+	start := time.Now()
+	err := invoker(ctx, method, req, reply, cc, opts...)
+
+	if err != nil {
+		m.logrusLogger.WithFields(logrus.Fields{
+			"client_conn": cc.Target(),
+			"error": err.Error(),
+		}).Error("Error occurred")
+	}
+
+	m.logrusLogger.WithFields(logrus.Fields{
+		"work_time": time.Since(start),
+	}).Info("Fulfilled connection")
+	return err
 }
 
 func CorsControlMiddleware(next http.Handler) http.Handler {

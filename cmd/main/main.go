@@ -64,14 +64,28 @@ func main() {
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
-	sessionGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), grpc.WithInsecure())
+	logger := logger2.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+
+	mwGRPC := middleware.NewMiddlewareForGRPC()
+	mwGRPC.NewLogger(logger.GetLogger())
+
+	sessionGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
+		grpc.WithUnaryInterceptor(mwGRPC.TimingInterceptor),
+		grpc.WithInsecure(),
+		)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sessionGRPCConn.Close()
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
-	chatGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), grpc.WithInsecure())
+	chatGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
+		grpc.WithUnaryInterceptor(mwGRPC.TimingInterceptor),
+		grpc.WithInsecure(),
+		)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -86,8 +100,6 @@ func main() {
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 
-	logger := logger2.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
 

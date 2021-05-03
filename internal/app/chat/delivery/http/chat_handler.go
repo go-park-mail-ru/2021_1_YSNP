@@ -13,7 +13,6 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 	"net/http"
 	"strconv"
 	"time"
@@ -35,13 +34,10 @@ func (ch *ChatHandler) NewLogger(logger *logrus.Entry) {
 }
 
 func (ch *ChatHandler) AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	md, _ := metadata.FromIncomingContext(ctx)
-
 	ch.logrusLogger = ch.logrusLogger.WithFields(logrus.Fields{
 		"method":  info.FullMethod,
 		"request": req,
 		"work_id": uuid.New(),
-		"metadata": md,
 	})
 	ch.logrusLogger.Info("Get connection")
 
@@ -50,10 +46,15 @@ func (ch *ChatHandler) AuthInterceptor(ctx context.Context, req interface{}, inf
 
 	reply, err := handler(ctx, req)
 
+	if err != nil {
+		ch.logrusLogger.WithFields(logrus.Fields{
+			"req": req,
+			"error": err.Error(),
+		}).Error("Error occurred")
+	}
+
 	ch.logrusLogger.WithFields(logrus.Fields{
 		"work_time": time.Since(start),
-		"reply": reply,
-		"error": err,
 	}).Info("Fulfilled connection")
 	return reply, err
 }
