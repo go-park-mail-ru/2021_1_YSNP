@@ -4,11 +4,12 @@ import (
 	"fmt"
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+
+	"github.com/gorilla/csrf"
+	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
-
-	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
@@ -94,8 +95,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	//csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
