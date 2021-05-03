@@ -55,6 +55,39 @@ func TestChatHandler_CreateChat_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
+func TestChatHandler_CreateChat_UnmarshErr(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	chatUcase := mock.NewMockChatUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+	{
+		"productID": 2,
+  		"partnerID": 2
+	
+	`))
+
+	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	chatHandler := NewChatHandler(chatUcase)
+	chatHandler.Configure(router, nil, nil)
+
+	chatHandler.CreateChat(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestChatHandler_CreateChat_Error(t *testing.T) {
 	t.Parallel()
 

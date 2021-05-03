@@ -7,8 +7,8 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -75,8 +75,11 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	router.Use(middleware.CorsControlMiddleware)
+	router.Use(mw.AccessLogMiddleware)
 	userHandler := NewUserHandler(userUcase, sessUcase)
-	userHandler.Configure(router, nil)
+	userHandler.Configure(router, mw)
 
 	userUcase.EXPECT().Create(userTest).Return(nil)
 	sessUcase.EXPECT().Create(gomock.Any()).Return(nil)

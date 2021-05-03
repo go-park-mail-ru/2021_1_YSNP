@@ -1,9 +1,10 @@
 package usecase
 
 import (
+	"database/sql"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/mocks"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -47,7 +48,13 @@ func TestSearchUsecase_SelectByFilter_Success(t *testing.T) {
 
 	res, err := searchUcase.SelectByFilter(&userID, search)
 	assert.Equal(t, res[0], prod)
-	assert.Equal(t, err, (*errors2.Error)(nil))
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//error
+	searchRepo.EXPECT().SelectByFilter(&userID, search).Return( nil, sql.ErrConnDone)
+
+	_, err = searchUcase.SelectByFilter(&userID, search)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }
 
 func TestSearchUsecase_SelectByFilter_EmptySearch(t *testing.T) {
@@ -77,5 +84,5 @@ func TestSearchUsecase_SelectByFilter_EmptySearch(t *testing.T) {
 	searchRepo.EXPECT().SelectByFilter(&userID, search).Return([]*models.ProductListData{}, nil)
 
 	_, err := searchUcase.SelectByFilter(&userID, search)
-	assert.Equal(t, err, errors2.Cause(errors2.EmptySearch))
+	assert.Equal(t, err, errors.Cause(errors.EmptySearch))
 }
