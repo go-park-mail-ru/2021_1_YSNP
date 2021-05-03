@@ -7,6 +7,7 @@ import (
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
 	authUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 	"google.golang.org/grpc"
 	"log"
@@ -35,7 +36,14 @@ func main() {
 	}
 	defer lis.Close()
 
-	server := grpc.NewServer()
+	logger := logger2.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
+
+	handler.NewLogger(logger.GetLogger())
+
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(handler.AuthInterceptor),
+		)
 	auth.RegisterAuthHandlerServer(server, handler)
 
 	if err := server.Serve(lis); err != nil {

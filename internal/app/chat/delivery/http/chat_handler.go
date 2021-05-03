@@ -1,6 +1,7 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
@@ -8,20 +9,53 @@ import (
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 	"net/http"
 	"strconv"
+	"time"
 )
 
 type ChatHandler struct {
 	chatUcase chat.ChatUsecase
+	logrusLogger *logrus.Entry
 }
 
 func NewChatHandler(chatUcase chat.ChatUsecase) *ChatHandler {
 	return &ChatHandler{
 		chatUcase: chatUcase,
 	}
+}
+
+func (ch *ChatHandler) NewLogger(logger *logrus.Entry) {
+	ch.logrusLogger = logger
+}
+
+func (ch *ChatHandler) AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	md, _ := metadata.FromIncomingContext(ctx)
+
+	ch.logrusLogger = ch.logrusLogger.WithFields(logrus.Fields{
+		"method":  info.FullMethod,
+		"request": req,
+		"work_id": uuid.New(),
+		"metadata": md,
+	})
+	ch.logrusLogger.Info("Get connection")
+
+	start := time.Now()
+
+
+	reply, err := handler(ctx, req)
+
+	ch.logrusLogger.WithFields(logrus.Fields{
+		"work_time": time.Since(start),
+		"reply": reply,
+		"error": err,
+	}).Info("Fulfilled connection")
+	return reply, err
 }
 
 func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware, server *websocket.WSServer) {
