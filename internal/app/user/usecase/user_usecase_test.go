@@ -64,21 +64,21 @@ func TestUserUsecase_GetByID_Success(t *testing.T) {
 	uploadRepo := uMock.NewMockUploadRepository(ctrl)
 	userUcase := NewUserUsecase(userRepo, uploadRepo)
 
-	//userTestProfile := &models.ProfileData{
-	//	Name:       "Максим",
-	//	Surname:    "Торжков",
-	//	Sex:        "male",
-	//	Email:      "a@a.ru",
-	//	Telephone:  "+79169230768",
-	//	DateBirth:  "2021-03-08",
-	//	LinkImages: "",
-	//}
+	userTestProfile := &models.ProfileData{
+		Name:       "Максим",
+		Surname:    "Торжков",
+		Sex:        "male",
+		Email:      "a@a.ru",
+		Telephone:  "+79169230768",
+		DateBirth:  "2021-03-08",
+		LinkImages: "",
+	}
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
 
-	/*user*/_, err := userUcase.GetByID(userTest.ID)
+	user, err := userUcase.GetByID(userTest.ID)
 	assert.Equal(t, err, (*errors2.Error)(nil))
-	//assert.Equal(t, user, userTestProfile)
+	assert.Equal(t, user, userTestProfile)
 }
 
 func TestUserUsecase_GetByID_UserNotExist(t *testing.T) {
@@ -192,7 +192,7 @@ func TestUserUsecase_UpdatePassword_UserNotExist(t *testing.T) {
 }
 
 func TestUserUsecase_UpdateAvatar(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 

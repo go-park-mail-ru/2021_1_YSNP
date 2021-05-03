@@ -60,11 +60,12 @@ message ChatResp {
   string PartnerSurname = 8;
   string PartnerAvatarLink = 9;
 
-  string ProductName = 10;
-  int32 ProductAmount = 11;
-  string ProductAvatarLink = 12;
+  int64 ProductID = 10;
+  string ProductName = 11;
+  int32 ProductAmount = 12;
+  string ProductAvatarLink = 13;
 
-  int32  NewMessages = 13;
+  int32  NewMessages = 14;
 }
 
 message ChatRespArray {
