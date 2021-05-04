@@ -2,17 +2,17 @@ package main
 
 import (
 	"fmt"
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-
-	"github.com/gorilla/csrf"
-	"github.com/gorilla/mux"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
+	"github.com/gorilla/mux"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -66,7 +66,7 @@ func main() {
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 	uploadRepo := uploadRepo.NewUploadRepository()
-	
+
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
@@ -83,7 +83,7 @@ func main() {
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
 
-	logger := logger2.NewLogger(configs.GetLoggerMode())
+	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()

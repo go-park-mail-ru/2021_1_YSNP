@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/sirupsen/logrus"
 
@@ -58,5 +58,7 @@ func (th *TrendsHandler) CreateTrends(w http.ResponseWriter, r *http.Request) {
 	}
 	ui.UserID = userID
 	th.trendsUsecase.InsertOrUpdate(ui)
-	w.WriteHeader(http.StatusNoContent)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful stat."))
 }

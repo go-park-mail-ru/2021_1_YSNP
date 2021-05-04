@@ -1,12 +1,14 @@
 package usecase
 
 import (
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
+
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 func TestCategoryUsecase_GetAllCategories(t *testing.T) {
@@ -20,5 +22,5 @@ func TestCategoryUsecase_GetAllCategories(t *testing.T) {
 	catRepo.EXPECT().SelectCategories().Return([]*models.Category{}, nil)
 
 	_, err := catUcase.GetAllCategories()
-	assert.Equal(t, err, (*errors2.Error)(nil))
+	assert.Equal(t, err, (*errors.Error)(nil))
 }

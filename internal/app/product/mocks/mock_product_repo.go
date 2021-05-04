@@ -120,6 +120,21 @@ func (mr *MockProductRepositoryMockRecorder) SelectLatest(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectLatest", reflect.TypeOf((*MockProductRepository)(nil).SelectLatest), arg0, arg1)
 }
 
+// SelectTrands mocks base method.
+func (m *MockProductRepository) SelectTrands(arg0 []uint64, arg1 *uint64) ([]*models.ProductListData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectTrands", arg0, arg1)
+	ret0, _ := ret[0].([]*models.ProductListData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectTrands indicates an expected call of SelectTrands.
+func (mr *MockProductRepositoryMockRecorder) SelectTrands(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectTrands", reflect.TypeOf((*MockProductRepository)(nil).SelectTrands), arg0, arg1)
+}
+
 // SelectUserAd mocks base method.
 func (m *MockProductRepository) SelectUserAd(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, error) {
 	m.ctrl.T.Helper()
