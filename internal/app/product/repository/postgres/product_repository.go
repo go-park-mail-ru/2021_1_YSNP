@@ -26,6 +26,7 @@ func (pr *ProductRepository) Update(product *models.ProductData) error {
 	if err != nil {
 		return err
 	}
+
 	query := tx.QueryRow(
 		`
 		UPDATE product set 
@@ -86,7 +87,12 @@ func (pr *ProductRepository) Update(product *models.ProductData) error {
 			return err
 		}
 	}
-	tx.Commit()
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
