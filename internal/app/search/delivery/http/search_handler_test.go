@@ -2,18 +2,20 @@ package delivery
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/mocks"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 func TestSearchHandler_SearchHandler_Success(t *testing.T) {
@@ -136,7 +138,7 @@ func TestSearchHandler_SearchHandler_NotFoundErr(t *testing.T) {
 	searchHandler := NewSearchHandler(searchUcase)
 	searchHandler.Configure(router, nil)
 
-	searchUcase.EXPECT().SelectByFilter(&userID, search).Return(nil, errors2.Cause(errors2.EmptySearch))
+	searchUcase.EXPECT().SelectByFilter(&userID, search).Return(nil, errors.Cause(errors.EmptySearch))
 
 	searchHandler.SearchHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)

@@ -2,9 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 	"strconv"
 
@@ -15,6 +12,9 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 

@@ -2,15 +2,17 @@ package usecase
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
+	"mime/multipart"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/assert"
-	"mime/multipart"
-	"testing"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
 )
 
 var prodTest = &models.ProductData{
@@ -270,6 +272,7 @@ func TestProductUsecase_LikeProduct_Success(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(nil)
+	prodRepo.EXPECT().UpdateProductLikes(uint64(0), +1).Return(nil)
 
 	err := prodUcase.LikeProduct(0, 0)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -306,6 +309,7 @@ func TestProductUsecase_DislikeProduct_Success(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().DeleteProductLike(uint64(0), uint64(0)).Return(nil)
+	prodRepo.EXPECT().UpdateProductLikes(uint64(0), -1).Return(nil)
 
 	err := prodUcase.DislikeProduct(0, 0)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -347,7 +351,7 @@ func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
-	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}),"static/product/").Return([]string{}, nil)
+	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}), "static/product/").Return([]string{}, nil)
 	prodRepo.EXPECT().InsertPhoto(gomock.Any()).Return(nil)
 	uploadRepo.EXPECT().RemovePhotos(gomock.Any()).Return(nil)
 

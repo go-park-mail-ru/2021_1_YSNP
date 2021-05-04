@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"database/sql"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
+
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 func TestCategoryUsecase_GetAllCategories(t *testing.T) {

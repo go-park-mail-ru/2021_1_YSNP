@@ -2,10 +2,13 @@ package usecase
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 	"google.golang.org/grpc"
+	"time"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 type AuthClient struct {

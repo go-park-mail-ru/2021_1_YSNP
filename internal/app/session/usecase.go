@@ -2,7 +2,7 @@ package session
 
 import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 //go:generate mockgen -destination=./mocks/mock_session_ucase.go -package=mock github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session SessionUsecase

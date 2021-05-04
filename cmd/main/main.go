@@ -2,25 +2,19 @@ package main
 
 import (
 	"fmt"
-	sessHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
-	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
-
-	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
-	chatWSHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/websocket"
-	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/usecase"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
-
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"google.golang.org/grpc"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
+	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -34,11 +28,23 @@ import (
 	productHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/delivery/http"
 	productRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/repository/postgres"
 	productUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/usecase"
+
 	searchHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/delivery/http"
 	searchRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/repository/postgres"
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
 
 	uploadRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/repository/FileSystem"
+
+	trendsHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/delivery/http"
+	trendsRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/repository/tarantool"
+	trendsUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/usecase"
+
+	sessHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
+	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
+
+	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
+	chatWSHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/websocket"
+	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/usecase"
 )
 
 func main() {
@@ -47,12 +53,18 @@ func main() {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases2.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
+	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	trendsRepo := trendsRepo.NewTrendsRepository(tarantoolDB.GetDatabase(), postgresDB.GetDatabase())
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
@@ -60,7 +72,8 @@ func main() {
 	uploadRepo := uploadRepo.NewUploadRepository()
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
-	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
+	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
@@ -86,7 +99,10 @@ func main() {
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 
-	logger := logger2.NewLogger(configs.GetLoggerMode())
+	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
+	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
+
+	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
@@ -108,6 +124,7 @@ func main() {
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, router, mw)
+	trendsHandler.Configure(api, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
 	chatHandler.Configure(api, mw, wsSrv)

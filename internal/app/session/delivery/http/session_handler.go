@@ -2,10 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 	"time"
 
@@ -16,6 +12,10 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -39,7 +39,7 @@ func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
@@ -48,9 +48,9 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&login)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("user data ", login)
@@ -64,9 +64,9 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors2.UnexpectedBadRequest(allErrs)
+			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors2.JSONError(errE))
+			w.Write(errors.JSONError(errE))
 			return
 		}
 	}
@@ -76,7 +76,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Debug("user ", user)
@@ -85,7 +85,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -94,7 +94,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Debug("session ", session)
@@ -111,22 +111,22 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 	http.SetCookie(w, &cookie)
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful login."))
+	w.Write(errors.JSONSuccess("Successful login."))
 }
 
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
 	session, err := r.Cookie("session_id")
 	if err == http.ErrNoCookie {
-		errE := errors2.Cause(errors2.UserUnauthorized)
+		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("session ", session)
@@ -135,7 +135,7 @@ func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -143,5 +143,5 @@ func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) 
 	http.SetCookie(w, session)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors2.JSONSuccess("Successful logout."))
+	w.Write(errors.JSONSuccess("Successful logout."))
 }

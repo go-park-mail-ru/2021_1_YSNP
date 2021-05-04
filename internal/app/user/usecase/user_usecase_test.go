@@ -2,14 +2,16 @@ package usecase
 
 import (
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
 	"mime/multipart"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/mocks"
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 )
 
 var userTest = &models.UserData{
@@ -63,7 +65,7 @@ func TestUserUsecase_Create_TelephoneAlreadyExists(t *testing.T) {
 }
 
 func TestUserUsecase_GetByID_Success(t *testing.T) {
-	t.Parallel()
+	//t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
@@ -78,7 +80,7 @@ func TestUserUsecase_GetByID_Success(t *testing.T) {
 		Email:      "a@a.ru",
 		Telephone:  "+79169230768",
 		DateBirth:  "2021-03-08",
-		LinkImages: "",
+		LinkImages: "/static/avatar/test-avatar1.jpg",
 	}
 
 	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)

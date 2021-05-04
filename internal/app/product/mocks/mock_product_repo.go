@@ -34,6 +34,20 @@ func (m *MockProductRepository) EXPECT() *MockProductRepositoryMockRecorder {
 	return m.recorder
 }
 
+// Close mocks base method.
+func (m *MockProductRepository) Close(arg0 *models.ProductData) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockProductRepositoryMockRecorder) Close(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProductRepository)(nil).Close), arg0)
+}
+
 // DeleteProductLike mocks base method.
 func (m *MockProductRepository) DeleteProductLike(arg0, arg1 uint64) error {
 	m.ctrl.T.Helper()
@@ -120,6 +134,21 @@ func (mr *MockProductRepositoryMockRecorder) SelectLatest(arg0, arg1 interface{}
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectLatest", reflect.TypeOf((*MockProductRepository)(nil).SelectLatest), arg0, arg1)
 }
 
+// SelectTrands mocks base method.
+func (m *MockProductRepository) SelectTrands(arg0 []uint64, arg1 *uint64) ([]*models.ProductListData, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectTrands", arg0, arg1)
+	ret0, _ := ret[0].([]*models.ProductListData)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// SelectTrands indicates an expected call of SelectTrands.
+func (mr *MockProductRepositoryMockRecorder) SelectTrands(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectTrands", reflect.TypeOf((*MockProductRepository)(nil).SelectTrands), arg0, arg1)
+}
+
 // SelectUserAd mocks base method.
 func (m *MockProductRepository) SelectUserAd(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, error) {
 	m.ctrl.T.Helper()
@@ -148,6 +177,34 @@ func (m *MockProductRepository) SelectUserFavorite(arg0 uint64, arg1 *models.Pag
 func (mr *MockProductRepositoryMockRecorder) SelectUserFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectUserFavorite", reflect.TypeOf((*MockProductRepository)(nil).SelectUserFavorite), arg0, arg1)
+}
+
+// UpdateProductLikes mocks base method.
+func (m *MockProductRepository) UpdateProductLikes(arg0 uint64, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProductLikes", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProductLikes indicates an expected call of UpdateProductLikes.
+func (mr *MockProductRepositoryMockRecorder) UpdateProductLikes(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductLikes", reflect.TypeOf((*MockProductRepository)(nil).UpdateProductLikes), arg0, arg1)
+}
+
+// UpdateProductViews mocks base method.
+func (m *MockProductRepository) UpdateProductViews(arg0 uint64, arg1 int) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdateProductViews", arg0, arg1)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// UpdateProductViews indicates an expected call of UpdateProductViews.
+func (mr *MockProductRepositoryMockRecorder) UpdateProductViews(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdateProductViews", reflect.TypeOf((*MockProductRepository)(nil).UpdateProductViews), arg0, arg1)
 }
 
 // UpdateTariff mocks base method.

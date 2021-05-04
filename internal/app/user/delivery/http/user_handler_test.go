@@ -3,20 +3,23 @@ package delivery
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
-	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
+	sMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 )
 
 var userTest = &models.UserData{
@@ -208,7 +211,7 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().Create(userTest).Return(errors2.Cause(errors2.TelephoneAlreadyExists))
+	userUcase.EXPECT().Create(userTest).Return(errors.Cause(errors.TelephoneAlreadyExists))
 	userHandler.SignUpHandler(w, r.WithContext(ctx))
 
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -372,7 +375,7 @@ func TestUserHandler_GetProfileHandler_UserNotExist(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().GetByID(gomock.Eq(userTest.ID)).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().GetByID(gomock.Eq(userTest.ID)).Return(nil, errors.Cause(errors.UserNotExist))
 
 	userHandler.GetProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -495,7 +498,7 @@ func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().GetSellerByID(uint64(0)).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().GetSellerByID(uint64(0)).Return(nil, errors.Cause(errors.UserNotExist))
 
 	userHandler.GetSellerHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -721,7 +724,7 @@ func TestUserHandler_ChangeProfileHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdateProfile(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().UpdateProfile(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
 
 	userHandler.ChangeProfileHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -918,7 +921,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdatePassword(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().UpdatePassword(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
 
 	userHandler.ChangeProfilePasswordHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
@@ -1134,7 +1137,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 	userHandler := NewUserHandler(userUcase, sessUcase)
 	userHandler.Configure(router, nil)
 
-	userUcase.EXPECT().UpdateLocation(gomock.Any(), gomock.Any()).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().UpdateLocation(gomock.Any(), gomock.Any()).Return(nil, errors.Cause(errors.UserNotExist))
 
 	userHandler.ChangeUserLocationHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
