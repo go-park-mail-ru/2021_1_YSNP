@@ -2,12 +2,14 @@ package usecase
 
 import (
 	"database/sql"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"testing"
+
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
-	"testing"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 func TestChatUsecase_CreateChat_SuccessWithCreate(t *testing.T) {

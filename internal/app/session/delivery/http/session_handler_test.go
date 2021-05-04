@@ -14,10 +14,9 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	sessMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 )

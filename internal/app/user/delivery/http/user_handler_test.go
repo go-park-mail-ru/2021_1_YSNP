@@ -13,11 +13,10 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
-	sMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	uMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 )
@@ -54,7 +53,7 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := mock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -98,7 +97,7 @@ func TestUserHandler_SignUpHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := mock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{

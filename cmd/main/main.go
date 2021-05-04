@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
@@ -10,9 +11,10 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 
@@ -76,14 +78,24 @@ func main() {
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
-	sessionGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), grpc.WithInsecure())
+	logger := logger.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+	ic := interceptor.NewInterceptor(logger.GetLogger())
+
+	sessionGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), 
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sessionGRPCConn.Close()
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
-	chatGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), grpc.WithInsecure())
+	chatGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), 
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,9 +112,6 @@ func main() {
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
-
 	router := mux.NewRouter()
 
 	mw := middleware.NewMiddleware(sessUcase, userUcase)
@@ -112,8 +121,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	wsSrv := websocket.NewWSServer(logger)
 	wsSrv.Run()

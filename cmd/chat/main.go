@@ -2,16 +2,19 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
+	"google.golang.org/grpc"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	chatGRPC "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/delivery/grpc"
 	chatRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/repository/postgres"
-	chatUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
-	databases "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"
-	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 func main() {
@@ -27,7 +30,7 @@ func main() {
 	defer postgresDB.Close()
 
 	cr := chatRepo.NewChatRepository(postgresDB.GetDatabase())
-	cu := chatUcase.NewChatUsecase(cr)
+	cu := chatUsecase.NewChatUsecase(cr)
 	handler := chatGRPC.NewChatServer(cu)
 
 	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()))
@@ -38,8 +41,11 @@ func main() {
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
+	ic := interceptor.NewInterceptor(logger.GetLogger())
 
-	server := grpc.NewServer()
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(ic.ServerLogInterceptor),
+	)
 	chat.RegisterChatServer(server, handler)
 
 	if err := server.Serve(lis); err != nil {

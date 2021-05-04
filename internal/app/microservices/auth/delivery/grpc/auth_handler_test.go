@@ -3,13 +3,15 @@ package grpc
 import (
 	"context"
 	"database/sql"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	proto "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestAuthHandlerServer_Create(t *testing.T) {

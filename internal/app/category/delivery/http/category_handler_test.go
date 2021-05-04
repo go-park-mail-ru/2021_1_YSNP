@@ -3,18 +3,20 @@ package http
 import (
 	"context"
 	"fmt"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 func TestCategoryHandler_CategoriesHandler_Success(t *testing.T) {

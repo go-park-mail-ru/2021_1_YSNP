@@ -2,16 +2,17 @@ package usecase
 
 import (
 	"database/sql"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 type ChatUsecase struct {
 	chatRepo chat.ChatRepository
 }
 
-func NewChatUsecase(repo chat.ChatRepository) chat.ChatUsecase{
+func NewChatUsecase(repo chat.ChatRepository) chat.ChatUsecase {
 	return &ChatUsecase{
 		chatRepo: repo,
 	}
@@ -38,13 +39,13 @@ func (c *ChatUsecase) CreateChat(req *models.ChatCreateReq, userID uint64) (*mod
 		CreationTime:      chat.CreationTime,
 		LastMsgContent:    chat.LastMsgContent,
 		LastMsgTime:       chat.LastMsgTime,
-		PartnerID: chat.PartnerID,
+		PartnerID:         chat.PartnerID,
 		PartnerName:       chat.PartnerName,
 		PartnerSurname:    chat.PartnerSurname,
 		PartnerAvatarLink: chat.PartnerAvatarLink,
-		ProductID: chat.ProductID,
-		ProductName: chat.ProductName,
-		ProductAmount: chat.ProductAmount,
+		ProductID:         chat.ProductID,
+		ProductName:       chat.ProductName,
+		ProductAmount:     chat.ProductAmount,
 		ProductAvatarLink: chat.ProductAvatarLink,
 		NewMessages:       chat.NewMessages,
 	}, nil
@@ -64,13 +65,13 @@ func (c *ChatUsecase) GetChatById(chatID uint64, userID uint64) (*models.ChatRes
 		CreationTime:      chat.CreationTime,
 		LastMsgContent:    chat.LastMsgContent,
 		LastMsgTime:       chat.LastMsgTime,
-		PartnerID: chat.PartnerID,
+		PartnerID:         chat.PartnerID,
 		PartnerName:       chat.PartnerName,
 		PartnerSurname:    chat.PartnerSurname,
 		PartnerAvatarLink: chat.PartnerAvatarLink,
-		ProductID: chat.ProductID,
-		ProductName: chat.ProductName,
-		ProductAmount: chat.ProductAmount,
+		ProductID:         chat.ProductID,
+		ProductName:       chat.ProductName,
+		ProductAmount:     chat.ProductAmount,
 		ProductAvatarLink: chat.ProductAvatarLink,
 		NewMessages:       chat.NewMessages,
 	}, nil
@@ -89,13 +90,13 @@ func (c *ChatUsecase) GetUserChats(userID uint64) ([]*models.ChatResponse, *erro
 			CreationTime:      chat.CreationTime,
 			LastMsgContent:    chat.LastMsgContent,
 			LastMsgTime:       chat.LastMsgTime,
-			PartnerID: chat.PartnerID,
+			PartnerID:         chat.PartnerID,
 			PartnerName:       chat.PartnerName,
 			PartnerSurname:    chat.PartnerSurname,
 			PartnerAvatarLink: chat.PartnerAvatarLink,
-			ProductID: chat.ProductID,
-			ProductName: chat.ProductName,
-			ProductAmount: chat.ProductAmount,
+			ProductID:         chat.ProductID,
+			ProductName:       chat.ProductName,
+			ProductAmount:     chat.ProductAmount,
 			ProductAvatarLink: chat.ProductAvatarLink,
 			NewMessages:       chat.NewMessages,
 		})
@@ -115,7 +116,7 @@ func (c *ChatUsecase) CreateMessage(req *models.CreateMessageReq, userID uint64)
 		Content:      msg.Content,
 		CreationTime: msg.CreationTime,
 		ChatID:       msg.ChatID,
-		UserID: msg.UserID,
+		UserID:       msg.UserID,
 	}, nil
 }
 
@@ -126,13 +127,13 @@ func (c *ChatUsecase) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*mode
 	}
 
 	msgsResp := []*models.MessageResp{}
-	for _, msg := range msgs{
+	for _, msg := range msgs {
 		msgsResp = append(msgsResp, &models.MessageResp{
 			ID:           msg.ID,
 			Content:      msg.Content,
 			CreationTime: msg.CreationTime,
 			ChatID:       msg.ChatID,
-			UserID: msg.UserID,
+			UserID:       msg.UserID,
 		})
 	}
 
@@ -146,13 +147,13 @@ func (c *ChatUsecase) GetNMessagesBefore(req *models.GetNMessagesBeforeReq) ([]*
 	}
 
 	msgsResp := []*models.MessageResp{}
-	for _, msg := range msgs{
+	for _, msg := range msgs {
 		msgsResp = append(msgsResp, &models.MessageResp{
 			ID:           msg.ID,
 			Content:      msg.Content,
 			CreationTime: msg.CreationTime,
 			ChatID:       msg.ChatID,
-			UserID: msg.UserID,
+			UserID:       msg.UserID,
 		})
 	}
 

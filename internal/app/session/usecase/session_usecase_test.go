@@ -1,20 +1,18 @@
 package usecase
 
 import (
-
 	"context"
 	"testing"
-	"time"
-	"google.golang.org/grpc"
-	"google.golang.org/protobuf/types/known/emptypb"
 
 	"github.com/golang/mock/gomock"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+	"google.golang.org/protobuf/types/known/emptypb"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 )
 
 func TestAuthClient_Create(t *testing.T) {

@@ -361,7 +361,7 @@ func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
 
 	//error
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
-	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}),"static/product/").Return([]string{}, nil)
+	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}), "static/product/").Return([]string{}, nil)
 	prodRepo.EXPECT().InsertPhoto(gomock.Any()).Return(nil)
 	uploadRepo.EXPECT().RemovePhotos(gomock.Any()).Return(sql.ErrConnDone)
 
@@ -370,7 +370,7 @@ func TestProductUsecase_UpdatePhoto_Success(t *testing.T) {
 
 	//another err
 	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(prodTest, nil)
-	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}),"static/product/").Return([]string{}, nil)
+	uploadRepo.EXPECT().InsertPhotos(gomock.Eq([]*multipart.FileHeader{}), "static/product/").Return([]string{}, nil)
 	prodRepo.EXPECT().InsertPhoto(gomock.Any()).Return(sql.ErrConnDone)
 
 	_, err = prodUcase.UpdatePhoto(prodTest.ID, uint64(0), []*multipart.FileHeader{})
