@@ -1,12 +1,14 @@
 package FileSystem
 
 import (
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
-	"github.com/google/uuid"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
+
+	"github.com/google/uuid"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
 )
 
 type UploadRepository struct {

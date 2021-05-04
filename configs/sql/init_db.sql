@@ -1,18 +1,17 @@
-CREATE USER ysnp WITH PASSWORD 'koyaforever';
-create database ysnpkoyaDB
-	with owner ysnp
-	encoding 'utf8'
-	LC_COLLATE = 'ru_RU.UTF-8'
-    LC_CTYPE = 'ru_RU.UTF-8'
-    TABLESPACE = pg_default
-    TEMPLATE template0
-	;
-
-GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO ysnp;
-\connect ysnpkoyadb
+-- create database ysnpkoyaDB
+-- 	with owner postgres
+-- 	encoding 'utf8'
+-- 	LC_COLLATE = 'ru_RU.UTF-8'
+--     LC_CTYPE = 'ru_RU.UTF-8'
+--     TABLESPACE = pg_default
+--     TEMPLATE template0
+-- 	;
 
 CREATE EXTENSION postgis;
 CREATE EXTENSION postgis_topology;
+
+
+GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO postgres;
 
 create table if not exists users
 (
@@ -53,6 +52,7 @@ CREATE TABLE IF NOT EXISTS product
     likes       int                   DEFAULT 0, -- триггер на каждый лайк/дизлайк
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
+    close       boolean               DEFAULT false,
 
     FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION
@@ -81,7 +81,6 @@ CREATE TABLE IF NOT EXISTS user_favorite
 INSERT INTO users (email, telephone, password, name, surname, sex)
 VALUES ('asd', '123', '123', '123', '123', 'M');
 
-
 INSERT INTO category (title)
 VALUES ('Транспорт'),
        ('Недвижмость'),
@@ -91,7 +90,6 @@ VALUES ('Транспорт'),
        ('Бытовая электрика'),
        ('Личные вещи'),
        ('Животные');
-
 
 INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude)
 VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
@@ -106,8 +104,6 @@ VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
        ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
        ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
 
-
-
 INSERT INTO product_images (product_id, img_link)
 VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
        (2, '/static/product/3af8506c-0608-498e-b2b7-7f7a445aa6df.webp'),
@@ -120,5 +116,3 @@ VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
        (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
        (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
        (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');
-
-GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO ysnp;

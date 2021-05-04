@@ -217,7 +217,7 @@ func TestProductHandler_ProductIDHandler_Success(t *testing.T) {
 	prodHandler := NewProductHandler(prodUcase)
 	prodHandler.Configure(router, rout, nil)
 
-	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(prodTest, nil)
+	prodUcase.EXPECT().GetProduct(gomock.Eq(uint64(0))).Return(prodTest, nil)
 
 	prodHandler.ProductIDHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -241,7 +241,7 @@ func TestProductHandler_ProductIDHandler_LoggerError(t *testing.T) {
 	prodHandler := NewProductHandler(prodUcase)
 	prodHandler.Configure(router, rout, nil)
 
-	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(prodTest, nil)
+	prodUcase.EXPECT().GetProduct(gomock.Eq(uint64(0))).Return(prodTest, nil)
 
 	prodHandler.ProductIDHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -269,7 +269,7 @@ func TestProductHandler_ProductIDHandler_ProductNotExist(t *testing.T) {
 	prodHandler := NewProductHandler(prodUcase)
 	prodHandler.Configure(router, rout, nil)
 
-	prodUcase.EXPECT().GetByID(gomock.Eq(uint64(0))).Return(nil, errors.Cause(errors.ProductNotExist))
+	prodUcase.EXPECT().GetProduct(gomock.Eq(uint64(0))).Return(nil, errors.Cause(errors.ProductNotExist))
 
 	prodHandler.ProductIDHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusNotFound, w.Code)

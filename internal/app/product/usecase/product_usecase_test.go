@@ -242,6 +242,7 @@ func TestProductUsecase_LikeProduct_Success(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().InsertProductLike(uint64(0), uint64(0)).Return(nil)
+	prodRepo.EXPECT().UpdateProductLikes(uint64(0), +1).Return(nil)
 
 	err := prodUcase.LikeProduct(0, 0)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -272,6 +273,7 @@ func TestProductUsecase_DislikeProduct_Success(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo)
 
 	prodRepo.EXPECT().DeleteProductLike(uint64(0), uint64(0)).Return(nil)
+	prodRepo.EXPECT().UpdateProductLikes(uint64(0), -1).Return(nil)
 
 	err := prodUcase.DislikeProduct(0, 0)
 	assert.Equal(t, err, (*errors.Error)(nil))

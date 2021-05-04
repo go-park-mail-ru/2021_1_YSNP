@@ -3,10 +3,11 @@ package repository
 import (
 	"database/sql"
 	"fmt"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 	"math"
 	"strings"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 )
 
 func NewSearchRepository(conn *sql.DB) search.SearchRepository {
@@ -68,6 +69,7 @@ func (s SearchRepository) SelectByFilter(userID *uint64, data *models.Search) ([
 				WHERE LOWER(name) LIKE LOWER($2) AND
 					  cat.title LIKE $3  AND
 				      amount BETWEEN $4 AND $5
+					  and p.close=false
 			  `
 	var limit string
 
