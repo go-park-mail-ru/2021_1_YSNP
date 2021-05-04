@@ -2,8 +2,8 @@ package websocket
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 )
 
@@ -43,8 +43,8 @@ func (r *WSRouter) SetHandlerFunc(msgType string, handler func(c *WSContext)) {
 	r.routes[msgType] = handler
 }
 
-func NewWSServer() *WSServer {
-	h := NewHub()
+func NewWSServer(logger *logger.Logger) *WSServer {
+	h := NewHub(logger)
 	return &WSServer{
 		hub:       h,
 		WSRouter:  NewWSRouter(),
@@ -56,6 +56,7 @@ func NewWSServer() *WSServer {
 func (s *WSServer) Run() {
 	s.hub.Run()
 	go s.handleMessages()
+	s.hub.log.GetLogger().Info("Start websocket server")
 }
 
 func (s *WSServer) Stop() {
@@ -66,13 +67,12 @@ func (s *WSServer) RegisterClient(w http.ResponseWriter, r *http.Request, userID
 	Upgrader.CheckOrigin = func(r *http.Request) bool { return true }
 	conn, err := Upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		//log err
-		fmt.Println(err)
+		s.hub.log.LogWSError("server", userID, err.Error())
 		return err
 	}
 
 	s.hub.RegisterClient(conn, userID)
-
+	s.hub.log.LogWSInfo("server", userID, "Register new client with remote addr:"+conn.RemoteAddr().String())
 	return nil
 }
 
@@ -81,9 +81,7 @@ func (s *WSServer) handleMessages() {
 		msg := &models.WSMessageReq{}
 
 		if err := json.Unmarshal(m.Data, &msg); err != nil {
-			//log err
-			fmt.Println(err)
-			fmt.Println("pltcm")
+			s.hub.log.LogWSError("server", m.UserID, err.Error())
 			continue
 		}
 		msg.UserID = m.UserID
@@ -92,8 +90,7 @@ func (s *WSServer) handleMessages() {
 
 		handler, ok := s.routes[msg.Type]
 		if !ok {
-			//log no handler for type
-			fmt.Println("no handler")
+			s.hub.log.LogWSError("server", m.UserID, "No handler for type:"+msg.Type)
 			continue
 		}
 
@@ -103,8 +100,7 @@ func (s *WSServer) handleMessages() {
 		if msg.Type == "CreateMessageReq" {
 			typeData := &models.CreateMsgAdditData{}
 			if err := json.Unmarshal(msg.Data.TypeData, &typeData); err != nil {
-				//log err
-				fmt.Println(err)
+				s.hub.log.LogWSError("server", m.UserID, err.Error())
 				return
 			}
 			s.SendMessage(c.Response, typeData.PartnerID)
@@ -115,14 +111,13 @@ func (s *WSServer) handleMessages() {
 func (s *WSServer) SendMessage(msg *models.WSMessageResp, reciever uint64) {
 	defer func() {
 		if recover() != nil {
-			//log recover
+			s.hub.log.LogWSInfo("server", msg.UserID, "Recover...")
 		}
 	}()
 
 	data, err := json.Marshal(msg)
 	if err != nil {
-		//log err
-		fmt.Println(err)
+		s.hub.log.LogWSInfo("server", msg.UserID, err.Error())
 		return
 	}
 

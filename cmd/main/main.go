@@ -101,7 +101,7 @@ func main() {
 	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
 	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
-	wsSrv := websocket.NewWSServer()
+	wsSrv := websocket.NewWSServer(logger)
 	wsSrv.Run()
 	defer wsSrv.Stop()
 
