@@ -102,9 +102,9 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 		Name:     "session_id",
 		Value:    session.Value,
 		Expires:  session.ExpiresAt,
-		Secure:   true,
-		SameSite: http.SameSiteLaxMode,
-		HttpOnly: true,
+		//Secure:   true,
+		//SameSite: http.SameSiteLaxMode,
+		//HttpOnly: true,
 	}
 	logger.Debug("cookie ", cookie)
 

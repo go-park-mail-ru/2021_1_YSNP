@@ -23,6 +23,7 @@ const (
 	PromoteEmptyLabel
 	InvalidCSRFToken
 	EmptySearch
+	ProductClose
 	WrongOwner
 )
 
@@ -139,6 +140,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: InvalidCSRFToken,
 		HttpError: http.StatusForbidden,
 		Message:   "Forbidden - CSRF token invalid",
+	},
+	ProductClose: {
+		ErrorCode: ProductClose,
+		HttpError: http.StatusBadRequest,
+		Message:   "Product already close",
 	},
 	WrongOwner: {
 		ErrorCode: WrongOwner,

@@ -31,7 +31,7 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 
 func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/product/close", mw.CheckAuthMiddleware(ph.ProductCloseHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/close/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.ProductCloseHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/edit", mw.CheckAuthMiddleware(ph.ProductEditHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
 	rNoCSRF.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
@@ -123,18 +123,11 @@ func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Req
 	}
 	logger.Info("user id ", userID)
 
-	productData := &models.ProductData{}
-	err := json.NewDecoder(r.Body).Decode(&productData)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-	logger.Info("product id ", productData.ID)
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("product id ", productID)
 
-	errE := ph.productUcase.Close(productData, int(userID))
+	errE := ph.productUcase.Close(productID, userID)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -143,7 +136,7 @@ func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Req
 	}
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful close.", productData.ID))
+	w.Write(errors.JSONSuccess("Successful close."))
 }
 
 func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -210,7 +203,7 @@ func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Requ
 	logger.Debug("product id ", productData.ID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
+	w.Write(errors.JSONSuccess("Successful update.")
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
@@ -327,7 +320,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	logger.Info("product id ", productID)
 
-	product, errE := ph.productUcase.GetByID(productID)
+	product, errE := ph.productUcase.GetProduct(productID)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
