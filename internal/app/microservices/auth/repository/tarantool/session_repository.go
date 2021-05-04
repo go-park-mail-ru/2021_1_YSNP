@@ -3,10 +3,10 @@ package repository
 import (
 	"encoding/json"
 	"errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 
 	"github.com/tarantool/go-tarantool"
 
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 

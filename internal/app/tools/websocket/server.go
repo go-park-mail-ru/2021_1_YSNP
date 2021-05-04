@@ -2,9 +2,10 @@ package websocket
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"net/http"
 )
 
 type WSContext struct {

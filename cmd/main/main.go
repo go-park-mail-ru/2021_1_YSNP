@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
@@ -10,11 +11,11 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -79,7 +80,6 @@ func main() {
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
-
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	sessionGRPCConn, err := grpc.Dial(
@@ -121,8 +121,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	wsSrv := websocket.NewWSServer(logger)
 	wsSrv.Run()

@@ -5,13 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
-	"github.com/tarantool/go-tarantool"
 	"sort"
 	"strconv"
 	"time"
 	"unicode/utf8"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
+	"github.com/tarantool/go-tarantool"
 )
 
 type TrendsRepository struct {

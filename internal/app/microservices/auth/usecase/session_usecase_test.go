@@ -2,14 +2,16 @@ package usecase
 
 import (
 	"database/sql"
-	mock2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errs "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"testing"
+	"time"
+
 	"github.com/golang/mock/gomock"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
-	"testing"
-	"time"
+
+	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errs "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 )
 
 func TestSessionUsecase_Create(t *testing.T) {
@@ -18,7 +20,7 @@ func TestSessionUsecase_Create(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -41,7 +43,7 @@ func TestSessionUsecase_Delete(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -66,7 +68,7 @@ func TestSessionUsecase_Delete_SessionNotExist(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -83,7 +85,7 @@ func TestSessionUsecase_Get_OK(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -102,7 +104,7 @@ func TestSessionUsecase_Get_SessionNotExist(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -121,7 +123,7 @@ func TestSessionUsecase_Check_OK(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -140,7 +142,7 @@ func TestSessionUsecase_Check_SessionNotExist(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)
@@ -158,7 +160,7 @@ func TestSessionUsecase_Check_Expired(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessionRep := mock2.NewMockSessionRepository(ctrl)
+	sessionRep := mock.NewMockSessionRepository(ctrl)
 	sessionUcase := NewSessionUsecase(sessionRep)
 
 	session := models.CreateSession(0)

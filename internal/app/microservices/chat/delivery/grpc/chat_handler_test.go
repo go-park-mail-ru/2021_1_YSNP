@@ -3,7 +3,7 @@ package grpc
 import (
 	"context"
 	"database/sql"
-	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/mocks"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	protoChat "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"

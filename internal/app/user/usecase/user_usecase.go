@@ -2,8 +2,9 @@ package usecase
 
 import (
 	"database/sql"
-	"golang.org/x/crypto/bcrypt"
 	"mime/multipart"
+
+	"golang.org/x/crypto/bcrypt"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"

@@ -3,9 +3,10 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"time"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"time"
 )
 
 type ChatRepository struct {

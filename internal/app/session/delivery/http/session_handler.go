@@ -10,12 +10,12 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -100,9 +100,9 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:     "session_id",
-		Value:    session.Value,
-		Expires:  session.ExpiresAt,
+		Name:    "session_id",
+		Value:   session.Value,
+		Expires: session.ExpiresAt,
 		//Secure:   true,
 		//SameSite: http.SameSiteLaxMode,
 		//HttpOnly: true,

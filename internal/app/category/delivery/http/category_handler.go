@@ -8,9 +8,9 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 type CategoryHandler struct {

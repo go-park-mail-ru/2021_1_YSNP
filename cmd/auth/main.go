@@ -2,17 +2,19 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"net"
+
+	"google.golang.org/grpc"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	authGRPC "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/delivery/grpc"
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
-	authUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	authUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
-	"google.golang.org/grpc"
-	"log"
-	"net"
 )
 
 func main() {
@@ -21,13 +23,13 @@ func main() {
 		log.Fatal(err)
 	}
 
-	tarantoolDB, err := databases2.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	ar := authRepo.NewSessionRepository(tarantoolDB.GetDatabase())
-	au := authUcase.NewSessionUsecase(ar)
+	au := authUsecase.NewSessionUsecase(ar)
 	handler := authGRPC.NewAuthHandlerServer(au)
 
 	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()))
@@ -38,7 +40,6 @@ func main() {
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
-
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	server := grpc.NewServer(

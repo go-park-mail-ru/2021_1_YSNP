@@ -1,9 +1,11 @@
 package websocket
 
 import (
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"github.com/gorilla/websocket"
 	"sync"
+
+	"github.com/gorilla/websocket"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 )
 
 type MSG struct {

@@ -2,9 +2,10 @@ package repository
 
 import (
 	"database/sql"
+	"testing"
+
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
-	"testing"
 )
 
 func TestCategoryRepository_SelectCategories(t *testing.T) {

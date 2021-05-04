@@ -2,11 +2,14 @@ package postgres
 
 import (
 	"database/sql"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 
 var chatTest = &models.Chat{

@@ -2,14 +2,16 @@ package usecase
 
 import (
 	"context"
+	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/stretchr/testify/assert"
+	"google.golang.org/grpc"
+
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/mocks"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"
-	"github.com/golang/mock/gomock"
-	"github.com/stretchr/testify/assert"
-	"google.golang.org/grpc"
-	"testing"
 )
 
 func TestChatClient_CreateChat(t *testing.T) {

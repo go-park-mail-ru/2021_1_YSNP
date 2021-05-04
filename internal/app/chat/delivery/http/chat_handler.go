@@ -2,16 +2,18 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
 	"net/http"
 	"strconv"
+
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 )
 
 type ChatHandler struct {

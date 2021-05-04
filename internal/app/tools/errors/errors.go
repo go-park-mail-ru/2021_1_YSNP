@@ -2,8 +2,9 @@ package errors
 
 import (
 	"encoding/json"
-	"google.golang.org/grpc/status"
 	"net/http"
+
+	"google.golang.org/grpc/status"
 )
 
 type ErrorType uint8
