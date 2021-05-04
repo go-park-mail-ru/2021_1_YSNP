@@ -3,10 +3,10 @@ package http
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -47,10 +47,10 @@ func TestProductHandler_ProductCreateHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/product/create", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -84,7 +84,7 @@ func TestProductHandler_ProductCreateHandler_LoggerError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/product/create", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -117,10 +117,10 @@ func TestProductHandler_ProductCreateHandler_DecodeError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/product/create", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -143,7 +143,7 @@ func TestProductHandler_ProductCreateHandler_UserUnauth(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/product/create", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -177,10 +177,10 @@ func TestProductHandler_ProductCreateHandler_ValidateErr(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/product/create", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -204,7 +204,7 @@ func TestProductHandler_ProductIDHandler_Success(t *testing.T) {
 	r := httptest.NewRequest("GET", "/api/v1/product/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -256,7 +256,7 @@ func TestProductHandler_ProductIDHandler_ProductNotExist(t *testing.T) {
 	r := httptest.NewRequest("GET", "/api/v1/product", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -290,10 +290,10 @@ func TestProductHandler_MainPageHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -325,7 +325,7 @@ func TestProductHandler_MainPageHandler_LoggerError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -349,7 +349,7 @@ func TestProductHandler_MainPageHandler_DecodeError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -381,10 +381,10 @@ func TestProductHandler_UserAdHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -416,7 +416,7 @@ func TestProductHandler_UserAdHandler_LoggerError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -440,10 +440,10 @@ func TestProductHandler_UserAdHandler_DecodeError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -466,7 +466,7 @@ func TestProductHandler_UserAdHandler_UserUnauth(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -498,10 +498,10 @@ func TestProductHandler_UserFavoriteHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -533,7 +533,7 @@ func TestProductHandler_UserFavoriteHandler_LoggerError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -557,10 +557,10 @@ func TestProductHandler_UserFavoriteHandler_DecodeError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -583,7 +583,7 @@ func TestProductHandler_UserFavoriteHandler_UserUnauth(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -609,10 +609,10 @@ func TestProductHandler_LikeProductHandler_Success(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -638,7 +638,7 @@ func TestProductHandler_LikeProductHandler_LoggerError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -663,7 +663,7 @@ func TestProductHandler_LikeProductHandler_Unauth(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -689,10 +689,10 @@ func TestProductHandler_LikeProductHandler_Error(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -718,10 +718,10 @@ func TestProductHandler_DislikeProductHandler_Success(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -747,7 +747,7 @@ func TestProductHandler_DislikeProductHandler_LoggerError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -772,7 +772,7 @@ func TestProductHandler_DislikeProductHandler_Unauth(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -798,7 +798,7 @@ func TestProductHandler_UploadPhotoHandler_LoggerError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -821,10 +821,10 @@ func TestProductHandler_UploadPhotoHandler_Error(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -848,7 +848,7 @@ func TestProductHandler_UploadPhotoHandler__UserUnauthError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -874,7 +874,7 @@ func TestProductHandler_PromoteProductHandler_LoggerError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -897,10 +897,10 @@ func TestProductHandler_PromoteProductHandler_PartFormError(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/product/1/upload", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, uint64(1))
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 

@@ -5,18 +5,13 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	proto "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
-	"github.com/google/uuid"
-	"github.com/sirupsen/logrus"
-	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
-	"time"
 )
 
 type AuthHandlerServer struct {
 	authUcase auth.SessionUsecase
-	logrusLogger *logrus.Entry
 }
 
 func NewAuthHandlerServer(au auth.SessionUsecase) *AuthHandlerServer {
@@ -25,37 +20,7 @@ func NewAuthHandlerServer(au auth.SessionUsecase) *AuthHandlerServer {
 	}
 }
 
-func (a *AuthHandlerServer) NewLogger(logger *logrus.Entry) {
-	a.logrusLogger = logger
-}
-
-func (a *AuthHandlerServer) AuthInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	a.logrusLogger = a.logrusLogger.WithFields(logrus.Fields{
-		"method":  info.FullMethod,
-		"request": req,
-		"work_id": uuid.New(),
-	})
-	a.logrusLogger.Info("Get connection")
-
-	start := time.Now()
-
-
-	reply, err := handler(ctx, req)
-
-	if err != nil {
-		a.logrusLogger.WithFields(logrus.Fields{
-			"req": req,
-			"error": err.Error(),
-		}).Error("Error occurred")
-	}
-
-	a.logrusLogger.WithFields(logrus.Fields{
-		"work_time": time.Since(start),
-	}).Info("Fulfilled connection")
-	return reply, err
-}
-
-func (a *AuthHandlerServer) Create (ctx context.Context, sess *proto.Session) (*emptypb.Empty, error) {
+func (a *AuthHandlerServer) Create(ctx context.Context, sess *proto.Session) (*emptypb.Empty, error) {
 	if err := a.authUcase.Create(models.GrpcSessionToModel(sess)); err != nil {
 		return &emptypb.Empty{}, status.Error(codes.Code(err.ErrorCode), err.Message)
 	}

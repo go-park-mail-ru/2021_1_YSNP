@@ -3,8 +3,8 @@ package http
 import (
 	"context"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -25,7 +25,7 @@ func TestCategoryHandler_CategoriesHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("GET", "/api/v1/categories", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)

@@ -3,9 +3,9 @@ package websocket
 import (
 	"encoding/json"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 	"github.com/gorilla/mux"
 	"net/http"
@@ -21,7 +21,7 @@ func NewChatWSHandler(chatUcase chat.ChatUsecase) *ChatWSHandler {
 	}
 }
 
-func (ch *ChatWSHandler) Configure(r *mux.Router, mw *middleware.Middleware, server *websocket.WSServer) {
+func (ch *ChatWSHandler) Configure(r *mux.Router, mw *middleware2.Middleware, server *websocket.WSServer) {
 	server.SetHandlerFunc("CreateMessageReq", ch.CreateMessage)
 	server.SetHandlerFunc("GetLastNMessagesReq", ch.GetLastNMessages)
 	server.SetHandlerFunc("GetNMessagesBeforeReq", ch.GetNMessagesBefore)

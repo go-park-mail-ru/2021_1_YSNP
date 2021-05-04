@@ -6,6 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"net/http"
 	"time"
 
@@ -14,7 +15,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
@@ -31,13 +31,13 @@ func NewSessionHandler(sessUcase auth.SessionUsecase, userUcase user.UserUsecase
 	}
 }
 
-func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware2.Middleware) {
 	r.HandleFunc("/login", sh.LoginHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -115,7 +115,7 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")

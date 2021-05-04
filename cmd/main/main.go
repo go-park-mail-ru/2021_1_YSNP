@@ -4,6 +4,8 @@ import (
 	"fmt"
 	sessHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/delivery/http"
 	sessUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/usecase"
+	interceptor2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 
 	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
 	chatWSHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/websocket"
@@ -20,7 +22,6 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -67,14 +68,13 @@ func main() {
 	logger := logger2.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
-	mwGRPC := middleware.NewMiddlewareForGRPC()
-	mwGRPC.NewLogger(logger.GetLogger())
+	ic := interceptor2.NewInterceptor(logger.GetLogger())
 
 	sessionGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
-		grpc.WithUnaryInterceptor(mwGRPC.TimingInterceptor),
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure(),
-		)
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -83,9 +83,9 @@ func main() {
 
 	chatGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
-		grpc.WithUnaryInterceptor(mwGRPC.TimingInterceptor),
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure(),
-		)
+	)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -100,13 +100,12 @@ func main() {
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 
-
 	router := mux.NewRouter()
 
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw := middleware2.NewMiddleware(sessUcase, userUcase)
 	mw.NewLogger(logger.GetLogger())
 
-	router.Use(middleware.CorsControlMiddleware)
+	router.Use(middleware2.CorsControlMiddleware)
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()

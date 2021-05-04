@@ -5,6 +5,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"net/http"
 	"strconv"
 
@@ -13,7 +14,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
@@ -30,7 +30,7 @@ func NewUserHandler(userUcase user.UserUsecase, sessUcase session.SessionUsecase
 	}
 }
 
-func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (uh *UserHandler) Configure(r *mux.Router, mw *middleware2.Middleware) {
 	r.HandleFunc("/signup", uh.SignUpHandler).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/upload", mw.CheckAuthMiddleware(uh.UploadAvatarHandler)).Methods(http.MethodPost, http.MethodOptions)
 
@@ -43,7 +43,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -130,14 +130,14 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -171,13 +171,13 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -210,7 +210,7 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 }
 
 func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -220,7 +220,7 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	sellerID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	logger.Info("seller id ", sellerID)
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -253,14 +253,14 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -325,14 +325,14 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 }
 
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -383,14 +383,14 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 }
 
 func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)

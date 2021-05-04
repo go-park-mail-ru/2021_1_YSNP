@@ -2,10 +2,10 @@ package delivery
 
 import (
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/mocks"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -32,10 +32,10 @@ func TestSearchHandler_SearchHandler_Success(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -66,7 +66,7 @@ func TestSearchHandler_SearchHandler_LoggerError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	w := httptest.NewRecorder()
 
 	rout := mux.NewRouter()
@@ -92,10 +92,10 @@ func TestSearchHandler_SearchHandler_ValidationError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба&fromAmount=-1", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -124,10 +124,10 @@ func TestSearchHandler_SearchHandler_NotFoundErr(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 
@@ -154,10 +154,10 @@ func TestSearchHandler_SearchHandler_QueryParseErr(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/search?category=Шуба&fromAmount=sfdfsdfsdf", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, userID)
+	ctx = context.WithValue(ctx, middleware2.ContextUserID, userID)
 	logrus.SetOutput(ioutil.Discard)
 	w := httptest.NewRecorder()
 

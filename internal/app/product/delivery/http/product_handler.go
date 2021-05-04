@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"net/http"
 	"strconv"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
 )
@@ -29,7 +29,7 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 	}
 }
 
-func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware.Middleware) {
+func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware2.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
 	rNoCSRF.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
@@ -44,14 +44,14 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -105,7 +105,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -115,7 +115,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	productID, _ := strconv.ParseUint(vars["pid"], 10, 64)
 	logger.Info("product id ", productID)
 
-	userId, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userId, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -150,7 +150,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -209,7 +209,7 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 }
 
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -243,7 +243,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 }
 
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -262,7 +262,7 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	}
 	logger.Info("page ", page)
 
-	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, _ := r.Context().Value(middleware2.ContextUserID).(uint64)
 	logger.Info("user id ", userID)
 
 	products, errE := ph.productUcase.ListLatest(&userID, page)
@@ -286,13 +286,13 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 }
 
 func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -336,13 +336,13 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 }
 
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -386,13 +386,13 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 }
 
 func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -419,13 +419,13 @@ func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Requ
 }
 
 func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors2.Cause(errors2.UserUnauthorized)
 		logger.Error(errE.Message)

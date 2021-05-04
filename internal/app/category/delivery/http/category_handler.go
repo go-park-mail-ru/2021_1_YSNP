@@ -2,9 +2,9 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/sirupsen/logrus"
 	"net/http"
 
@@ -22,12 +22,12 @@ func NewCategoryHandler(productUcase category.CategoryUsecase) *CategoryHandler 
 	}
 }
 
-func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware2.Middleware) {
 	r.HandleFunc("/categories", mw.SetCSRFToken(cat.CategoriesHandler)).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")

@@ -7,6 +7,7 @@ import (
 	chatRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/repository/postgres"
 	chatUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
 	databases "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	interceptor2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"
 	"google.golang.org/grpc"
@@ -39,10 +40,10 @@ func main() {
 	logger := logger2.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
 
-	handler.NewLogger(logger.GetLogger())
+	ic := interceptor2.NewInterceptor(logger.GetLogger())
 
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(handler.AuthInterceptor),
+		grpc.UnaryInterceptor(ic.ServerLogInterceptor),
 	)
 	chat.RegisterChatServer(server, handler)
 

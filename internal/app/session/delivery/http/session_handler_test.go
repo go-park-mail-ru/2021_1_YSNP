@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"context"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	"github.com/golang/mock/gomock"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
@@ -48,7 +48,7 @@ func TestSessionHandler_LoginHandler_OK(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -118,7 +118,7 @@ func TestSessionHandler_LoginHandler_DecodeError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -150,7 +150,7 @@ func TestSessionHandler_LoginHandler_InternalError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -187,7 +187,7 @@ func TestSessionHandler_LoginHandler_ValidationError(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -220,7 +220,7 @@ func TestSessionHandler_LoginHandler_UserNotExist(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -255,7 +255,7 @@ func TestSessionHandler_LoginHandler_WrongPassword(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/login", byteData)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -295,7 +295,7 @@ func TestSessionHandler_LogoutHandler_OK(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
 	r.AddCookie(&cookie)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -358,7 +358,7 @@ func TestSessionHandler_LogoutHandler_NoCookie(t *testing.T) {
 
 	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)
@@ -395,7 +395,7 @@ func TestSessionHandler_LogoutHandler_SessionNotExist(t *testing.T) {
 	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
 	r.AddCookie(&cookie)
 	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+	ctx = context.WithValue(ctx, middleware2.ContextLogger, logrus.WithFields(logrus.Fields{
 		"logger": "LOGRUS",
 	}))
 	logrus.SetOutput(ioutil.Discard)

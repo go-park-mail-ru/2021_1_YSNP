@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -11,7 +12,6 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
 )
@@ -26,12 +26,12 @@ func NewSearchHandler(searchUsecase search.SearchUsecase) *SearchHandler {
 	}
 }
 
-func (sh *SearchHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
+func (sh *SearchHandler) Configure(r *mux.Router, mw *middleware2.Middleware) {
 	r.HandleFunc("/search", mw.SetCSRFToken(mw.CheckAuthMiddleware(sh.SearchHandler))).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = logger2.GetDefaultLogger()
 		logger.Warn("no logger")
@@ -63,7 +63,7 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, _ := r.Context().Value(middleware2.ContextUserID).(uint64)
 	logger.Info("user id ", userID)
 
 	products, errE := sh.searchUsecase.SelectByFilter(&userID, search)

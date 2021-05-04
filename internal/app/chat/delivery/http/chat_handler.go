@@ -4,10 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	middleware2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -59,7 +59,7 @@ func (ch *ChatHandler) AuthInterceptor(ctx context.Context, req interface{}, inf
 	return reply, err
 }
 
-func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware, server *websocket.WSServer) {
+func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware2.Middleware, server *websocket.WSServer) {
 	r.HandleFunc("/chat/new", mw.CheckAuthMiddleware(ch.CreateChat)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/chat/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ch.GetUserChats))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/chat/{cid:[0-9]+}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ch.GetChatByID))).Methods(http.MethodGet, http.MethodOptions)
@@ -67,14 +67,14 @@ func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware, serve
 }
 
 func (ch *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -118,14 +118,14 @@ func (ch *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *ChatHandler) GetUserChats(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -157,14 +157,14 @@ func (ch *ChatHandler) GetUserChats(w http.ResponseWriter, r *http.Request) {
 }
 
 func (ch *ChatHandler) GetChatByID(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 	defer r.Body.Close()
 
-	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 	if !ok {
 		errE := errors.Cause(errors.UserUnauthorized)
 		logger.Error(errE.Message)
@@ -201,14 +201,14 @@ func (ch *ChatHandler) GetChatByID(w http.ResponseWriter, r *http.Request) {
 
 func (ch *ChatHandler) ServeWs(srv *websocket.WSServer) func(w http.ResponseWriter, r *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+		logger, ok := r.Context().Value(middleware2.ContextLogger).(*logrus.Entry)
 		if !ok {
 			logger = log.GetDefaultLogger()
 			logger.Warn("no logger")
 		}
 		defer r.Body.Close()
 
-		userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+		userID, ok := r.Context().Value(middleware2.ContextUserID).(uint64)
 		if !ok {
 			errE := errors.Cause(errors.UserUnauthorized)
 			logger.Error(errE.Message)
