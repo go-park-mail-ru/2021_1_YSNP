@@ -5,10 +5,10 @@
 package mock
 
 import (
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	reflect "reflect"
 
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -36,11 +36,11 @@ func (m *MockSearchUsecase) EXPECT() *MockSearchUsecaseMockRecorder {
 }
 
 // SelectByFilter mocks base method.
-func (m *MockSearchUsecase) SelectByFilter(arg0 *uint64, arg1 *models.Search) ([]*models.ProductListData, *errors2.Error) {
+func (m *MockSearchUsecase) SelectByFilter(arg0 *uint64, arg1 *models.Search) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SelectByFilter", arg0, arg1)
 	ret0, _ := ret[0].([]*models.ProductListData)
-	ret1, _ := ret[1].(*errors2.Error)
+	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 

@@ -17,6 +17,11 @@ type Config struct {
 		Port string `json:"port"`
 	} `json:"auth_microservice"`
 
+	Chat struct {
+		Host string `json:"host"`
+		Port string `json:"port"`
+	} `json:"chat_microservice"`
+
 	Logger struct {
 		Mode string `json:"mode"`
 	} `json:"logger"`
@@ -66,6 +71,14 @@ func (c *Config) GetAuthHost() string {
 
 func (c *Config) GetAuthPort() string {
 	return c.Auth.Port
+}
+
+func (c *Config) GetChatHost() string {
+	return c.Chat.Host
+}
+
+func (c *Config) GetChatPort() string {
+	return c.Chat.Port
 }
 
 func (c *Config) GetLoggerMode() string {

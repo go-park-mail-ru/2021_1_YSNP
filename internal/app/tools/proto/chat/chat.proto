@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/proto/chat";
+
+package chat;
+
+service Chat {
+  rpc CreateChat(ChatCreateReq) returns (ChatResp) {}
+  rpc GetChatByID(GetChatByIDReq) returns (ChatResp) {}
+  rpc GetUserChats(UserID) returns (ChatRespArray) {}
+  rpc CreateMessage(CreateMessageReq) returns (MessageResp) {}
+  rpc GetLastNMessages(GetLastNMessagesReq) returns (MessageRespArray) {}
+  rpc GetNMessagesBefore(GetNMessagesReq) returns (MessageRespArray) {}
+}
+
+message ChatCreateReq {
+  int64 UserID = 1;
+  int64 PartnerID = 2;
+  int64 ProductID = 3;
+}
+
+message GetChatByIDReq {
+  int64 UserID = 1;
+  int64 ChatID = 2;
+}
+
+message UserID {
+  int64 UserID = 1;
+}
+
+message CreateMessageReq {
+  int64 UserID = 1;
+  int64 ChatID = 2;
+  string Content = 3;
+}
+
+message GetLastNMessagesReq {
+  int64 UserID = 1;
+  int64 ChatID = 2;
+  int32 Count = 3;
+}
+
+
+message GetNMessagesReq {
+  int64 ChatID = 1;
+  int32 Count = 2;
+  int64 LastMessageId = 3;
+}
+
+message ChatResp {
+  int64 ID = 1;
+  google.protobuf.Timestamp CreationTime = 2;
+  string LastMsgContent = 3;
+  google.protobuf.Timestamp LastMsgTime = 5;
+
+  int64 PartnerID = 6;
+  string PartnerName = 7;
+  string PartnerSurname = 8;
+  string PartnerAvatarLink = 9;
+
+  int64 ProductID = 10;
+  string ProductName = 11;
+  int32 ProductAmount = 12;
+  string ProductAvatarLink = 13;
+
+  int32  NewMessages = 14;
+}
+
+message ChatRespArray {
+  repeated ChatResp Chats = 1;
+}
+
+message MessageResp {
+  int64 ID = 1;
+  string Content = 2;
+  google.protobuf.Timestamp CreationTime = 3;
+  int64 ChatID = 4;
+  int64 UserID = 5;
+}
+
+message MessageRespArray {
+  repeated MessageResp Messages = 1;
+}

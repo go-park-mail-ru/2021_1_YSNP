@@ -7,6 +7,10 @@
     "host": "localhost",
     "port": "8081"
   },
+  "chat_microservice": {
+    "host": "localhost",
+    "port": "8082"
+  },
   "logger": {
     "mode": "development"
   },
