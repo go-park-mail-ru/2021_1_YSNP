@@ -13,12 +13,12 @@ type ProductUsecase interface {
 	Create(product *models.ProductData) *errors.Error
   Close(productID uint64, ownerID uint64) *errors.Error
 	Edit(product *models.ProductData) *errors.Error
-
   
 	UpdatePhoto(productID uint64, ownerID uint64, filesHeaders []*multipart.FileHeader) (*models.ProductData, *errors.Error)
 	SetTariff(productID uint64, tariff int) *errors.Error
 
 	GetProduct(productID uint64) (*models.ProductData, *errors.Error)
+  TrendList(userID *uint64) ([]*models.ProductListData, *errors.Error)
 	ListLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	UserAdList(userId uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	GetUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)

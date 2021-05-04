@@ -166,6 +166,21 @@ func (mr *MockProductUsecaseMockRecorder) SetTariff(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTariff", reflect.TypeOf((*MockProductUsecase)(nil).SetTariff), arg0, arg1)
 }
 
+// TrendList mocks base method.
+func (m *MockProductUsecase) TrendList(arg0 *uint64) ([]*models.ProductListData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "TrendList", arg0)
+	ret0, _ := ret[0].([]*models.ProductListData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// TrendList indicates an expected call of TrendList.
+func (mr *MockProductUsecaseMockRecorder) TrendList(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrendList", reflect.TypeOf((*MockProductUsecase)(nil).TrendList), arg0)
+}
+
 // UpdatePhoto mocks base method.
 func (m *MockProductUsecase) UpdatePhoto(arg0, arg1 uint64, arg2 []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()

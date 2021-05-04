@@ -35,6 +35,10 @@ import (
 	searchUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search/usecase"
 
 	uploadRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload/repository/FileSystem"
+
+	trendsHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/delivery/http"
+	trendsRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/repository/tarantool"
+	trendsUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/usecase"
 )
 
 func main() {
@@ -54,6 +58,7 @@ func main() {
 		log.Fatal(err)
 	}
 
+	trendsRepo := trendsRepo.NewTrendsRepository(tarantoolDB.GetDatabase(), postgresDB.GetDatabase())
 	userRepo := userRepo.NewUserRepository(postgresDB.GetDatabase())
 	sessRepo := sessionRepo.NewSessionRepository(tarantoolDB.GetDatabase())
 	prodRepo := productRepo.NewProductRepository(postgresDB.GetDatabase())
@@ -63,7 +68,7 @@ func main() {
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
-	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo)
+	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 
@@ -72,6 +77,9 @@ func main() {
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
+
+	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
+	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
@@ -85,14 +93,15 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	userHandler.Configure(api, mw)
 	sessHandler.Configure(api, mw)
 	prodHandler.Configure(api, router, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
+	trendsHandler.Configure(api, mw)
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.GetServerPort()),

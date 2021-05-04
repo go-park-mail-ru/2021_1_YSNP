@@ -6,7 +6,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	sessMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 	"github.com/golang/mock/gomock"
@@ -162,7 +162,7 @@ func TestSessionHandler_LoginHandler_InternalError(t *testing.T) {
 
 	userUcase.EXPECT().GetByTelephone(userTest.Telephone).Return(userTest, nil)
 	userUcase.EXPECT().CheckPassword(userTest, userTest.Password).Return(nil)
-	sessUcase.EXPECT().Create(gomock.Any()).Return(errors2.Cause(errors2.InternalError))
+	sessUcase.EXPECT().Create(gomock.Any()).Return(errors.Cause(errors.InternalError))
 
 	sessHandler.LoginHandler(w, r.WithContext(ctx))
 
@@ -230,7 +230,7 @@ func TestSessionHandler_LoginHandler_UserNotExist(t *testing.T) {
 	sessHandler := NewSessionHandler(sessUcase, userUcase)
 	sessHandler.Configure(router, nil)
 
-	userUcase.EXPECT().GetByTelephone(userTest.Telephone).Return(nil, errors2.Cause(errors2.UserNotExist))
+	userUcase.EXPECT().GetByTelephone(userTest.Telephone).Return(nil, errors.Cause(errors.UserNotExist))
 
 	sessHandler.LoginHandler(w, r.WithContext(ctx))
 
@@ -266,7 +266,7 @@ func TestSessionHandler_LoginHandler_WrongPassword(t *testing.T) {
 	sessHandler.Configure(router, nil)
 
 	userUcase.EXPECT().GetByTelephone(userTest.Telephone).Return(userTest, nil)
-	userUcase.EXPECT().CheckPassword(userTest, userTest.Password).Return(errors2.Cause(errors2.WrongPassword))
+	userUcase.EXPECT().CheckPassword(userTest, userTest.Password).Return(errors.Cause(errors.WrongPassword))
 
 	sessHandler.LoginHandler(w, r.WithContext(ctx))
 
@@ -405,7 +405,7 @@ func TestSessionHandler_LogoutHandler_SessionNotExist(t *testing.T) {
 	sessHandler := NewSessionHandler(sessUcase, userUcase)
 	sessHandler.Configure(router, nil)
 
-	sessUcase.EXPECT().Delete(session.Value).Return(errors2.Cause(errors2.SessionNotExist))
+	sessUcase.EXPECT().Delete(session.Value).Return(errors.Cause(errors.SessionNotExist))
 
 	sessHandler.LogoutHandler(w, r.WithContext(ctx))
 
