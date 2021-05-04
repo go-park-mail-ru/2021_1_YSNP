@@ -55,15 +55,17 @@ message ChatResp {
   string LastMsgContent = 3;
   google.protobuf.Timestamp LastMsgTime = 5;
 
-  string PartnerName = 6;
-  string PartnerSurname = 7;
-  string PartnerAvatarLink = 8;
+  int64 PartnerID = 6;
+  string PartnerName = 7;
+  string PartnerSurname = 8;
+  string PartnerAvatarLink = 9;
 
-  string ProductName = 9;
-  int32 ProductAmount = 10;
-  string ProductAvatarLink = 11;
+  int64 ProductID = 10;
+  string ProductName = 11;
+  int32 ProductAmount = 12;
+  string ProductAvatarLink = 13;
 
-  int32  NewMessages = 12;
+  int32  NewMessages = 14;
 }
 
 message ChatRespArray {

@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"fmt"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/gorilla/websocket"
 	"sync"
 )
@@ -21,9 +21,11 @@ type Hub struct {
 
 	wg sync.WaitGroup
 	mx sync.Mutex
+
+	log *logger.Logger
 }
 
-func NewHub() *Hub {
+func NewHub(logger *logger.Logger) *Hub {
 	return &Hub{
 		clients: make(map[uint64][]*Client),
 		register:   make(chan *Client, 256),
@@ -34,6 +36,8 @@ func NewHub() *Hub {
 
 		wg:      sync.WaitGroup{},
 		mx:		 sync.Mutex{},
+
+		log: logger,
 	}
 }
 
@@ -41,7 +45,6 @@ func (h *Hub) Run() {
 	go h.registerClient()
 	go h.unregisterClient()
 	go h.sendMsgWorker()
-	//go h.receiveMsgWorker()
 }
 
 func (h *Hub) Stop() {
@@ -120,11 +123,8 @@ func (h *Hub) sendMsgWorker() {
 			for _, c := range clients {
 				c.send <- msg.Data
 			}
-			//log msg
-			fmt.Println(msg)
 		} else {
-			//log no clients
-			fmt.Println("no clients")
+			h.log.LogWSError("", msg.UserID, "No active clients")
 		}
 
 		h.mx.Unlock()

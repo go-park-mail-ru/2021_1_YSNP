@@ -2,7 +2,6 @@ package websocket
 
 import (
 	errs "errors"
-	"fmt"
 	"github.com/gorilla/websocket"
 	"time"
 )
@@ -26,9 +25,6 @@ const (
 var Upgrader = websocket.Upgrader{
 	ReadBufferSize:  1024,
 	WriteBufferSize: 1024,
-	//CheckOrigin: func(r *http.Request) bool { // Note: for tests
-	//	return true
-	//},
 }
 
 type Client struct {
@@ -61,8 +57,7 @@ func (c *Client) readPump() {
 
 	c.conn.SetReadLimit(maxMessageSize)
 	if err := c.conn.SetReadDeadline(time.Now().Add(pongWait)); err != nil {
-		//log err
-		fmt.Println(err)
+		c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 	}
 	c.conn.SetPongHandler(func(string) error {
 		return c.conn.SetReadDeadline(time.Now().Add(pongWait))
@@ -72,11 +67,9 @@ func (c *Client) readPump() {
 		_, message, err := c.conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				//log err
-				fmt.Println(err)
+				c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 			} else {
-				//log err
-				fmt.Println(err)
+				c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 			}
 			break
 		}
@@ -86,8 +79,7 @@ func (c *Client) readPump() {
 			UserID: c.userID,
 		}
 
-		//log message
-		fmt.Println(message)
+		c.hub.log.LogWSInfo(c.conn.RemoteAddr().String(), c.userID, "New message")
 	}
 }
 
@@ -105,8 +97,7 @@ func (c *Client) writePump() {
 		select {
 		case message, ok := <-c.send:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				//log err
-				fmt.Println(err)
+				c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 			}
 			if err := c.sendMessages(message, ok); err != nil {
 				return
@@ -114,12 +105,10 @@ func (c *Client) writePump() {
 
 		case <-ticker.C:
 			if err := c.conn.SetWriteDeadline(time.Now().Add(writeWait)); err != nil {
-				//log err
-				fmt.Println(err)
+				c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 			}
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
-				//log err
-				fmt.Println(err)
+				c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 				return
 			}
 
@@ -136,11 +125,9 @@ func (c *Client) writePump() {
 func (c *Client) sendMessages(message []byte, ok bool) error {
 	if !ok {
 		if err := c.conn.WriteMessage(websocket.CloseMessage, []byte{}); err != nil {
-			//log err
-			fmt.Println(err)
+			c.hub.log.LogWSError(c.conn.RemoteAddr().String(), c.userID, err.Error())
 		}
-		//log that hub closed the channel
-		fmt.Println("канал закрылся")
+		c.hub.log.LogWSInfo(c.conn.RemoteAddr().String(), c.userID, "Channel closed")
 		return errs.New("")
 	}
 
