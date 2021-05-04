@@ -11,7 +11,10 @@ import (
 
 type ProductUsecase interface {
 	Create(product *models.ProductData) *errors.Error
-	Close(productID uint64, ownerID uint64) *errors.Error
+  Close(productID uint64, ownerID uint64) *errors.Error
+	Edit(product *models.ProductData) *errors.Error
+
+  
 	UpdatePhoto(productID uint64, ownerID uint64, filesHeaders []*multipart.FileHeader) (*models.ProductData, *errors.Error)
 	SetTariff(productID uint64, tariff int) *errors.Error
 
