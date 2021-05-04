@@ -6,12 +6,11 @@ scrape_configs:
 
   - job_name: node
     static_configs:
-     - targets: ['docker.for.mac.localhost:9100']
+     - targets: ['89.208.199.170:9100']
 
   - job_name: 'golang'
     static_configs:
-      - targets: ['docker.for.mac.localhost:8080']
-
+      - targets: ['89.208.199.170:8080']
 
 rule_files:
   - 'alerts.yml'
