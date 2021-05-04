@@ -9,7 +9,6 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
 	"github.com/tarantool/go-tarantool"
 	"sort"
-	"strconv"
 	"time"
 	"unicode/utf8"
 )
@@ -26,31 +25,17 @@ func NewTrendsRepository(conn *tarantool.Connection, conn2 *sql.DB) trends.Trend
 	}
 }
 
-func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends) ([]uint64, error) {
+func (tr *TrendsRepository) getProductIDForTrend(userID uint64, title string, limit int, offset int) ([]uint64, error) {
 	selectQuery := `
 				SELECT p.id
 				FROM product as p
 				INNER JOIN users as u ON p.owner_id=u.id and u.id<>$1
-				WHERE LOWER(p.name) LIKE ANY(ARRAY[LOWER($2)`
-
-	titleLike := ""
-	var trendValue []interface{}
-	trendValue = append(trendValue, userID)
-	for i, trend := range oldModel.Popular {
-		if i == 0 {
-			trendValue = append(trendValue, "%"+trend.Title+"%")
-			continue
-		}
-		titleLike += ", LOWER($" + strconv.Itoa(i + 2) + ")"
-		trendValue = append(trendValue, "%"+trend.Title+"%")
-	}
-	selectQuery += titleLike
-	selectQuery += `])
+				WHERE LOWER(p.name) LIKE LOWER($2)
 				ORDER BY p.date DESC 
-				LIMIT 30
-				`
+				LIMIT $3 OFFSET $4`
 
-	query, err := tr.dbConnPsql.Query(selectQuery, trendValue...)
+	fmt.Println("SELECT", selectQuery, userID, title, limit, offset)
+	query, err := tr.dbConnPsql.Query(selectQuery, userID, title, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -69,16 +54,44 @@ func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models
 	return productsID, nil
 }
 
+func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends, reshuffle bool) ([]uint64, error) {
+	sort.Sort(models.PopularSorter(oldModel.Popular))
+	var productsID []uint64
+	limit := 30 / len(oldModel.Popular)
+	if limit <= 1 {
+		limit = 1
+	}
+	offset := 0
+	if reshuffle {
+		offset = int(30 % oldModel.Popular[0].Count)
+	}
+
+	for _, trend := range oldModel.Popular {
+		trendsID, err := tr.getProductIDForTrend(userID, trend.Title, limit, offset)
+		if err != nil {
+			return nil, err
+		}
+		fmt.Println("EACH TREND", trendsID)
+		for _, id := range trendsID {
+			productsID = append(productsID, id)
+		}
+	}
+	return productsID, nil
+}
+
 func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	val, _ := tr.dbConn.Call("get_user_trend", []interface{}{userID})
 	d  := fmt.Sprintf("%v", val.Data)
 	oldModel := &models.Trends{}
 	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-	productsID, err := tr.getNewTrendsProductID(userID, *oldModel)
+	fmt.Println("TRENDS", oldModel.Popular)
+
+	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, false)
 	if err != nil {
 		return err
 	}
+	fmt.Println("ProductsID", productsID)
 
 	oldProducts := &models.TrendProducts{}
 	for _, id := range productsID {
@@ -102,7 +115,7 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
 
 
-		oldProducts, err = replaceNewTrends(productsID, *oldProducts, userID)
+		oldProducts, err = tr.replaceNewTrends(productsID, *oldProducts, userID, *oldModel)
 		if err != nil {
 			return err
 		}
@@ -121,7 +134,7 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	return nil
 }
 
-func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, userID uint64) (*models.TrendProducts, error) {
+func (tr *TrendsRepository) replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, userID uint64, oldTrends models.Trends) (*models.TrendProducts, error) {
 	for i := 0; i < len(productsID); i++ {
 		for _, prod := range oldProducts.Popular {
 			if productsID[i] == prod.ProductID {
@@ -134,6 +147,13 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 			}
 		}
 	}
+	var err error
+	if len(productsID) <= 3 {
+		productsID, err = tr.getNewTrendsProductID(userID, oldTrends, true)
+		if err != nil {
+			return nil, err
+		}
+	}
 	sort.Sort(models.ProductSorter(oldProducts.Popular))
 	for i, id := range productsID {
 		if i >= len(oldProducts.Popular) || len(oldProducts.Popular) < 30 {
@@ -143,7 +163,7 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 			oldProducts.Popular = append(oldProducts.Popular, prod)
 		} else {
 			oldProducts.Popular[len(oldProducts.Popular)- i - 1].ProductID = id
-			oldProducts.Popular[len(oldProducts.Popular)-i - 1].Time = time.Now()
+			oldProducts.Popular[len(oldProducts.Popular)- i - 1].Time = time.Now()
 		}
 	}
 	oldProducts.UserID = userID

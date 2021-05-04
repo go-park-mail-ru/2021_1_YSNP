@@ -86,7 +86,7 @@ func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *error
 func (pu *ProductUsecase) TrendList(userID *uint64) ([]*models.ProductListData, *errors.Error) {
 	productIdArray, err := pu.trendsRepo.GetTrendsProducts(*userID)
 
-	products, err := pu.productRepo.SelectTrands(productIdArray, userID)
+	products, err := pu.productRepo.SelectTrends(productIdArray, userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

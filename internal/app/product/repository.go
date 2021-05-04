@@ -10,7 +10,7 @@ type ProductRepository interface {
 	UpdateTariff(productID uint64, tariff int) error
 
 	SelectByID(productID uint64) (*models.ProductData, error)
-	SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error)
+	SelectTrends(idArray []uint64, userID *uint64) ([]*models.ProductListData, error)
 	SelectLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, error)
 	SelectUserAd(userId uint64, content *models.Page) ([]*models.ProductListData, error)
 	SelectUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, error)

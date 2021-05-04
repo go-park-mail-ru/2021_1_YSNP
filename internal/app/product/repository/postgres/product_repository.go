@@ -179,7 +179,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 }
 
 
-func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error) {
+func (pr *ProductRepository) SelectTrends(idArray []uint64, userID *uint64) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 
 	queries :=  `SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
