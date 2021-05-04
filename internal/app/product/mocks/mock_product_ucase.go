@@ -78,6 +78,20 @@ func (mr *MockProductUsecaseMockRecorder) DislikeProduct(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DislikeProduct", reflect.TypeOf((*MockProductUsecase)(nil).DislikeProduct), arg0, arg1)
 }
 
+// Edit mocks base method.
+func (m *MockProductUsecase) Edit(arg0 *models.ProductData) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Edit", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// Edit indicates an expected call of Edit.
+func (mr *MockProductUsecaseMockRecorder) Edit(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockProductUsecase)(nil).Edit), arg0)
+}
+
 // GetByID mocks base method.
 func (m *MockProductUsecase) GetByID(arg0 uint64) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()

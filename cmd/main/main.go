@@ -10,12 +10,11 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
@@ -72,10 +71,10 @@ func main() {
 	uploadRepo := uploadRepo.NewUploadRepository()
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
-	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
+	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
 	sessionGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), grpc.WithInsecure())
 	if err != nil {
@@ -92,15 +91,14 @@ func main() {
 	chatUcase := chatUsecase.NewChatClient(chatGRPCConn)
 
 	userHandler := userHandler.NewUserHandler(userUcase, sessUcase)
-	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 	prodHandler := productHandler.NewProductHandler(prodUcase)
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
+	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
+
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
-
-	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
-	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
+	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())

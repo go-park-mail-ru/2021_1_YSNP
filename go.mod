@@ -30,7 +30,7 @@ require (
 	github.com/stretchr/testify v1.5.1
 	github.com/tarantool/go-tarantool v0.0.0-20201220111423-77ce7d9a407a
 	github.com/urandom/text-summary v0.0.0-20150104142726-3e2dd4c46c53
-	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
+	golang.org/x/crypto v0.0.0-20210503195802-e9a32991a82e
 	golang.org/x/net v0.0.0-20210423184538-5f58ad60dda6 // indirect
 	golang.org/x/sys v0.0.0-20210426080607-c94f62235c83 // indirect
 	google.golang.org/genproto v0.0.0-20210423144448-3a41ef94ed2b // indirect

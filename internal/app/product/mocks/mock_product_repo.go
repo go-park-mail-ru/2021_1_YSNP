@@ -179,6 +179,20 @@ func (mr *MockProductRepositoryMockRecorder) SelectUserFavorite(arg0, arg1 inter
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectUserFavorite", reflect.TypeOf((*MockProductRepository)(nil).SelectUserFavorite), arg0, arg1)
 }
 
+// Update mocks base method.
+func (m *MockProductRepository) Update(arg0 *models.ProductData) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Update", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// Update indicates an expected call of Update.
+func (mr *MockProductRepositoryMockRecorder) Update(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Update", reflect.TypeOf((*MockProductRepository)(nil).Update), arg0)
+}
+
 // UpdateProductLikes mocks base method.
 func (m *MockProductRepository) UpdateProductLikes(arg0 uint64, arg1 int) error {
 	m.ctrl.T.Helper()

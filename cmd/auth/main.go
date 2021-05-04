@@ -7,6 +7,7 @@ import (
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
 	authUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
 	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 	"google.golang.org/grpc"
 	"log"
@@ -29,11 +30,13 @@ func main() {
 	handler := authGRPC.NewAuthHandlerServer(au)
 
 	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()))
-
 	if err != nil {
 		log.Fatalln("Can't listen session microservice port", err)
 	}
 	defer lis.Close()
+
+	logger := logger.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
 
 	server := grpc.NewServer()
 	auth.RegisterAuthHandlerServer(server, handler)
