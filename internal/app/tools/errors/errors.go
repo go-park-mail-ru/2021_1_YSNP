@@ -2,13 +2,14 @@ package errors
 
 import (
 	"encoding/json"
+	"google.golang.org/grpc/status"
 	"net/http"
 )
 
 type ErrorType uint8
 
 const (
-	InternalError ErrorType = iota
+	InternalError ErrorType = iota + 1
 	BadRequest
 	UserNotExist
 	WrongPassword
@@ -25,6 +26,7 @@ const (
 	EmptySearch
 	ProductClose
 	WrongOwner
+	ChatNotExist
 )
 
 type Error struct {
@@ -151,6 +153,11 @@ var CustomErrors = map[ErrorType]*Error{
 		HttpError: http.StatusForbidden,
 		Message:   "Forbidden - wrong owner",
 	},
+	ChatNotExist: {
+		ErrorCode: ChatNotExist,
+		HttpError: http.StatusNotFound,
+		Message:   "chat doesn't exist",
+	},
 }
 
 func Cause(code ErrorType) *Error {
@@ -173,4 +180,14 @@ func UnexpectedBadRequest(err error) *Error {
 	unexpErr.Message = err.Error()
 
 	return unexpErr
+}
+
+func GRPCError(err error) *Error {
+	grpcErr, has := CustomErrors[ErrorType(status.Code(err))]
+	grpcErr.Message = status.Convert(err).Message()
+	if !has {
+		// for grpc connection error
+		return UnexpectedInternal(err)
+	}
+	return grpcErr
 }

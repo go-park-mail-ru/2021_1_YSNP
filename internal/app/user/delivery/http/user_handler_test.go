@@ -15,6 +15,7 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
 	sMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
@@ -53,7 +54,7 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -77,8 +78,11 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	router.Use(middleware.CorsControlMiddleware)
+	router.Use(mw.AccessLogMiddleware)
 	userHandler := NewUserHandler(userUcase, sessUcase)
-	userHandler.Configure(router, nil)
+	userHandler.Configure(router, mw)
 
 	userUcase.EXPECT().Create(userTest).Return(nil)
 	sessUcase.EXPECT().Create(gomock.Any()).Return(nil)
@@ -94,7 +98,7 @@ func TestUserHandler_SignUpHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -131,7 +135,7 @@ func TestUserHandler_SignUpHandler_DecodeError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -169,7 +173,7 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -220,7 +224,7 @@ func TestUserHandler_SignUpHandler_ValidationError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -259,7 +263,7 @@ func TestUserHandler_GetProfileHandler_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
@@ -297,7 +301,7 @@ func TestUserHandler_GetProfileHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
@@ -331,7 +335,7 @@ func TestUserHandler_GetProfileHandler_UserUnauthorized(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
@@ -356,7 +360,7 @@ func TestUserHandler_GetProfileHandler_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/me", nil)
 	ctx := r.Context()
@@ -384,7 +388,7 @@ func TestUserHandler_GetSellerHandler_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
@@ -420,7 +424,7 @@ func TestUserHandler_GetSellerHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
@@ -452,7 +456,7 @@ func TestUserHandler_GetSellerHandler_UserUnauth(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
@@ -478,7 +482,7 @@ func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
 	r = mux.SetURLVars(r, map[string]string{"id": "0"})
@@ -507,7 +511,7 @@ func TestUserHandler_ChangeProfileHandler_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -550,7 +554,7 @@ func TestUserHandler_ChangeProfileHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -589,7 +593,7 @@ func TestUserHandler_ChangeProfileHandler_DecodeError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -628,7 +632,7 @@ func TestUserHandler_ChangeProfileHandler_NotAuth(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/user", nil)
 	ctx := r.Context()
@@ -653,7 +657,7 @@ func TestUserHandler_ChangeProfileHandler_ValidateError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -692,7 +696,7 @@ func TestUserHandler_ChangeProfileHandler_NoUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -733,7 +737,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -769,7 +773,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -801,7 +805,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_DecodeError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -835,7 +839,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NotAuth(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/user/password", nil)
 	ctx := r.Context()
@@ -860,7 +864,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_ValidateError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -894,7 +898,7 @@ func TestUserHandler_ChangeProfilePasswordHandler_NoUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -930,7 +934,7 @@ func TestUserHandler_ChangeUSerPositionHandler_Success(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -974,7 +978,7 @@ func TestUserHandler_ChangeUSerPositionHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -1014,7 +1018,7 @@ func TestUserHandler_ChangeUSerPositionHandler_DecodeError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -1049,7 +1053,7 @@ func TestUserHandler_ChangeUSerPositionHandler_ValidationError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -1084,7 +1088,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NotAuth(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/user/position", nil)
 	ctx := r.Context()
@@ -1109,7 +1113,7 @@ func TestUserHandler_ChangeUSerPositionHandler_NoUser(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -1146,7 +1150,7 @@ func TestUserHandler_UploadAvatarHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()
@@ -1168,7 +1172,7 @@ func TestUserHandler_UploadAvatarHandler_ErrorContentType(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()
@@ -1194,7 +1198,7 @@ func TestUserHandler_UploadAvatarHandler_NoAuthError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := sMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/upload", nil)
 	ctx := r.Context()

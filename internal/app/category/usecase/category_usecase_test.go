@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -23,4 +24,18 @@ func TestCategoryUsecase_GetAllCategories(t *testing.T) {
 
 	_, err := catUcase.GetAllCategories()
 	assert.Equal(t, err, (*errors.Error)(nil))
+}
+
+func TestCategoryUsecase_GetAllCategories_Error(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	catRepo := mock.NewMockCategoryRepository(ctrl)
+	catUcase := NewCategoryUsecase(catRepo)
+
+	catRepo.EXPECT().SelectCategories().Return(nil, sql.ErrConnDone)
+
+	_, err := catUcase.GetAllCategories()
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }

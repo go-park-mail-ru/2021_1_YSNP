@@ -15,6 +15,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -23,7 +24,7 @@ type SessionHandler struct {
 	userUcase user.UserUsecase
 }
 
-func NewSessionHandler(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *SessionHandler {
+func NewSessionHandler(sessUcase auth.SessionUsecase, userUcase user.UserUsecase) *SessionHandler {
 	return &SessionHandler{
 		sessUcase: sessUcase,
 		userUcase: userUcase,

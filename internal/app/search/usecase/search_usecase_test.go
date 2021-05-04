@@ -1,6 +1,8 @@
 package usecase
 
 import (
+<<<<<<< HEAD
+	"database/sql"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -50,6 +52,15 @@ func TestSearchUsecase_SelectByFilter_Success(t *testing.T) {
 	res, err := searchUcase.SelectByFilter(&userID, search)
 	assert.Equal(t, res[0], prod)
 	assert.Equal(t, err, (*errors.Error)(nil))
+<<<<<<< HEAD
+
+	//error
+	searchRepo.EXPECT().SelectByFilter(&userID, search).Return( nil, sql.ErrConnDone)
+
+	_, err = searchUcase.SelectByFilter(&userID, search)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+=======
+>>>>>>> origin/dev
 }
 
 func TestSearchUsecase_SelectByFilter_EmptySearch(t *testing.T) {
