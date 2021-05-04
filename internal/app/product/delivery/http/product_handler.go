@@ -203,7 +203,7 @@ func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Requ
 	logger.Debug("product id ", productData.ID)
 
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful update.")
+	w.Write(errors.JSONSuccess("Successful update."))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {

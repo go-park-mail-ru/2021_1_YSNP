@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"strings"
 	"time"
 
@@ -76,7 +75,7 @@ func (pr *ProductRepository) Update(product *models.ProductData) error {
 		_, err = tx.Exec(
 			`INSERT INTO product_images(product_id, img_link)
 		            VALUES ($1, $2)`,
-					product.ID,
+			product.ID,
 			photo)
 		if err != nil {
 			rollbackErr := tx.Rollback()
@@ -86,6 +85,34 @@ func (pr *ProductRepository) Update(product *models.ProductData) error {
 
 			return err
 		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository) Close(product *models.ProductData) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`Update product 
+                set close = true 
+                where id = $1`,
+		product.ID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
 	}
 
 	err = tx.Commit()
@@ -142,17 +169,17 @@ func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
 	}
 
 	/*_, err = tx.Exec(
-		`DELETE FROM product_images 
-                WHERE product_id=$1`,
-		content.ID)
-	if err != nil {
-		rollbackErr := tx.Rollback()
-		if rollbackErr != nil {
-			return rollbackErr
-		}
+			`DELETE FROM product_images
+	                WHERE product_id=$1`,
+			content.ID)
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return rollbackErr
+			}
 
-		return err
-	}*/
+			return err
+		}*/
 
 	for _, photo := range content.LinkImages {
 		_, err = tx.Exec(
