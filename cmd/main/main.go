@@ -14,6 +14,7 @@ import (
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/websocket"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -76,14 +77,25 @@ func main() {
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
-	sessionGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), grpc.WithInsecure())
+	logger := logger.NewLogger(configs.GetLoggerMode())
+	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+
+	ic := interceptor.NewInterceptor(logger.GetLogger())
+
+	sessionGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), 
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer sessionGRPCConn.Close()
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
-	chatGRPCConn, err := grpc.Dial(fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), grpc.WithInsecure())
+	chatGRPCConn, err := grpc.Dial(
+		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), 
+		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -99,9 +111,6 @@ func main() {
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
-
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
 

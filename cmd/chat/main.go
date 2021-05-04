@@ -7,6 +7,7 @@ import (
 	chatRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/repository/postgres"
 	chatUcase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
 	databases "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/chat"
 	"google.golang.org/grpc"
@@ -34,12 +35,16 @@ func main() {
 	if err != nil {
 		log.Fatalln("Can't listen chat microservice port", err)
 	}
-	defer lis.Close()
+	defer lis.Close()	
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
 
-	server := grpc.NewServer()
+	ic := interceptor.NewInterceptor(logger.GetLogger())
+
+	server := grpc.NewServer(
+		grpc.UnaryInterceptor(ic.ServerLogInterceptor),
+	)
 	chat.RegisterChatServer(server, handler)
 
 	if err := server.Serve(lis); err != nil {
