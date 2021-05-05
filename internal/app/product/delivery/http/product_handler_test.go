@@ -3,6 +3,7 @@ package http
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -913,4 +914,324 @@ func TestProductHandler_PromoteProductHandler_PartFormError(t *testing.T) {
 
 	prodHandler.PromoteProductHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestProductHandler_TrendsPageHandler_Success(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/list/?from=fsfsffs&count=20", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	var userID uint64 = 1;
+	prodUcase.EXPECT().TrendList(&userID).Return([]*models.ProductListData{}, nil)
+
+	prodHandler.TrendsPageHandler(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	//error
+	w = httptest.NewRecorder()
+	prodUcase.EXPECT().TrendList(&userID).Return(nil, errors.UnexpectedInternal(sql.ErrConnDone))
+
+	prodHandler.TrendsPageHandler(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestProductHandler_ProductCloseHandler_Success(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/product/0", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodUcase.EXPECT().Close(prodTest.ID, uint64(1)).Return(nil)
+
+	prodHandler.ProductCloseHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	//error
+	w = httptest.NewRecorder()
+	prodUcase.EXPECT().Close(prodTest.ID, uint64(1)).Return(errors.UnexpectedInternal(sql.ErrConnDone))
+
+	prodHandler.ProductCloseHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+
+}
+
+func TestProductHandler_ProductCloseHandler_Noauth(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/product/0", nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.ProductCloseHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestProductHandler_ProductEditHandler_Successt (t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"name":"tovar",
+				"amount":10000,
+				"description":"Description product aaaaa",
+				"category":"0",
+				"ownerId": 1
+				}
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodUcase.EXPECT().Edit(gomock.Any()).Return(nil)
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestProductHandler_ProductEditHandler_Unauth(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+
+	r := httptest.NewRequest("POST", "/product/create", nil)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+
+}
+
+func TestProductHandler_ProductEditHandler_Unmarsherr(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"name":"tovar",
+				"amount":10000,
+				"description":"Description product aaaaa",
+				"category":"0",
+				"ownerId": 1
+				
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestProductHandler_ProductEditHandler_WronOwner(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"name":"tovar",
+				"amount":10000,
+				"description":"Description product aaaaa",
+				"category":"0",
+				"ownerId": 2
+				}
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusForbidden, w.Code)
+
+}
+
+func TestProductHandler_ProductEditHandler_ValidError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"name":"tovar",
+				"amount":-10000,
+				"description":"Description product aaaaa",
+				"category":"0",
+				"ownerId": 1
+				}
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+
+}
+
+func TestProductHandler_ProductEditHandler_Error(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockProductUsecase(ctrl)
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"name":"tovar",
+				"amount":10000,
+				"description":"Description product aaaaa",
+				"category":"0",
+				"ownerId": 1
+				}
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewProductHandler(prodUcase)
+	prodHandler.Configure(router, rout, nil)
+
+	prodUcase.EXPECT().Edit(gomock.Any()).Return(errors.UnexpectedInternal(sql.ErrConnDone))
+
+	prodHandler.ProductEditHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+
 }

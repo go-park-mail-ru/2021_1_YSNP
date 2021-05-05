@@ -53,7 +53,7 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := mock.mock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
@@ -97,7 +97,7 @@ func TestUserHandler_SignUpHandler_LoggerError(t *testing.T) {
 	defer ctrl.Finish()
 
 	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := mock.mock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
 			{
