@@ -49,7 +49,7 @@ func (th *TrendsHandler) CreateTrends(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&ui)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
