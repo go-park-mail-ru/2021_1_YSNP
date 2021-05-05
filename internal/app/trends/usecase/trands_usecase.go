@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/bbalet/stopwords"
+	"github.com/kljensen/snowball"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
-	"github.com/kljensen/snowball"
 )
 
 type TrendsUsecase struct {
@@ -31,16 +31,15 @@ func checkSufix(word string) bool {
 		"ом", "их", "ых", "ую", "юю", "ая", "яя", "ою", "ею"}
 
 	for _, item := range stop {
-		 suf := word[len(word)-len(item):]
-		 if suf == item {
-			 return false
-		 }
+		suf := word[len(word)-len(item):]
+		if suf == item {
+			return false
+		}
 	}
 	return true
 }
 
-
-func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Error {
+func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors.Error {
 	cleanContent := stopwords.CleanString(ui.Text, "ru", true)
 	sn := strings.TrimSpace(cleanContent)
 	s := strings.FieldsFunc(sn, func(r rune) bool { return strings.ContainsRune(" .,:-", r) })
@@ -51,19 +50,19 @@ func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors2.Erro
 		if !checkSufix(item) {
 			continue
 		}
-		
+
 		stemmed, err := snowball.Stem(item, "russian", true)
-		if err == nil{
+		if err == nil {
 			ua.Popular = append(ua.Popular, models.Popular{
 				Title: stemmed,
 				Count: 1,
-				Date: time.Now(),
+				Date:  time.Now(),
 			})
 		}
 	}
 	err := tu.TrendsRepo.InsertOrUpdate(ua)
 	if err != nil {
-		return errors2.UnexpectedInternal(err)
+		return errors.UnexpectedInternal(err)
 	}
 	go tu.TrendsRepo.CreateTrendsProducts(ui.UserID)
 	return nil

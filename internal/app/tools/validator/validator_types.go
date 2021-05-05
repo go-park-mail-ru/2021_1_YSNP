@@ -1,8 +1,9 @@
 package validator
 
 import (
-	"github.com/asaskevich/govalidator"
 	"regexp"
+
+	"github.com/asaskevich/govalidator"
 )
 
 func init() {

@@ -14,8 +14,10 @@ import (
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
-
+	
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 

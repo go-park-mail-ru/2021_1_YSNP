@@ -17,6 +17,7 @@ type UserData struct {
 }
 
 type ProfileData struct {
+	ID         uint64  `json:"id" valid:"numeric"`
 	Name       string  `json:"name" valid:"stringlength(1|30)"`
 	Surname    string  `json:"surname" valid:"stringlength(1|30)"`
 	Sex        string  `json:"sex" valid:"in(male|female)"`

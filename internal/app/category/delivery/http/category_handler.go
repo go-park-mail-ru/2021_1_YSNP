@@ -2,14 +2,15 @@ package http
 
 import (
 	"encoding/json"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	"github.com/sirupsen/logrus"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 type CategoryHandler struct {
@@ -29,7 +30,7 @@ func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) 
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -37,16 +38,16 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
 	body, err := json.Marshal(categories)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
