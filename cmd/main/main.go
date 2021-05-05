@@ -104,7 +104,7 @@ func main() {
 
 	chatGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
-		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
