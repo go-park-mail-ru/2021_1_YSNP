@@ -3,15 +3,18 @@ package middleware
 import (
 	"context"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
-	
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	responseObserver "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/utils"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -21,6 +24,7 @@ type Middleware struct {
 	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
+	metricsM     *metrics.Metrics
 }
 
 type contextKey string
@@ -34,10 +38,11 @@ const (
 	ContextLogger = contextKey("logger")
 )
 
-func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
+func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase, metrics *metrics.Metrics) *Middleware {
 	return &Middleware{
 		sessUcase: sessUcase,
 		userUcase: userUcase,
+		metricsM:  metrics,
 	}
 }
 
@@ -81,11 +86,20 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
-		next.ServeHTTP(w, r.WithContext(ctx))
+
+		o := &responseObserver.ResponseObserver{ResponseWriter: w}
+		next.ServeHTTP(o, r.WithContext(ctx))
 
 		m.logrusLogger.WithFields(logrus.Fields{
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
+
+		if r.URL.Path != "/metrics" {
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), r.URL.String(), r.Method).Inc()
+			m.metricsM.Timings.WithLabelValues(
+				strconv.Itoa(o.Status), r.URL.String(), r.Method).Observe(float64(start.Second()))
+		}
+
 	})
 }
 
@@ -126,6 +140,7 @@ func (m *Middleware) CSFRErrorHandler() http.HandlerFunc {
 
 		errE := errors.Cause(errors.InvalidCSRFToken)
 		logger.Error(errE.Message)
+
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 	}
