@@ -340,28 +340,3 @@ func TestChatHandler_ServeWs_NoAuth(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
-
-func TestChatHandler_ServeWs_Error(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	chatUcase := mock.NewMockChatUsecase(ctrl)
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
-	chatHandler := NewChatHandler(chatUcase)
-	chatHandler.Configure(router, nil, nil)
-
-	r := httptest.NewRequest("POST", "/api/v1/login", nil)
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-	}))
-	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
-	logrus.SetOutput(ioutil.Discard)
-	w := httptest.NewRecorder()
-
-	chatHandler.ServeWs(nil)(w, r.WithContext(ctx))
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
-}
