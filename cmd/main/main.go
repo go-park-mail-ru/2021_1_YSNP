@@ -12,7 +12,6 @@ import (
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
@@ -85,7 +84,7 @@ func main() {
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	sessionGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), 
+		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
 		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -95,7 +94,7 @@ func main() {
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
 	chatGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), 
+		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
 		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -113,9 +112,6 @@ func main() {
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
-
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()
 	metricsProm := metrics.NewMetrics(router)

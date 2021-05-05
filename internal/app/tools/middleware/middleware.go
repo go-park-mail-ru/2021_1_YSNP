@@ -6,18 +6,15 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-	responseObserver "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/utils"
-
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
-	
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	responseObserver "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/utils"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
