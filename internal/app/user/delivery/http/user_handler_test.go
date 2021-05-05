@@ -77,7 +77,7 @@ func TestUserHandler_SignUpHandler_OK(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw := middleware.NewMiddleware(sessUcase, userUcase, nil)
 	router.Use(middleware.CorsControlMiddleware)
 	router.Use(mw.AccessLogMiddleware)
 	userHandler := NewUserHandler(userUcase, sessUcase)
