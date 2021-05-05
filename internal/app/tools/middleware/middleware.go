@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -95,9 +96,10 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		}).Info("Fulfilled connection")
 
 		if r.URL.Path != "/metrics" {
-			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), r.URL.String(), r.Method).Inc()
+			url := strings.Split(r.URL.String(), "?")[0]
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), url, r.Method).Inc()
 			m.metricsM.Timings.WithLabelValues(
-				strconv.Itoa(o.Status), r.URL.String(), r.Method).Observe(float64(start.Second()))
+				strconv.Itoa(o.Status), url, r.Method).Observe(float64(start.Second()))
 		}
 
 	})
