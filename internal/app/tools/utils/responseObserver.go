@@ -15,6 +15,7 @@ func (o *ResponseObserver) Write(p []byte) (n int, err error) {
 	}
 	n, err = o.ResponseWriter.Write(p)
 	o.Written += int64(n)
+
 	return
 }
 

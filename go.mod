@@ -4,13 +4,9 @@ go 1.15
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/DavidBelicza/TextRank v2.1.1+incompatible
-	github.com/afjoseph/RAKE.Go v0.0.0-20191109090147-068a9e43b194
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/bbalet/stopwords v1.0.0
 	github.com/cockroachdb/apd v1.1.0 // indirect
-	github.com/codesuki/go-time-series v0.0.0-20161018024404-887e3cebe04b // indirect
-	github.com/codesuki/go-trending v0.0.0-20170911003606-36d852d8bfec
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
 	github.com/google/uuid v1.2.0
@@ -28,7 +24,5 @@ require (
 	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.4.0
 	github.com/tarantool/go-tarantool v0.0.0-20201220111423-77ce7d9a407a
-	github.com/urandom/text-summary v0.0.0-20150104142726-3e2dd4c46c53
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2
-	golang.org/x/net v0.0.0-20210226172049-e18ecbb05110
 )

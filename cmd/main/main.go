@@ -6,14 +6,13 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
-	databases2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
-
 	"github.com/gorilla/mux"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
 
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
@@ -43,23 +42,19 @@ import (
 	trendsUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends/usecase"
 )
 
-
-
-
 func main() {
-
 	configs, err := configs.LoadConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases2.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases2.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +66,7 @@ func main() {
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 	uploadRepo := uploadRepo.NewUploadRepository()
-	
+
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	sessUcase := sessionUsecase.NewSessionUsecase(sessRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
@@ -84,11 +79,10 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
-
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
 
-	logger := logger2.NewLogger(configs.GetLoggerMode())
+	logger := logger.NewLogger(configs.GetLoggerMode())
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 
 	router := mux.NewRouter()

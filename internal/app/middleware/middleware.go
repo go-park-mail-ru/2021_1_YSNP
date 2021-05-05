@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	responseObserver "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/utils"
 
 	"github.com/google/uuid"
@@ -25,7 +25,7 @@ type Middleware struct {
 	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
-	metricsM 	 *metrics.Metrics
+	metricsM     *metrics.Metrics
 }
 
 type contextKey string
@@ -43,7 +43,7 @@ func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase,
 	return &Middleware{
 		sessUcase: sessUcase,
 		userUcase: userUcase,
-		metricsM: metrics,
+		metricsM:  metrics,
 	}
 }
 
@@ -75,7 +75,6 @@ func CorsControlMiddleware(next http.Handler) http.Handler {
 	})
 }
 
-
 func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		m.logrusLogger = m.logrusLogger.WithFields(logrus.Fields{
@@ -88,6 +87,7 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
+
 		o := &responseObserver.ResponseObserver{ResponseWriter: w}
 		next.ServeHTTP(o, r.WithContext(ctx))
 
@@ -135,13 +135,14 @@ func (m *Middleware) CSFRErrorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger, ok := r.Context().Value(ContextLogger).(*logrus.Entry)
 		if !ok {
-			logger = logger2.GetDefaultLogger()
+			logger = log.GetDefaultLogger()
 			logger.Warn("no logger")
 		}
 
-		errE := errors2.Cause(errors2.InvalidCSRFToken)
+		errE := errors.Cause(errors.InvalidCSRFToken)
 		logger.Error(errE.Message)
+
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 	}
 }
