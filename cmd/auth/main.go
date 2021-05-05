@@ -5,12 +5,15 @@ import (
 	"log"
 	"net"
 
+	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	authGRPC "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/delivery/grpc"
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
 	authUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
@@ -42,8 +45,16 @@ func main() {
 	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
+	jaeger, err := metrics.NewJaeger("auth")
+	if err != nil {
+		log.Fatal("cannot create tracer", err)
+	}
+
+	jaeger.SetGlobalTracer()
+	defer jaeger.Close()
+
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(ic.ServerLogInterceptor),
+		grpc.ChainUnaryInterceptor(traceutils.OpenTracingServerInterceptor(jaeger.GetTracer()), ic.ServerLogInterceptor),
 	)
 	auth.RegisterAuthHandlerServer(server, handler)
 
