@@ -4,13 +4,9 @@ go 1.15
 
 require (
 	github.com/DATA-DOG/go-sqlmock v1.5.0
-	github.com/DavidBelicza/TextRank v2.1.1+incompatible
-	github.com/afjoseph/RAKE.Go v0.0.0-20191109090147-068a9e43b194
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/bbalet/stopwords v1.0.0
 	github.com/cockroachdb/apd v1.1.0 // indirect
-	github.com/codesuki/go-time-series v0.0.0-20161018024404-887e3cebe04b // indirect
-	github.com/codesuki/go-trending v0.0.0-20170911003606-36d852d8bfec
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2
@@ -25,6 +21,7 @@ require (
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/microcosm-cc/bluemonday v1.0.5
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.10.0
 	github.com/shopspring/decimal v1.2.0 // indirect
 	github.com/sirupsen/logrus v1.8.0
 	github.com/stretchr/testify v1.5.1

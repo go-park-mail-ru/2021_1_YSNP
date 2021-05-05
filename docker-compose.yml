@@ -27,3 +27,46 @@ services:
     volumes:
       - './configs/lua/:/opt/tarantool/'
     command: tarantool /opt/tarantool/app.lua
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./metrics:/etc/prometheus"
+  alertmanager:
+    image: prom/alertmanager
+    ports:
+      - "9093:9093"
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+    volumes:
+      - "./metrics:/etc/alertmanager"
+  alertmanager-bot:
+    image: metalmatze/alertmanager-bot
+    command:
+      - "--listen.addr=0.0.0.0:8080"
+    environment:
+      ALERTMANAGER_URL: http://alertmanager:9093
+      BOLT_PATH: /data/bot.db
+      STORE: bolt
+      TEMPLATE_PATHS: /templates/default.tmpl
+      TELEGRAM_ADMIN: "138632615\n211453202\n389692057\n535095969"
+      TELEGRAM_TOKEN: 1751242193:AAGNrFE61pvarspGfU4FBzhYF2ECUnf0eKo
+    volumes:
+      - "./metrics/alertmanager-bot/templates:/templates"
+  grafana:
+      image: grafana/grafana
+      ports:
+        - 5000:5000
+      environment:
+        GF_SERVER_HTTP_PORT: 5000
+  node_exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node_exporter
+    command:
+      - '--path.rootfs=/host'
+    ports:
+      - '9100:9100'
+    restart: unless-stopped
+    volumes:
+      - '/:/host:ro' 

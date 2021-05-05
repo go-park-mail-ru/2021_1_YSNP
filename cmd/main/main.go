@@ -2,15 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
 
+	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
@@ -83,7 +84,7 @@ func main() {
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	sessionGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()), 
+		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
 		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -93,7 +94,7 @@ func main() {
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
 	chatGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()), 
+		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
 		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -113,8 +114,9 @@ func main() {
 	sessHandler := sessHandler.NewSessionHandler(sessUcase, userUcase)
 
 	router := mux.NewRouter()
+	metricsProm := metrics.NewMetrics(router)
 
-	mw := middleware.NewMiddleware(sessUcase, userUcase)
+	mw := middleware.NewMiddleware(sessUcase, userUcase, metricsProm)
 	mw.NewLogger(logger.GetLogger())
 
 	router.Use(middleware.CorsControlMiddleware)
