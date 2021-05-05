@@ -24,6 +24,7 @@ func (o *ResponseObserver) WriteHeader(code int) {
 	if o.WroteHeader {
 		return
 	}
+
 	o.WroteHeader = true
 	o.Status = code
 }

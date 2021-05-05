@@ -8,6 +8,7 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
+	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
@@ -83,9 +84,17 @@ func main() {
 	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
+	jaeger, err := metrics.NewJaeger("client")
+	if err != nil {
+		log.Fatal("cannot create tracer", err)
+	}
+
+	jaeger.SetGlobalTracer()
+	defer jaeger.Close()
+
 	sessionGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
-		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)

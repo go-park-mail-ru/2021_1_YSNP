@@ -5,12 +5,15 @@ import (
 	"log"
 	"net"
 
+	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	chatGRPC "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/delivery/grpc"
 	chatRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/repository/postgres"
 	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
@@ -43,8 +46,16 @@ func main() {
 	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
+	jaeger, err := metrics.NewJaeger("chat")
+	if err != nil {
+		log.Fatal("cannot create tracer", err)
+	}
+
+	jaeger.SetGlobalTracer()
+	defer jaeger.Close()
+
 	server := grpc.NewServer(
-		grpc.UnaryInterceptor(ic.ServerLogInterceptor),
+		grpc.ChainUnaryInterceptor(traceutils.OpenTracingServerInterceptor(jaeger.GetTracer()), ic.ServerLogInterceptor),
 	)
 	chat.RegisterChatServer(server, handler)
 
