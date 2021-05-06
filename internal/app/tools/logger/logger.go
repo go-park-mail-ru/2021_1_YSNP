@@ -61,3 +61,19 @@ func setProductionLevel() {
 func setDevelopmentLevel() {
 	logrus.SetLevel(logrus.DebugLevel)
 }
+
+func (l *Logger) LogWSError(addr string, userID uint64, msg string) {
+	l.logrusLogger.WithFields(logrus.Fields{
+		"type": "websocket",
+		"client": addr,
+		"user": userID,
+	}).Error(msg)
+}
+
+func (l *Logger) LogWSInfo(addr string, userID uint64, msg string) {
+	l.logrusLogger.WithFields(logrus.Fields{
+		"type": "websocket",
+		"client": addr,
+		"user": userID,
+	}).Info(msg)
+}

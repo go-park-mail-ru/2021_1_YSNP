@@ -2,16 +2,20 @@ package middleware
 
 import (
 	"context"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/gorilla/csrf"
 	"github.com/sirupsen/logrus"
 
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	responseObserver "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/utils"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
@@ -21,6 +25,7 @@ type Middleware struct {
 	logrusLogger *logrus.Entry
 	sessUcase    session.SessionUsecase
 	userUcase    user.UserUsecase
+	metricsM     *metrics.Metrics
 }
 
 type contextKey string
@@ -34,10 +39,11 @@ const (
 	ContextLogger = contextKey("logger")
 )
 
-func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase) *Middleware {
+func NewMiddleware(sessUcase session.SessionUsecase, userUcase user.UserUsecase, metrics *metrics.Metrics) *Middleware {
 	return &Middleware{
 		sessUcase: sessUcase,
 		userUcase: userUcase,
+		metricsM:  metrics,
 	}
 }
 
@@ -81,11 +87,21 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		ctx := r.Context()
 		ctx = context.WithValue(ctx, ContextLogger, m.logrusLogger)
 		start := time.Now()
-		next.ServeHTTP(w, r.WithContext(ctx))
+
+		o := &responseObserver.ResponseObserver{ResponseWriter: w}
+		next.ServeHTTP(o, r.WithContext(ctx))
 
 		m.logrusLogger.WithFields(logrus.Fields{
 			"work_time": time.Since(start),
 		}).Info("Fulfilled connection")
+
+		if r.URL.Path != "/metrics" {
+			url := strings.Split(r.URL.String(), "?")[0]
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), url, r.Method).Inc()
+			m.metricsM.Timings.WithLabelValues(
+				strconv.Itoa(o.Status), url, r.Method).Observe(float64(start.Second()))
+		}
+
 	})
 }
 
@@ -120,13 +136,14 @@ func (m *Middleware) CSFRErrorHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		logger, ok := r.Context().Value(ContextLogger).(*logrus.Entry)
 		if !ok {
-			logger = logger2.GetDefaultLogger()
+			logger = log.GetDefaultLogger()
 			logger.Warn("no logger")
 		}
 
-		errE := errors2.Cause(errors2.InvalidCSRFToken)
+		errE := errors.Cause(errors.InvalidCSRFToken)
 		logger.Error(errE.Message)
+
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 	}
 }

@@ -4,19 +4,18 @@ import (
 	"encoding/json"
 	"net/http"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/trends"
-	"github.com/gorilla/mux"
 )
 
 type TrendsHandler struct {
 	trendsUsecase trends.TrendsUsecase
-
 }
 
 func NewTrendsHandler(trendsUsecase trends.TrendsUsecase) *TrendsHandler {
@@ -28,7 +27,6 @@ func NewTrendsHandler(trendsUsecase trends.TrendsUsecase) *TrendsHandler {
 func (th *TrendsHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/stat", mw.CheckAuthMiddleware(th.CreateTrends)).Methods(http.MethodPost, http.MethodOptions)
 }
-
 
 func (th *TrendsHandler) CreateTrends(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
@@ -51,12 +49,14 @@ func (th *TrendsHandler) CreateTrends(w http.ResponseWriter, r *http.Request) {
 	err := json.NewDecoder(r.Body).Decode(&ui)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
 		return
 	}
 	ui.UserID = userID
 	th.trendsUsecase.InsertOrUpdate(ui)
-	w.WriteHeader(http.StatusNoContent)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful stat."))
 }

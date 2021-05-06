@@ -1,13 +1,16 @@
 package repository
 
 import (
+	"database/sql"
 	"database/sql/driver"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 
 var prodTest = &models.ProductData{
@@ -23,6 +26,7 @@ var prodTest = &models.ProductData{
 	Address:     "Address",
 	LinkImages:  []string{"test_str.jpg"},
 	Tariff:      0,
+	Close: false,
 }
 
 func TestProductRepository_Insert_Success(t *testing.T) {
@@ -108,7 +112,7 @@ func TestProductRepository_SelectByID_Success(t *testing.T) {
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
 	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "p.description", "cat.title", "p.owner_id", "u.name",
-		"u.surname", "u.avatar", "p.likes", "p.views", "p.longitude", "p.latitude", "p.address", "array_agg(pi.img_link)", "p.tariff"})
+		"u.surname", "u.avatar", "p.likes", "p.views", "p.longitude", "p.latitude", "p.address", "array_agg(pi.img_link)", "p.tariff", "p.close"})
 	rows.AddRow(
 		&prodTest.ID,
 		&prodTest.Name,
@@ -126,11 +130,11 @@ func TestProductRepository_SelectByID_Success(t *testing.T) {
 		&prodTest.Latitude,
 		&prodTest.Address,
 		&linkStr,
-		&prodTest.Tariff)
-	mock.ExpectBegin()
+		&prodTest.Tariff,
+		&prodTest.Close)
 	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID).WillReturnRows(rows)
-	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
-	mock.ExpectCommit()
+	//mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	//mock.ExpectCommit()
 
 	user, err := prodRepo.SelectByID(prodTest.ID)
 	assert.Equal(t, prodTest, user)
@@ -174,9 +178,7 @@ func TestProductRepository_SelectByID_SelectErr(t *testing.T) {
 		&prodTest.Address,
 		&linkStr,
 		&prodTest.Tariff)
-	mock.ExpectBegin()
 	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID).WillReturnRows(rows)
-	mock.ExpectRollback()
 
 	_, err = prodRepo.SelectByID(prodTest.ID)
 	assert.Error(t, err)
@@ -186,54 +188,6 @@ func TestProductRepository_SelectByID_SelectErr(t *testing.T) {
 	}
 }
 
-func TestProductRepository_SelectByID_UpdateErr(t *testing.T) {
-	t.Parallel()
-
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-
-	prodRepo := NewProductRepository(db)
-
-	layout := "2006-01-02"
-	date, _ := time.Parse(layout, prodTest.Date)
-
-	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
-
-	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "p.description", "cat.title", "p.owner_id", "u.name",
-		"u.surname", "u.avatar", "p.likes", "p.views", "p.longitude", "p.latitude", "p.address", "array_agg(pi.img_link)", "p.tariff"})
-	rows.AddRow(
-		&prodTest.ID,
-		&prodTest.Name,
-		&date,
-		&prodTest.Amount,
-		&prodTest.Description,
-		&prodTest.Category,
-		&prodTest.OwnerID,
-		&prodTest.OwnerName,
-		&prodTest.OwnerSurname,
-		&prodTest.OwnerLinkImages,
-		&prodTest.Likes,
-		&prodTest.Views,
-		&prodTest.Longitude,
-		&prodTest.Latitude,
-		&prodTest.Address,
-		&linkStr,
-		&prodTest.Tariff)
-	mock.ExpectBegin()
-	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID).WillReturnRows(rows)
-	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID)
-	mock.ExpectRollback()
-
-	_, err = prodRepo.SelectByID(prodTest.ID)
-	assert.Error(t, err)
-
-	if err := mock.ExpectationsWereMet(); err != nil {
-		t.Errorf("there were unfulfilled expectations: %s", err)
-	}
-}
 
 func TestProductRepository_SelectLatest_Success(t *testing.T) {
 	t.Parallel()
@@ -319,16 +273,18 @@ func TestProductRepository_SelectUserAd_Success(t *testing.T) {
 		LinkImages: []string{"test_str.jpg"},
 		UserLiked:  false,
 		Tariff:     0,
+		Close: false,
 	}
 
-	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)", "p.tariff"})
+	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)", "p.tariff", "p.close"})
 	rows.AddRow(
 		&prodTest.ID,
 		&prodTest.Name,
 		&date,
 		&prodTest.Amount,
 		&linkStr,
-		&prodTest.Tariff)
+		&prodTest.Tariff,
+		&prodTest.Close)
 	mock.ExpectQuery(`SELECT`).WithArgs(userID, 10, 10).WillReturnRows(rows)
 
 	user, err := prodRepo.SelectUserAd(userID, page)
@@ -409,7 +365,7 @@ func TestProductRepository_InsertProductLike_Success(t *testing.T) {
 	mock.ExpectExec(`INSERT INTO user_favorite`).WithArgs(
 		userID,
 		prodTest.ID).WillReturnResult(driver.ResultNoRows)
-	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	//mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
 	mock.ExpectCommit()
 
 	err = prodRepo.InsertProductLike(userID, prodTest.ID)
@@ -480,7 +436,7 @@ func TestProductRepository_DeleteProductLike_Success(t *testing.T) {
 	mock.ExpectExec(`DELETE from user_favorite`).WithArgs(
 		userID,
 		prodTest.ID).WillReturnResult(driver.ResultNoRows)
-	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+	//mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
 	mock.ExpectCommit()
 
 	err = prodRepo.DeleteProductLike(userID, prodTest.ID)
@@ -572,27 +528,27 @@ func TestProductRepository_UpdateTariff_Error(t *testing.T) {
 	assert.Error(t, err)
 }
 
-func TestProductRepository_InsertPhoto_Success(t *testing.T) {
-	t.Parallel()
-
-	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer db.Close()
-
-	prodRepo := NewProductRepository(db)
-
-	mock.ExpectBegin()
-	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
-	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(
-		prodTest.ID,
-		prodTest.LinkImages[0]).WillReturnResult(driver.ResultNoRows)
-	mock.ExpectCommit()
-
-	err = prodRepo.InsertPhoto(prodTest)
-	assert.NoError(t, err)
-}
+//func TestProductRepository_InsertPhoto_Success(t *testing.T) {
+//	t.Parallel()
+//
+//	db, mock, err := sqlmock.New()
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	defer db.Close()
+//
+//	prodRepo := NewProductRepository(db)
+//
+//	mock.ExpectBegin()
+//	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(sqlmock.NewResult(int64(prodTest.ID), 1))
+//	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(
+//		prodTest.ID,
+//		prodTest.LinkImages[0]).WillReturnResult(driver.ResultNoRows)
+//	mock.ExpectCommit()
+//
+//	err = prodRepo.InsertPhoto(prodTest)
+//	assert.NoError(t, err)
+//}
 
 func TestProductRepository_InsertPhoto_DeleteErr(t *testing.T) {
 	t.Parallel()
@@ -632,5 +588,190 @@ func TestProductRepository_InsertPhoto_InserErr(t *testing.T) {
 	mock.ExpectRollback()
 
 	err = prodRepo.InsertPhoto(prodTest)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_Update(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	answer := sqlmock.NewRows([]string{"id"}).AddRow(prodTest.ID)
+	mock.ExpectBegin()
+	mock.ExpectQuery(`UPDATE product`).WithArgs(prodTest.Name,
+		prodTest.Amount,
+		prodTest.Description,
+		prodTest.Category,
+		prodTest.Longitude,
+		prodTest.Latitude,
+		prodTest.Address,
+		prodTest.ID).WillReturnRows(answer)
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(prodTest.ID, sqlmock.AnyArg()).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectCommit()
+
+	err = prodRepo.Update(prodTest)
+
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectQuery(`UPDATE product`).WithArgs(prodTest.Name,
+		prodTest.Amount,
+		prodTest.Description,
+		prodTest.Category,
+		prodTest.Longitude,
+		prodTest.Latitude,
+		prodTest.Address,
+		prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.Update(prodTest)
+	assert.Error(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectQuery(`UPDATE product`).WithArgs(prodTest.Name,
+		prodTest.Amount,
+		prodTest.Description,
+		prodTest.Category,
+		prodTest.Longitude,
+		prodTest.Latitude,
+		prodTest.Address,
+		prodTest.ID).WillReturnRows(answer)
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.Update(prodTest)
+	assert.Error(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectQuery(`UPDATE product`).WithArgs(prodTest.Name,
+		prodTest.Amount,
+		prodTest.Description,
+		prodTest.Category,
+		prodTest.Longitude,
+		prodTest.Latitude,
+		prodTest.Address,
+		prodTest.ID).WillReturnRows(answer)
+	mock.ExpectExec(`DELETE FROM product_images`).WithArgs(prodTest.ID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectExec(`INSERT INTO product_images`).WithArgs(prodTest.ID, sqlmock.AnyArg()).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.Update(prodTest)
+
+	assert.Error(t, err)
+}
+
+func TestProductRepository_Close(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`Update product`).WithArgs(prodTest.ID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectCommit()
+
+	err = prodRepo.Close(prodTest)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectExec(`Update product`).WithArgs(prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.Close(prodTest)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_SelectTrands(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	layout := "2006-01-02"
+	date, _ := time.Parse(layout, prodTest.Date)
+
+	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
+
+	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "array_agg(pi.img_link)", "uf.user_id", "p.tariff"})
+	rows.AddRow(
+		&prodTest.ID,
+		&prodTest.Name,
+		&date,
+		&prodTest.Amount,
+		&linkStr,
+		&prodTest.OwnerID,
+		&prodTest.Tariff)
+	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.OwnerID, uint64(1), uint64(2)).WillReturnRows(rows)
+
+	_, err = prodRepo.SelectTrands([]uint64{1, 2}, &prodTest.OwnerID)
+	assert.NoError(t, err)
+}
+
+func TestProductRepository_UpdateProductLikes(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(1, prodTest.ID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectCommit()
+
+	err = prodRepo.UpdateProductLikes(prodTest.ID, 1)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(1, prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.UpdateProductLikes(prodTest.ID, 1)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_UpdateProductViews(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(1, prodTest.ID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectCommit()
+
+	err = prodRepo.UpdateProductViews(prodTest.ID, 1)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(1, prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	err = prodRepo.UpdateProductViews(prodTest.ID, 1)
 	assert.Error(t, err)
 }

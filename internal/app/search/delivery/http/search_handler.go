@@ -2,8 +2,6 @@ package delivery
 
 import (
 	"encoding/json"
-	errors2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
-	logger2 "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
 	"net/http"
 
 	"github.com/asaskevich/govalidator"
@@ -11,9 +9,11 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/search"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 type SearchHandler struct {
@@ -33,7 +33,7 @@ func (sh *SearchHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
-		logger = logger2.GetDefaultLogger()
+		logger = log.GetDefaultLogger()
 		logger.Warn("no logger")
 	}
 
@@ -45,9 +45,9 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	err := decoder.Decode(search, r.URL.Query())
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedBadRequest(err)
+		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 	logger.Info("search ", search)
@@ -56,9 +56,9 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if allErrs, ok := err.(govalidator.Errors); ok {
 			logger.Error(allErrs.Errors())
-			errE := errors2.UnexpectedBadRequest(allErrs)
+			errE := errors.UnexpectedBadRequest(allErrs)
 			w.WriteHeader(errE.HttpError)
-			w.Write(errors2.JSONError(errE))
+			w.Write(errors.JSONError(errE))
 			return
 		}
 	}
@@ -70,7 +70,7 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
@@ -79,9 +79,9 @@ func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(products)
 	if err != nil {
 		logger.Error(err)
-		errE := errors2.UnexpectedInternal(err)
+		errE := errors.UnexpectedInternal(err)
 		w.WriteHeader(errE.HttpError)
-		w.Write(errors2.JSONError(errE))
+		w.Write(errors.JSONError(errE))
 		return
 	}
 }

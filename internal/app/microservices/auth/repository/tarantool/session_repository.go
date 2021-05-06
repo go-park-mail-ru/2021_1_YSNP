@@ -6,15 +6,15 @@ import (
 
 	"github.com/tarantool/go-tarantool"
 
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 )
 
 type SessionRepository struct {
 	dbConn *tarantool.Connection
 }
 
-func NewSessionRepository(conn *tarantool.Connection) session.SessionRepository {
+func NewSessionRepository(conn *tarantool.Connection) auth.SessionRepository {
 	return &SessionRepository{
 		dbConn: conn,
 	}
