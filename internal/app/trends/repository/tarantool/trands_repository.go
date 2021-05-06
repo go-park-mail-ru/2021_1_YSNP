@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bbalet/stopwords"
+	"github.com/kljensen/snowball"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -27,7 +30,7 @@ func NewTrendsRepository(conn *tarantool.Connection, conn2 *sql.DB) trends.Trend
 	}
 }
 
-func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends) ([]uint64, error) {
+func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends, orderBy string) ([]uint64, error) {
 	selectQuery := `
 				SELECT p.id
 				FROM product as p
@@ -46,10 +49,21 @@ func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models
 		trendValue = append(trendValue, "%"+trend.Title+"%")
 	}
 	selectQuery += titleLike
-	selectQuery += `])
+	if orderBy == "date" {
+		selectQuery += `])
 				ORDER BY p.date DESC 
 				LIMIT 30
 				`
+	} else if orderBy == "likes" {
+		selectQuery += `])
+				ORDER BY p.likes DESC 
+				LIMIT 30
+				`
+		} else {
+		selectQuery += `]) 
+				LIMIT 30
+				`
+	}
 
 	query, err := tr.dbConnPsql.Query(selectQuery, trendValue...)
 	if err != nil {
@@ -76,7 +90,7 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	oldModel := &models.Trends{}
 	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-	productsID, err := tr.getNewTrendsProductID(userID, *oldModel)
+	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, "date")
 	if err != nil {
 		return err
 	}
@@ -149,6 +163,64 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 	}
 	oldProducts.UserID = userID
 	return &oldProducts, nil
+}
+
+func (tr *TrendsRepository) checkSuffix(word string) bool {
+	if len(word) < 5 {
+		return true
+	}
+	stop := []string{"ими", "ыми", "его", "ого", "ему", "ому", "ее", "ие",
+		"ые", "ое", "ей", "ий", "ый", "ой", "ем", "им", "ым",
+		"ом", "их", "ых", "ую", "юю", "ая", "яя", "ою", "ею"}
+
+	for _, item := range stop {
+		suf := word[len(word)-len(item):]
+		if suf == item {
+			return false
+		}
+	}
+	return true
+}
+
+func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID uint64) ([]uint64, error) {
+	query := tr.dbConnPsql.QueryRow(
+				`
+				SELECT p.name
+				FROM product AS p
+				WHERE p.id=$1
+				`,
+		productID)
+	var title string
+	err := query.Scan(&title)
+	if err != nil {
+		return nil, err
+	}
+
+	var words models.Trends
+	words.UserID = userID
+	cleanContent := stopwords.CleanString(title, "ru", true)
+	sn := strings.TrimSpace(cleanContent)
+	s := strings.FieldsFunc(sn, func(r rune) bool { return strings.ContainsRune(" .,:-", r) })
+	for _, item := range s {
+		if !tr.checkSuffix(item) {
+			continue
+		}
+
+		stemmed, err := snowball.Stem(item, "russian", true)
+		if err == nil {
+			words.Popular = append(words.Popular, models.Popular{
+				Title: stemmed,
+				Count: 1,
+				Date:  time.Now(),
+			})
+		}
+	}
+
+	productsID, err := tr.getNewTrendsProductID(userID, words, "likes")
+	if err != nil {
+		return nil, err
+	}
+	return productsID, nil
 }
 
 func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {

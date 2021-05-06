@@ -110,6 +110,28 @@ func (pu *ProductUsecase) GetProduct(productID uint64) (*models.ProductData, *er
 	return product, nil
 }
 
+func (pu *ProductUsecase) RecommendationList(productID uint64, userID uint64) ([]*models.ProductListData, *errors.Error) {
+	productIdArray, err := pu.trendsRepo.GetRecommendationProducts(productID, userID)
+
+	for i, val := range productIdArray{
+		if val == productID {
+			productIdArray = append(productIdArray[:i], productIdArray[i+1:]...)
+			break
+		}
+	}
+
+	products, err := pu.productRepo.SelectTrands(productIdArray, &userID)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	if len(products) == 0 {
+		return []*models.ProductListData{}, nil
+	}
+
+	return products, nil
+}
+
 func (pu *ProductUsecase) TrendList(userID *uint64) ([]*models.ProductListData, *errors.Error) {
 	productIdArray, err := pu.trendsRepo.GetTrendsProducts(*userID)
 

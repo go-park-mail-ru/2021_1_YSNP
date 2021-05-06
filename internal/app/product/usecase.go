@@ -23,6 +23,8 @@ type ProductUsecase interface {
 	UserAdList(userId uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	GetUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 
+	RecommendationList(productID uint64, userID uint64) ([]*models.ProductListData, *errors.Error)
+
 	LikeProduct(userID uint64, productID uint64) *errors.Error
 	DislikeProduct(userID uint64, productID uint64) *errors.Error
 
