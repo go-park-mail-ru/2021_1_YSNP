@@ -5,10 +5,11 @@
 package mock
 
 import (
+	multipart "mime/multipart"
 	reflect "reflect"
 
-	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	models "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	errors "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
 	gomock "github.com/golang/mock/gomock"
 )
 
@@ -33,6 +34,20 @@ func NewMockProductUsecase(ctrl *gomock.Controller) *MockProductUsecase {
 // EXPECT returns an object that allows the caller to indicate expected use.
 func (m *MockProductUsecase) EXPECT() *MockProductUsecaseMockRecorder {
 	return m.recorder
+}
+
+// Close mocks base method.
+func (m *MockProductUsecase) Close(arg0, arg1 uint64) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Close", arg0, arg1)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// Close indicates an expected call of Close.
+func (mr *MockProductUsecaseMockRecorder) Close(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Close", reflect.TypeOf((*MockProductUsecase)(nil).Close), arg0, arg1)
 }
 
 // Create mocks base method.
@@ -63,6 +78,20 @@ func (mr *MockProductUsecaseMockRecorder) DislikeProduct(arg0, arg1 interface{})
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DislikeProduct", reflect.TypeOf((*MockProductUsecase)(nil).DislikeProduct), arg0, arg1)
 }
 
+// Edit mocks base method.
+func (m *MockProductUsecase) Edit(arg0 *models.ProductData) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Edit", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// Edit indicates an expected call of Edit.
+func (mr *MockProductUsecaseMockRecorder) Edit(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Edit", reflect.TypeOf((*MockProductUsecase)(nil).Edit), arg0)
+}
+
 // GetByID mocks base method.
 func (m *MockProductUsecase) GetByID(arg0 uint64) (*models.ProductData, *errors.Error) {
 	m.ctrl.T.Helper()
@@ -76,6 +105,21 @@ func (m *MockProductUsecase) GetByID(arg0 uint64) (*models.ProductData, *errors.
 func (mr *MockProductUsecaseMockRecorder) GetByID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetByID", reflect.TypeOf((*MockProductUsecase)(nil).GetByID), arg0)
+}
+
+// GetProduct mocks base method.
+func (m *MockProductUsecase) GetProduct(arg0 uint64) (*models.ProductData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProduct", arg0)
+	ret0, _ := ret[0].(*models.ProductData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// GetProduct indicates an expected call of GetProduct.
+func (mr *MockProductUsecaseMockRecorder) GetProduct(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProduct", reflect.TypeOf((*MockProductUsecase)(nil).GetProduct), arg0)
 }
 
 // GetUserFavorite mocks base method.
@@ -136,19 +180,34 @@ func (mr *MockProductUsecaseMockRecorder) SetTariff(arg0, arg1 interface{}) *gom
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetTariff", reflect.TypeOf((*MockProductUsecase)(nil).SetTariff), arg0, arg1)
 }
 
-// UpdatePhoto mocks base method.
-func (m *MockProductUsecase) UpdatePhoto(arg0 uint64, arg1 []string) (*models.ProductData, *errors.Error) {
+// TrendList mocks base method.
+func (m *MockProductUsecase) TrendList(arg0 *uint64) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1)
+	ret := m.ctrl.Call(m, "TrendList", arg0)
+	ret0, _ := ret[0].([]*models.ProductListData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// TrendList indicates an expected call of TrendList.
+func (mr *MockProductUsecaseMockRecorder) TrendList(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "TrendList", reflect.TypeOf((*MockProductUsecase)(nil).TrendList), arg0)
+}
+
+// UpdatePhoto mocks base method.
+func (m *MockProductUsecase) UpdatePhoto(arg0, arg1 uint64, arg2 []*multipart.FileHeader) (*models.ProductData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "UpdatePhoto", arg0, arg1, arg2)
 	ret0, _ := ret[0].(*models.ProductData)
 	ret1, _ := ret[1].(*errors.Error)
 	return ret0, ret1
 }
 
 // UpdatePhoto indicates an expected call of UpdatePhoto.
-func (mr *MockProductUsecaseMockRecorder) UpdatePhoto(arg0, arg1 interface{}) *gomock.Call {
+func (mr *MockProductUsecaseMockRecorder) UpdatePhoto(arg0, arg1, arg2 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePhoto", reflect.TypeOf((*MockProductUsecase)(nil).UpdatePhoto), arg0, arg1)
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "UpdatePhoto", reflect.TypeOf((*MockProductUsecase)(nil).UpdatePhoto), arg0, arg1, arg2)
 }
 
 // UserAdList mocks base method.

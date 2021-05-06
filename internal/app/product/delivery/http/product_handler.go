@@ -2,25 +2,21 @@ package http
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 
 	"github.com/asaskevich/govalidator"
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	"github.com/gorilla/schema"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 type ProductHandler struct {
@@ -35,16 +31,49 @@ func NewProductHandler(productUcase product.ProductUsecase) *ProductHandler {
 
 func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/product/create", mw.CheckAuthMiddleware(ph.ProductCreateHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/close/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.ProductCloseHandler)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/edit", mw.CheckAuthMiddleware(ph.ProductEditHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/upload/{pid:[0-9]+}", mw.CheckAuthMiddleware(ph.UploadPhotoHandler)).Methods(http.MethodPost, http.MethodOptions)
 	rNoCSRF.HandleFunc("/product/promote", ph.PromoteProductHandler).Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/product/trends", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.TrendsPageHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
+}
+
+func (ph *ProductHandler) TrendsPageHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	logger.Info("user id ", userID)
+
+	products, errE := ph.productUcase.TrendList(&userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -81,7 +110,7 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	productData.Name = sanitizer.Sanitize(productData.Name)
 	productData.Description = sanitizer.Sanitize(productData.Description)
 	productData.Category = sanitizer.Sanitize(productData.Category)
-	logger.Debug("sanitize user data ", productData)
+	logger.Debug("sanitize product data ", productData)
 
 	_, err = govalidator.ValidateStruct(productData)
 	if err != nil {
@@ -105,6 +134,107 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
+}
+
+func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+	defer r.Body.Close()
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("product id ", productID)
+
+	errE := ph.productUcase.Close(productID, userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful close."))
+}
+
+func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+	defer r.Body.Close()
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	productData := &models.ProductData{}
+	err := json.NewDecoder(r.Body).Decode(&productData)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("product data ", productData)
+
+	if productData.OwnerID != userID {
+		errE := errors.Cause(errors.WrongOwner)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	sanitizer := bluemonday.UGCPolicy()
+	productData.Name = sanitizer.Sanitize(productData.Name)
+	productData.Description = sanitizer.Sanitize(productData.Description)
+	productData.Category = sanitizer.Sanitize(productData.Category)
+	logger.Debug("sanitize product data ", productData)
+
+	_, err = govalidator.ValidateStruct(productData)
+	if err != nil {
+		if allErrs, ok := err.(govalidator.Errors); ok {
+			logger.Error(allErrs.Errors())
+			errE := errors.UnexpectedBadRequest(allErrs)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
+
+	errE := ph.productUcase.Edit(productData)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Debug("product id ", productData.ID)
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful update.", productData.ID))
 }
 
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
@@ -139,69 +269,7 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	}
 
 	files := r.MultipartForm.File["photos"]
-	imgs := make(map[string][]string)
-	for i := range files {
-		file, err := files[i].Open()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedBadRequest(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		logger.Debug("photo ", files[i].Header)
-
-		defer file.Close()
-		extension := filepath.Ext(files[i].Filename)
-
-		str, err := os.Getwd()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-
-		photoPath := "static/product/"
-		os.Chdir(photoPath)
-
-		photoID, err := uuid.NewRandom()
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		logger.Debug("new photo name ", photoID)
-
-		f, err := os.OpenFile(photoID.String()+extension, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-		defer f.Close()
-
-		os.Chdir(str)
-
-		_, err = io.Copy(f, file)
-		if err != nil {
-			_ = os.Remove(photoID.String() + extension)
-			logger.Error(err)
-			errE := errors.UnexpectedInternal(err)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-
-		imgs["linkImages"] = append(imgs["linkImages"], "/static/product/"+photoID.String()+extension)
-	}
-
-	_, errE := ph.productUcase.UpdatePhoto(productID, imgs["linkImages"])
+	_, errE := ph.productUcase.UpdatePhoto(productID, userId, files)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
@@ -209,17 +277,8 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	body, err := json.Marshal(imgs)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
 	w.WriteHeader(http.StatusOK)
-	w.Write(body)
+	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
@@ -292,7 +351,7 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	logger.Info("product id ", productID)
 
-	product, errE := ph.productUcase.GetByID(productID)
+	product, errE := ph.productUcase.GetProduct(productID)
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

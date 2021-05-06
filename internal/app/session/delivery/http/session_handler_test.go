@@ -3,20 +3,22 @@ package delivery
 import (
 	"bytes"
 	"context"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	sessMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session/mocks"
-	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
-	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/validator"
-	"github.com/golang/mock/gomock"
-	"github.com/gorilla/mux"
-	"github.com/sirupsen/logrus"
-	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/golang/mock/gomock"
+	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/mocks"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/validator"
+	userMock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/mocks"
 )
 
 var userTest = &models.UserData{
@@ -36,7 +38,7 @@ func TestSessionHandler_LoginHandler_OK(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -73,7 +75,7 @@ func TestSessionHandler_LoginHandler_LoggerError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -106,7 +108,7 @@ func TestSessionHandler_LoginHandler_DecodeError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -138,7 +140,7 @@ func TestSessionHandler_LoginHandler_InternalError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -175,7 +177,7 @@ func TestSessionHandler_LoginHandler_ValidationError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -208,7 +210,7 @@ func TestSessionHandler_LoginHandler_UserNotExist(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -243,7 +245,7 @@ func TestSessionHandler_LoginHandler_WrongPassword(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	var byteData = bytes.NewReader([]byte(`
@@ -279,7 +281,7 @@ func TestSessionHandler_LogoutHandler_OK(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	session := models.CreateSession(0)
@@ -318,7 +320,7 @@ func TestSessionHandler_LogoutHandler_LoggerError(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	session := models.CreateSession(0)
@@ -353,7 +355,7 @@ func TestSessionHandler_LogoutHandler_NoCookie(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	r := httptest.NewRequest("POST", "/api/v1/logout", nil)
@@ -379,7 +381,7 @@ func TestSessionHandler_LogoutHandler_SessionNotExist(t *testing.T) {
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
 
-	sessUcase := sessMock.NewMockSessionUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
 	userUcase := userMock.NewMockUserUsecase(ctrl)
 
 	session := models.CreateSession(0)

@@ -2,12 +2,14 @@ package repository
 
 import (
 	"fmt"
-	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/stretchr/testify/assert"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/stretchr/testify/assert"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 )
 
 func TestSearchRepository_SelectByFilter(t *testing.T) {
@@ -62,14 +64,14 @@ func TestSearchRepository_SelectByFilter(t *testing.T) {
 		&userID,
 		&prodTest.Tariff)
 	mock.ExpectQuery(`SELECT`).WithArgs(userID,
-											"%"+data.Search+"%",
-											"%"+data.Category+"%",
-											data.FromAmount,
-											data.ToAmount,
-											"SRID=4326; POINT(" + fmt.Sprintf("%f", data.Longitude) + " " + fmt.Sprintf("%f", data.Latitude) + ")",
-											data.Radius,
-											data.Count,
-											data.From*data.Count).WillReturnRows(rows)
+		"%"+data.Search+"%",
+		"%"+data.Category+"%",
+		data.FromAmount,
+		data.ToAmount,
+		"SRID=4326; POINT("+fmt.Sprintf("%f", data.Longitude)+" "+fmt.Sprintf("%f", data.Latitude)+")",
+		data.Radius,
+		data.Count,
+		data.From*data.Count).WillReturnRows(rows)
 
 	prod, err := searchRep.SelectByFilter(&userID, data)
 	assert.Equal(t, prodTest, prod[0])

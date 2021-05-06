@@ -1,68 +1,55 @@
 package usecase
 
 import (
-	"time"
+	"context"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
+	"google.golang.org/grpc"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/proto/auth"
 )
 
-type SessionUsecase struct {
-	sessRepo session.SessionRepository
+type AuthClient struct {
+	client auth.AuthHandlerClient
 }
 
-func NewSessionUsecase(repo session.SessionRepository) session.SessionUsecase {
-	return &SessionUsecase{
-		sessRepo: repo,
+func NewAuthClient(conn *grpc.ClientConn) *AuthClient {
+	c := auth.NewAuthHandlerClient(conn)
+	return &AuthClient{
+		client: c,
 	}
 }
 
-func (su *SessionUsecase) Create(sess *models.Session) *errors.Error {
-	err := su.sessRepo.Insert(sess)
+func (ac *AuthClient) Create(sess *models.Session) *errors.Error {
+	_, err := ac.client.Create(context.Background(), models.ModelSessionToGrpc(sess))
 	if err != nil {
-		return errors.UnexpectedInternal(err)
+		return errors.GRPCError(err)
 	}
-
 	return nil
 }
 
-func (su *SessionUsecase) Get(sessValue string) (*models.Session, *errors.Error) {
-	sess, err := su.sessRepo.SelectByValue(sessValue)
+func (ac *AuthClient) Get(sessVal string) (*models.Session, *errors.Error) {
+	sess, err := ac.client.Get(context.Background(), &auth.SessionValue{Value: sessVal})
 	if err != nil {
-		return nil, errors.Cause(errors.SessionNotExist)
+		return nil, errors.GRPCError(err)
 	}
 
-	return sess, nil
+	return models.GrpcSessionToModel(sess), nil
 }
 
-func (su *SessionUsecase) Delete(sessionValue string) *errors.Error {
-	if _, err := su.Get(sessionValue); err != nil {
-		return errors.Cause(errors.SessionNotExist)
-	}
-
-	err := su.sessRepo.DeleteByValue(sessionValue)
+func (ac *AuthClient) Delete(sessVal string) *errors.Error {
+	_, err := ac.client.Delete(context.Background(), &auth.SessionValue{Value: sessVal})
 	if err != nil {
-		return errors.UnexpectedInternal(err)
+		return errors.GRPCError(err)
 	}
-
 	return nil
 }
 
-func (su *SessionUsecase) Check(sessValue string) (*models.Session, *errors.Error) {
-	sess, err := su.Get(sessValue)
+func (ac *AuthClient) Check(sessValue string) (*models.Session, *errors.Error) {
+	sess, err := ac.client.Check(context.Background(), &auth.SessionValue{Value: sessValue})
 	if err != nil {
-		return nil, errors.Cause(errors.SessionNotExist)
+		return nil, errors.GRPCError(err)
 	}
-
-	if sess.ExpiresAt.Before(time.Now()) {
-		errE := su.Delete(sessValue)
-		if errE != nil {
-			return nil, errE
-		}
-
-		return nil, errors.Cause(errors.SessionExpired)
-	}
-
-	return sess, nil
+	return models.GrpcSessionToModel(sess), nil
 }

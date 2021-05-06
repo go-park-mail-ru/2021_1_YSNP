@@ -2,14 +2,15 @@ package http
 
 import (
 	"encoding/json"
-	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/logger"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/middleware"
-	"github.com/sirupsen/logrus"
 	"net/http"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/errors"
 	"github.com/gorilla/mux"
+	"github.com/sirupsen/logrus"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
+	log "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/logger"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/middleware"
 )
 
 type CategoryHandler struct {
@@ -33,11 +34,11 @@ func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Req
 		logger.Warn("no logger")
 	}
 
-	categories, errCategories := cat.categoryUcase.GetAllCategories()
-	if errCategories != nil {
-		logger.Error(errCategories.Message)
-		w.WriteHeader(errCategories.HttpError)
-		w.Write(errors.JSONError(errCategories))
+	categories, errE := cat.categoryUcase.GetAllCategories()
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
 		return
 	}
 
