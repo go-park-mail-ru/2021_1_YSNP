@@ -66,7 +66,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 	}
 
 	profile := &models.ProfileData{
-		ID: 		userID,
+		ID:         userID,
 		Name:       user.Name,
 		Surname:    user.Surname,
 		Sex:        user.Sex,
@@ -192,4 +192,23 @@ func (uu *UserUsecase) UpdateLocation(userID uint64, data *models.LocationReques
 	}
 
 	return user, nil
+}
+
+func (uu *UserUsecase) CreateOrLogin(userOAuth *models.UserOAuthRequest) *errors.Error {
+	userID, err := uu.userRepo.SelectByOAuthID(userOAuth.UserOAuthID)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	if userID != 0 {
+		userOAuth.ID = userID
+		return nil
+	}
+
+	err = uu.userRepo.InsertOAuth(userOAuth)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
 }

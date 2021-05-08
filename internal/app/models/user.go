@@ -66,3 +66,20 @@ type PasswordChangeRequest struct {
 	NewPassword1 string `json:"newPassword1" valid:"password, password1"`
 	NewPassword2 string `json:"newPassword2" valid:"password, password2"`
 }
+
+type Response struct {
+	Response []struct {
+		LastName  string `json:"last_name"`
+		FirstName string `json:"first_name"`
+		Photo     string `json:"photo_max"`
+	}
+}
+
+type UserOAuthRequest struct {
+	ID            uint64  `json:"id"`
+	LastName      string  `json:"last_name"`
+	FirstName     string  `json:"first_name"`
+	Photo         string  `json:"photo_max"`
+	UserOAuthID   float64 `json:"user_oauth_id"`
+	UserOAuthType string  `json:"user_oauth_type"`
+}

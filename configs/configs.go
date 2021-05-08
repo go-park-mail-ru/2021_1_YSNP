@@ -8,6 +8,7 @@ import (
 
 type Config struct {
 	Server struct {
+		URL  string `json:"url"`
 		Host string `json:"host"`
 		Port string `json:"port"`
 	} `json:"server"`
@@ -40,6 +41,14 @@ type Config struct {
 		Host     string `json:"host"`
 		Port     int    `json:"port"`
 	} `json:"tarantool"`
+
+	VKOAuth struct {
+		AppID       string `json:"app_id"`
+		AppKey      string `json:"app_key"`
+		AppSecret   string `json:"app_secret"`
+		AppUrl      string `json:"app_url"`
+		RedirectURL string `json:"redirect_url"`
+	}
 }
 
 func LoadConfig(name string) (*Config, error) {
@@ -55,6 +64,12 @@ func LoadConfig(name string) (*Config, error) {
 	}
 
 	return config, nil
+}
+
+var Configs *Config
+
+func (c *Config) GetServerUrl() string {
+	return c.Server.URL
 }
 
 func (c *Config) GetServerHost() string {

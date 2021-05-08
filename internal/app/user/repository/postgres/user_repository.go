@@ -175,3 +175,72 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 
 	return nil
 }
+
+func (ur *UserRepository) InsertOAuth(userOAuth *models.UserOAuthRequest) error {
+	tx, err := ur.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	query := tx.QueryRow(
+		`
+				INSERT INTO users(name, surname, avatar)
+				VALUES ($1, $2, $3)
+				RETURNING id`,
+		userOAuth.FirstName,
+		userOAuth.LastName,
+		userOAuth.Photo)
+
+	err = query.Scan(&userOAuth.ID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				INSERT INTO users_oauth
+                (user_id, oauth_type, oauth_id)
+                VALUES ($1, $2, $3)`,
+		userOAuth.ID,
+		userOAuth.UserOAuthType,
+		userOAuth.UserOAuthID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (ur *UserRepository) SelectByOAuthID(userOAuthID float64) (uint64, error) {
+	query := ur.dbConn.QueryRow(
+		`
+				SELECT user_id
+				FROM users_oauth
+				WHERE oauth_id =$1`,
+		userOAuthID)
+
+	var userID uint64
+
+	err := query.Scan(
+		&userID)
+	if err != nil {
+		return 0, err
+	}
+
+	return userID, nil
+}

@@ -2,6 +2,7 @@ package delivery
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -9,7 +10,10 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/microcosm-cc/bluemonday"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/vk"
 
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/session"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/errors"
@@ -40,6 +44,8 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUserLocationHandler)).Methods(http.MethodPost, http.MethodOptions)
+
+	r.HandleFunc("/oauth/vk", uh.VkOauth).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -436,4 +442,104 @@ func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful change."))
+}
+
+func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+	defer r.Body.Close()
+
+	ctx := r.Context()
+	code := r.FormValue("code")
+	conf := &oauth2.Config{
+		ClientID:     configs.Configs.VKOAuth.AppID,
+		ClientSecret: configs.Configs.VKOAuth.AppKey,
+		RedirectURL:  configs.Configs.VKOAuth.RedirectURL,
+		Endpoint:     vk.Endpoint,
+	}
+	logger.Debug("code ", code)
+
+	token, err := conf.Exchange(ctx, code)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		return
+	}
+	logger.Debug("token ", token)
+
+	userID := token.Extra("user_id")
+	logger.Info("userID ", userID)
+
+	client := conf.Client(ctx, token)
+	resp, err := client.Get(fmt.Sprintf(configs.Configs.VKOAuth.AppUrl, token.AccessToken))
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		return
+	}
+	defer resp.Body.Close()
+
+	data := &models.Response{}
+	err = json.NewDecoder(resp.Body).Decode(&data)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		return
+	}
+	logger.Info("oauth data ", data)
+
+	userOAuth := &models.UserOAuthRequest{
+		LastName:      data.Response[0].LastName,
+		FirstName:     data.Response[0].FirstName,
+		Photo:         data.Response[0].Photo,
+		UserOAuthID:   userID.(float64),
+		UserOAuthType: "vk",
+	}
+	logger.Debug("user oauth data ", userOAuth)
+
+	errE := uh.userUcase.CreateOrLogin(userOAuth)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		return
+	}
+	logger.Debug("userID ", userOAuth.ID)
+
+	session := models.CreateSession(userOAuth.ID)
+	errE = uh.sessUcase.Create(session)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		return
+	}
+	logger.Debug("session ", session)
+
+	cookie := http.Cookie{
+		Name:    "session_id",
+		Value:   session.Value,
+		Expires: session.ExpiresAt,
+		//Secure:   true,
+		//SameSite: http.SameSiteLaxMode,
+		//HttpOnly: true,
+	}
+	logger.Debug("cookie ", cookie)
+
+	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
 }

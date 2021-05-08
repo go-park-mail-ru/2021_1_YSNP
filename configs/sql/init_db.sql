@@ -16,19 +16,26 @@ GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO postgres;
 create table if not exists users
 (
     id        serial primary key,
-    email     varchar(64)        not null,
-    telephone varchar(12) unique not null,
-    password  text               not null,
-    name      varchar(64)        not null,
-    surname   varchar(64)        not null,
-    sex       varchar(12)        not null,
-    birthdate date,
+    email     varchar(64),
+    telephone varchar(12) unique    default NULL,
+    password  text                  default NULL,
+    name      varchar(64)  not null,
+    surname   varchar(64)  not null,
+    sex       varchar(12)           default NULL,
+    birthdate date                  default NULL,
     reg_date  timestamp,
-    latitude  float                       DEFAULT 55.753808,
-    longitude float                       DEFAULT 37.620017,
-    radius    int                         DEFAULT 0,
-    address   varchar(128)                DEFAULT 'Москва',
-    avatar    varchar(128)       NOT NULL DEFAULT ''
+    latitude  float                 DEFAULT 55.753808,
+    longitude float                 DEFAULT 37.620017,
+    radius    int                   DEFAULT 0,
+    address   varchar(128)          DEFAULT 'Москва',
+    avatar    varchar(512) NOT NULL DEFAULT ''
+);
+
+create table if not exists users_oauth
+(
+    user_id    int unique  not null,
+    oauth_type varchar(20) not null,
+    oauth_id   float unique  not null
 );
 
 create table if not exists category
@@ -78,60 +85,66 @@ CREATE TABLE IF NOT EXISTS user_favorite
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
 );
 
-create table if not exists chats(
-                                    id serial primary key,
-                                    creation_time timestamp,
+create table if not exists chats
+(
+    id               serial primary key,
+    creation_time    timestamp,
 
-                                    last_msg_id integer default 0,  -- trigger
-                                    last_msg_content text default '',  -- trigger
-                                    last_msg_time timestamp not null default NOW()  -- trigger
+    last_msg_id      integer            default 0,    -- trigger
+    last_msg_content text               default '',   -- trigger
+    last_msg_time    timestamp not null default NOW() -- trigger
 );
 
 
 
-create table if not exists user_chats(
-                                      user_id integer not null,
-                                      partner_id integer not null,
-                                      product_id integer not null,
-                                      chat_id integer not null,
-                                      last_read_msg_id int default 0,
+create table if not exists user_chats
+(
+    user_id          integer not null,
+    partner_id       integer not null,
+    product_id       integer not null,
+    chat_id          integer not null,
+    last_read_msg_id int default 0,
 
-                                      new_messages int default 0,  -- trigger
+    new_messages     int default 0, -- trigger
 
-                                      primary key (user_id, partner_id, product_id),
-                                      foreign key(user_id) references users(id) on delete cascade,
-                                      foreign key(partner_id) references users(id) on delete cascade,
-                                      foreign key (product_id) references product(id) on delete cascade,
-                                      foreign key(chat_id) references chats(id) on delete cascade
+    primary key (user_id, partner_id, product_id),
+    foreign key (user_id) references users (id) on delete cascade,
+    foreign key (partner_id) references users (id) on delete cascade,
+    foreign key (product_id) references product (id) on delete cascade,
+    foreign key (chat_id) references chats (id) on delete cascade
 );
 
 
-create table if not exists messages(
-                                       id serial primary key,
-                                       content text not null,
-                                       creation_time timestamp not null default NOW(),
-                                       chat_id integer not null,
-                                       user_id integer not null,
+create table if not exists messages
+(
+    id            serial primary key,
+    content       text      not null,
+    creation_time timestamp not null default NOW(),
+    chat_id       integer   not null,
+    user_id       integer   not null,
 
-                                       foreign key(user_id) references users(id) on delete cascade,
-                                       foreign key(chat_id) references chats(id) on delete cascade
+    foreign key (user_id) references users (id) on delete cascade,
+    foreign key (chat_id) references chats (id) on delete cascade
 );
 
-CREATE OR REPLACE FUNCTION msg_change() RETURNS TRIGGER AS $msg_change$
+CREATE OR REPLACE FUNCTION msg_change() RETURNS TRIGGER AS
+$msg_change$
 BEGIN
     IF (TG_OP = 'INSERT') THEN
         UPDATE user_chats
         SET new_messages = new_messages + 1
-        where user_chats.chat_id = NEW.chat_id AND user_chats.partner_id = NEW.user_id;
+        where user_chats.chat_id = NEW.chat_id
+          AND user_chats.partner_id = NEW.user_id;
 
         UPDATE user_chats
         SET last_read_msg_id = NEW.id
-        where user_chats.chat_id = NEW.chat_id AND user_chats.user_id = NEW.user_id;
+        where user_chats.chat_id = NEW.chat_id
+          AND user_chats.user_id = NEW.user_id;
 
         UPDATE chats
-        SET last_msg_id = NEW.id,
+        SET last_msg_id      = NEW.id,
             last_msg_content = NEW.content,
-            last_msg_time = NEW.creation_time
+            last_msg_time    = NEW.creation_time
         WHERE chats.id = NEW.chat_id;
 
     END IF;
@@ -141,8 +154,10 @@ $msg_change$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER upd_msgs
-    AFTER INSERT ON messages
-    FOR EACH ROW EXECUTE PROCEDURE msg_change();
+    AFTER INSERT
+    ON messages
+    FOR EACH ROW
+EXECUTE PROCEDURE msg_change();
 
 INSERT INTO users (email, telephone, password, name, surname, sex)
 VALUES ('asd', '123', '123', '123', '123', 'M');

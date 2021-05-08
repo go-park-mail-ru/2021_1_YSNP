@@ -1,5 +1,6 @@
 {
   "server": {
+    "url": "http://localhost:3000/",
     "host": "89.208.199.170",
     "port": "8080"
   },
@@ -26,5 +27,12 @@
     "password": "pass",
     "host": "127.0.0.1",
     "port": 3301
+  },
+  "VKOAuth": {
+    "app_id": "7848246",
+    "app_key": "AQC2rbWwpMP5Uqdwpi1c",
+    "app_secret": "47aebea847aebea847aebea8f147d97f9e447ae47aebea8273b9756e928baeed2c64a0d",
+    "app_url": "https://api.vk.com/method/users.get?fields=email,photo_max&access_token=%s&v=5.130",
+    "redirect_url": "http://localhost:8080/api/v1/oauth/vk"
   }
 }
