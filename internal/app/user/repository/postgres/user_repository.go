@@ -3,8 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"time"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
@@ -70,17 +68,21 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				WHERE telephone=$1`,
 		telephone)
 
-	var date time.Time
+	var nullEmail sql.NullString
+	var nullTelephone sql.NullString
+	var nullPassword sql.NullString
+	var nullSex sql.NullString
+	var nullDate sql.NullTime
 
 	err := query.Scan(
 		&user.ID,
-		&user.Email,
-		&user.Telephone,
-		&user.Password,
+		&nullEmail,
+		&nullTelephone,
+		&nullPassword,
 		&user.Name,
 		&user.Surname,
-		&user.Sex,
-		&date,
+		&nullSex,
+		&nullDate,
 		&user.Latitude,
 		&user.Longitude,
 		&user.Radius,
@@ -90,7 +92,26 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 		return nil, err
 	}
 
-	user.DateBirth = date.Format("2006-01-02")
+	if nullEmail.Valid {
+		user.Email = nullEmail.String
+	}
+
+	if nullTelephone.Valid {
+		user.Telephone = nullTelephone.String
+	}
+
+	if nullPassword.Valid {
+		user.Password = nullPassword.String
+	}
+
+	if nullSex.Valid {
+		user.Sex = nullSex.String
+	}
+
+	if nullDate.Valid {
+		date := nullDate.Time
+		user.DateBirth = date.Format("2006-01-02")
+	}
 
 	return user, nil
 }
@@ -107,17 +128,21 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 				WHERE id=$1`,
 		userID)
 
-	var date time.Time
+	var nullEmail sql.NullString
+	var nullTelephone sql.NullString
+	var nullPassword sql.NullString
+	var nullSex sql.NullString
+	var nullDate sql.NullTime
 
 	err := query.Scan(
 		&user.ID,
-		&user.Email,
-		&user.Telephone,
-		&user.Password,
+		&nullEmail,
+		&nullTelephone,
+		&nullPassword,
 		&user.Name,
 		&user.Surname,
-		&user.Sex,
-		&date,
+		&nullSex,
+		&nullDate,
 		&user.Latitude,
 		&user.Longitude,
 		&user.Radius,
@@ -127,7 +152,26 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		return nil, err
 	}
 
-	user.DateBirth = date.Format("2006-01-02")
+	if nullEmail.Valid {
+		user.Email = nullEmail.String
+	}
+
+	if nullTelephone.Valid {
+		user.Telephone = nullTelephone.String
+	}
+
+	if nullPassword.Valid {
+		user.Password = nullPassword.String
+	}
+
+	if nullSex.Valid {
+		user.Sex = nullSex.String
+	}
+
+	if nullDate.Valid {
+		date := nullDate.Time
+		user.DateBirth = date.Format("2006-01-02")
+	}
 
 	return user, nil
 }

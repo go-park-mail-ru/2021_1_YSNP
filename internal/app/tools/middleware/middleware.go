@@ -2,9 +2,9 @@ package middleware
 
 import (
 	"context"
+	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -96,10 +96,16 @@ func (m *Middleware) AccessLogMiddleware(next http.Handler) http.Handler {
 		}).Info("Fulfilled connection")
 
 		if r.URL.Path != "/metrics" {
-			url := strings.Split(r.URL.String(), "?")[0]
-			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), url, r.Method).Inc()
+			currentRoute := mux.CurrentRoute(r)
+			pathTemplate, err := currentRoute.GetPathTemplate()
+			if err != nil {
+				m.logrusLogger.Warn("current path template")
+				return
+			}
+
+			m.metricsM.Hits.WithLabelValues(strconv.Itoa(o.Status), pathTemplate, r.Method).Inc()
 			m.metricsM.Timings.WithLabelValues(
-				strconv.Itoa(o.Status), url, r.Method).Observe(float64(start.Second()))
+				strconv.Itoa(o.Status), pathTemplate, r.Method).Observe(float64(start.Second()))
 		}
 
 	})
