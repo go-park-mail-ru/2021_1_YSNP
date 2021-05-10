@@ -98,7 +98,7 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 		Telephone:  signUp.Telephone,
 		Password:   signUp.Password1,
 		DateBirth:  signUp.DateBirth,
-		LinkImages: signUp.LinkImages,
+		LinkImages: "/static/avatar/profile.webp",
 	}
 
 	errE := uh.userUcase.Create(user)

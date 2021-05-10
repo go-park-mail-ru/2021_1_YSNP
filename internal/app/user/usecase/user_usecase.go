@@ -138,6 +138,10 @@ func (uu *UserUsecase) UpdateAvatar(userID uint64, fileHeader *multipart.FileHea
 		return nil, errors.UnexpectedInternal(err)
 	}
 
+	if oldAvatar == "/static/avatar/profile.webp" {
+		return user, nil
+	}
+
 	err = uu.uploadRepo.RemovePhoto(oldAvatar)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
