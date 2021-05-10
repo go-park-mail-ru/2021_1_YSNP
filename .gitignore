@@ -1,4 +1,7 @@
 static/
+postgres-data/
+tarantool-data/
+
 config.json
 
 ### Code ###
