@@ -45,7 +45,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/position", mw.CheckAuthMiddleware(uh.ChangeUserLocationHandler)).Methods(http.MethodPost, http.MethodOptions)
 
-	r.HandleFunc("/oauth/vk", uh.VkOauth).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
+	r.HandleFunc("/oauth/vk", uh.VKOauth).Methods(http.MethodOptions, http.MethodGet)
 }
 
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
@@ -444,7 +444,7 @@ func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.
 	w.Write(errors.JSONSuccess("Successful change."))
 }
 
-func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
+func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -455,9 +455,9 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	code := r.FormValue("code")
 	conf := &oauth2.Config{
-		ClientID:     configs.Configs.VKOAuth.AppID,
-		ClientSecret: configs.Configs.VKOAuth.AppKey,
-		RedirectURL:  configs.Configs.VKOAuth.RedirectURL,
+		ClientID:     configs.Configs.GetVKAppID(),
+		ClientSecret: configs.Configs.GetVKAppKey(),
+		RedirectURL:  configs.Configs.GetVKRedirectUrl(),
 		Endpoint:     vk.Endpoint,
 	}
 	logger.Debug("code ", code)
@@ -468,7 +468,7 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
-		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("token ", token)
@@ -477,13 +477,13 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 	logger.Info("userID ", userID)
 
 	client := conf.Client(ctx, token)
-	resp, err := client.Get(fmt.Sprintf(configs.Configs.VKOAuth.AppUrl, token.AccessToken))
+	resp, err := client.Get(fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken))
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
-		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	defer resp.Body.Close()
@@ -495,7 +495,7 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 		errE := errors.UnexpectedBadRequest(err)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
-		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Info("oauth data ", data)
@@ -514,7 +514,7 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
-		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("userID ", userOAuth.ID)
@@ -525,7 +525,7 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)
 		w.Write(errors.JSONError(errE))
-		http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("session ", session)
@@ -541,5 +541,5 @@ func (uh *UserHandler) VkOauth(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("cookie ", cookie)
 
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, configs.Configs.Server.URL, http.StatusTemporaryRedirect)
+	http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 }

@@ -7,21 +7,25 @@ import (
 )
 
 type Config struct {
-	Server struct {
+	Frontend struct {
+		URL string `json:"url"`
+	} `json:"frontend"`
+
+	Main struct {
 		URL  string `json:"url"`
 		Host string `json:"host"`
 		Port string `json:"port"`
-	} `json:"server"`
+	} `json:"main"`
 
 	Auth struct {
 		Host string `json:"host"`
 		Port string `json:"port"`
-	} `json:"auth_microservice"`
+	} `json:"auth"`
 
 	Chat struct {
 		Host string `json:"host"`
 		Port string `json:"port"`
-	} `json:"chat_microservice"`
+	} `json:"chat"`
 
 	Logger struct {
 		Mode string `json:"mode"`
@@ -42,13 +46,18 @@ type Config struct {
 		Port     int    `json:"port"`
 	} `json:"tarantool"`
 
+	Jaeger struct {
+		Host string `json:"host"`
+		Port int    `json:"port"`
+	} `json:"jaeger"`
+
 	VKOAuth struct {
 		AppID       string `json:"app_id"`
 		AppKey      string `json:"app_key"`
 		AppSecret   string `json:"app_secret"`
 		AppUrl      string `json:"app_url"`
 		RedirectURL string `json:"redirect_url"`
-	}
+	} `json:"VKOAuth"`
 }
 
 func LoadConfig(name string) (*Config, error) {
@@ -68,16 +77,20 @@ func LoadConfig(name string) (*Config, error) {
 
 var Configs *Config
 
-func (c *Config) GetServerUrl() string {
-	return c.Server.URL
+func (c *Config) GetFrontendUrl() string {
+	return c.Frontend.URL
 }
 
-func (c *Config) GetServerHost() string {
-	return c.Server.Host
+func (c *Config) GetMainUrl() string {
+	return c.Main.URL
 }
 
-func (c *Config) GetServerPort() string {
-	return c.Server.Port
+func (c *Config) GetMainHost() string {
+	return c.Main.Host
+}
+
+func (c *Config) GetMainPort() string {
+	return c.Main.Port
 }
 
 func (c *Config) GetAuthHost() string {
@@ -115,4 +128,28 @@ func (c *Config) GetTarantoolPassword() string {
 
 func (c *Config) GetTarantoolConfig() string {
 	return fmt.Sprint(c.Tarantool.Host, ":", c.Tarantool.Port)
+}
+
+func (c Config) GetJaegerConfig() string {
+	return fmt.Sprint(c.Jaeger.Host, ":", c.Jaeger.Port)
+}
+
+func (c *Config) GetVKAppID() string {
+	return c.VKOAuth.AppID
+}
+
+func (c *Config) GetVKAppKey() string {
+	return c.VKOAuth.AppKey
+}
+
+func (c *Config) GetVKAppSecret() string {
+	return c.VKOAuth.AppSecret
+}
+
+func (c *Config) GetVKAppUrl() string {
+	return c.VKOAuth.AppUrl
+}
+
+func (c *Config) GetVKRedirectUrl() string {
+	return fmt.Sprint(c.Main.URL, c.VKOAuth.RedirectURL)
 }
