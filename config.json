@@ -4,27 +4,31 @@
     "port": "8080"
   },
   "auth_microservice": {
-    "host": "localhost",
+    "host": "auth",
     "port": "8081"
   },
   "chat_microservice": {
-    "host": "localhost",
+    "host": "chat",
     "port": "8082"
   },
   "logger": {
-    "mode": "development"
+    "mode": "production"
   },
   "postgres": {
     "user": "postgres",
-    "password": "postgres",
+    "password": "ysnpkoyapassword",
     "name": "ysnpkoyadb",
-    "host": "localhost",
+    "host": "postgres",
     "port": 5432
   },
   "tarantool": {
     "user": "admin",
     "password": "pass",
-    "host": "127.0.0.1",
+    "host": "tarantool",
     "port": 3301
+  },
+  "jaeger": {
+    "host": "jaeger",
+    "port": 6831
   }
 }
