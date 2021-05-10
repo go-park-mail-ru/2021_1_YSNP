@@ -1,9 +1,9 @@
 {
   "frontend": {
-    "url": "http://localhost:3000/"
+    "url": "https://ykoya.ru/"
   },
   "main": {
-    "url": "http://localhost:8080/api/v1/",
+    "url": "https://ykoya.ru/api/v1/",
     "host": "89.208.199.170",
     "port": "8080"
   },
