@@ -11,5 +11,5 @@ type UserRepository interface {
 	Update(user *models.UserData) error
 
 	InsertOAuth(userOAuth *models.UserOAuthRequest) error
-	SelectByOAuthID(userOAuthID float64) (uint64, error)
+	SelectByOAuthID(userOAuthID float64) uint64
 }

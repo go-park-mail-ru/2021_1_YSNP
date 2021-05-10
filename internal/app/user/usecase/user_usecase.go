@@ -195,17 +195,13 @@ func (uu *UserUsecase) UpdateLocation(userID uint64, data *models.LocationReques
 }
 
 func (uu *UserUsecase) CreateOrLogin(userOAuth *models.UserOAuthRequest) *errors.Error {
-	userID, err := uu.userRepo.SelectByOAuthID(userOAuth.UserOAuthID)
-	if err != nil {
-		return errors.UnexpectedInternal(err)
-	}
-
+	userID := uu.userRepo.SelectByOAuthID(userOAuth.UserOAuthID)
 	if userID != 0 {
 		userOAuth.ID = userID
 		return nil
 	}
 
-	err = uu.userRepo.InsertOAuth(userOAuth)
+	err := uu.userRepo.InsertOAuth(userOAuth)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}

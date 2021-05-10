@@ -270,7 +270,7 @@ func (ur *UserRepository) InsertOAuth(userOAuth *models.UserOAuthRequest) error 
 	return nil
 }
 
-func (ur *UserRepository) SelectByOAuthID(userOAuthID float64) (uint64, error) {
+func (ur *UserRepository) SelectByOAuthID(userOAuthID float64) uint64 {
 	query := ur.dbConn.QueryRow(
 		`
 				SELECT user_id
@@ -283,8 +283,8 @@ func (ur *UserRepository) SelectByOAuthID(userOAuthID float64) (uint64, error) {
 	err := query.Scan(
 		&userID)
 	if err != nil {
-		return 0, err
+		return 0
 	}
 
-	return userID, nil
+	return userID
 }
