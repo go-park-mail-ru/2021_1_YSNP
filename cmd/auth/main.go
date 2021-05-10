@@ -12,7 +12,7 @@ import (
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
 	authUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	appConfig "github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
@@ -21,10 +21,11 @@ import (
 )
 
 func main() {
-	configs, err := configs.LoadConfig("./config.json")
+	configs, err := appConfig.LoadConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	appConfig.Configs = configs
 
 	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
 	if err != nil {

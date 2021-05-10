@@ -40,6 +40,11 @@ type Config struct {
 		Host     string `json:"host"`
 		Port     int    `json:"port"`
 	} `json:"tarantool"`
+
+	Jaeger struct {
+		Host string `json:"host"`
+		Port int    `json:"port"`
+	} `json:"jaeger"`
 }
 
 func LoadConfig(name string) (*Config, error) {
@@ -56,6 +61,8 @@ func LoadConfig(name string) (*Config, error) {
 
 	return config, nil
 }
+
+var Configs *Config
 
 func (c *Config) GetServerHost() string {
 	return c.Server.Host
@@ -100,4 +107,8 @@ func (c *Config) GetTarantoolPassword() string {
 
 func (c *Config) GetTarantoolConfig() string {
 	return fmt.Sprint(c.Tarantool.Host, ":", c.Tarantool.Port)
+}
+
+func (c Config) GetJaegerConfig() string {
+	return fmt.Sprint(c.Jaeger.Host, ":", c.Jaeger.Port)
 }

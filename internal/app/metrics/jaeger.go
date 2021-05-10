@@ -8,6 +8,8 @@ import (
 	jaegercfg "github.com/uber/jaeger-client-go/config"
 	jaegerlog "github.com/uber/jaeger-client-go/log"
 	"github.com/uber/jaeger-lib/metrics"
+
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 )
 
 type Jaeger struct {
@@ -24,7 +26,7 @@ func NewJaeger(serverName string) (Jaeger, error) {
 		},
 		Reporter: &jaegercfg.ReporterConfig{
 			LogSpans:           true,
-			LocalAgentHostPort: "localhost:6831",
+			LocalAgentHostPort: configs.Configs.GetJaegerConfig(),
 		},
 	}
 
