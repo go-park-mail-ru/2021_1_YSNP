@@ -24,7 +24,7 @@ create table if not exists users
     name      varchar(64)        not null,
     surname   varchar(64)        not null,
     sex       varchar(12)        not null,
-    birthdate date,
+    birthdate date DEFAULT NULL,
     reg_date  timestamp,
     latitude  float                       DEFAULT 55.753808,
     longitude float                       DEFAULT 37.620017,
