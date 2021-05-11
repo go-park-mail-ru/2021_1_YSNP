@@ -38,42 +38,14 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
-	r.HandleFunc("/product/trends", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.TrendsPageHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/user/favorite/like/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.LikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/favorite/dislike/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.DislikeProductHandler)).Methods(http.MethodPost, http.MethodOptions)
-}
 
-func (ph *ProductHandler) TrendsPageHandler(w http.ResponseWriter, r *http.Request) {
-	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
-	if !ok {
-		logger = log.GetDefaultLogger()
-		logger.Warn("no logger")
-	}
-
-	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
-	logger.Info("user id ", userID)
-
-	products, errE := ph.productUcase.TrendList(&userID)
-	if errE != nil {
-		logger.Error(errE.Message)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
-
-	w.WriteHeader(http.StatusOK)
-	w.Header().Set("Content-Type", "application/json")
-	err := json.NewEncoder(w).Encode(products)
-	if err != nil {
-		logger.Error(err)
-		errE := errors.UnexpectedInternal(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
-		return
-	}
+	r.HandleFunc("/product/trend/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.TrendHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/product/{id:[0-9]+}/trend/list", mw.SetCSRFToken(ph.ProductTrendsHandler)).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -581,4 +553,75 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 
 	w.WriteHeader(http.StatusOK)
 	w.Write(errors.JSONSuccess("Successful dislike."))
+}
+
+func (ph *ProductHandler) TrendHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	products, errE := ph.productUcase.TrendList(&userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}
+
+func (ph *ProductHandler) ProductTrendsHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, _ := r.Context().Value(middleware.ContextUserID).(uint64)
+	logger.Info("user id ", userID)
+
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("product id ", productID)
+
+	products, errE := ph.productUcase.RecommendationList(productID, userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
 }

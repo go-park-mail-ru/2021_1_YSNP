@@ -5,8 +5,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/bbalet/stopwords"
+	"github.com/kljensen/snowball"
 	"sort"
 	"strconv"
+	"strings"
 	"time"
 	"unicode/utf8"
 
@@ -16,18 +19,18 @@ import (
 )
 
 type TrendsRepository struct {
-	dbConn *tarantool.Connection
+	dbConn     *tarantool.Connection
 	dbConnPsql *sql.DB
 }
 
 func NewTrendsRepository(conn *tarantool.Connection, conn2 *sql.DB) trends.TrendsRepository {
 	return &TrendsRepository{
-		dbConn: conn,
+		dbConn:     conn,
 		dbConnPsql: conn2,
 	}
 }
 
-func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends) ([]uint64, error) {
+func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends, orderBy string) ([]uint64, error) {
 	selectQuery := `
 				SELECT p.id
 				FROM product as p
@@ -42,14 +45,25 @@ func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models
 			trendValue = append(trendValue, "%"+trend.Title+"%")
 			continue
 		}
-		titleLike += ", LOWER($" + strconv.Itoa(i + 2) + ")"
+		titleLike += ", LOWER($" + strconv.Itoa(i+2) + ")"
 		trendValue = append(trendValue, "%"+trend.Title+"%")
 	}
 	selectQuery += titleLike
-	selectQuery += `])
+	if orderBy == "date" {
+		selectQuery += `])
 				ORDER BY p.date DESC 
 				LIMIT 30
 				`
+	} else if orderBy == "likes" {
+		selectQuery += `])
+				ORDER BY p.likes DESC 
+				LIMIT 30
+				`
+	} else {
+		selectQuery += `]) 
+				LIMIT 30
+				`
+	}
 
 	query, err := tr.dbConnPsql.Query(selectQuery, trendValue...)
 	if err != nil {
@@ -72,11 +86,11 @@ func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models
 
 func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	val, _ := tr.dbConn.Call("get_user_trend", []interface{}{userID})
-	d  := fmt.Sprintf("%v", val.Data)
+	d := fmt.Sprintf("%v", val.Data)
 	oldModel := &models.Trends{}
 	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-	productsID, err := tr.getNewTrendsProductID(userID, *oldModel)
+	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, "date")
 	if err != nil {
 		return err
 	}
@@ -99,9 +113,8 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	resp, _ := tr.dbConn.Insert("trends_products", []interface{}{userID, dataStr})
 	if resp.Code == 3 {
 		val, err = tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
-		d  = fmt.Sprintf("%v", val.Data)
+		d = fmt.Sprintf("%v", val.Data)
 		json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
-
 
 		oldProducts, err = replaceNewTrends(productsID, *oldProducts, userID)
 		if err != nil {
@@ -127,7 +140,7 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 		for _, prod := range oldProducts.Popular {
 			if productsID[i] == prod.ProductID {
 				prod.Time = time.Now()
-				if i + 1 != len(productsID) {
+				if i+1 != len(productsID) {
 					productsID = append(productsID[:i], productsID[i+1:]...)
 					i -= 1
 					break
@@ -143,12 +156,70 @@ func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, use
 			prod.Time = time.Now()
 			oldProducts.Popular = append(oldProducts.Popular, prod)
 		} else {
-			oldProducts.Popular[len(oldProducts.Popular)- i - 1].ProductID = id
-			oldProducts.Popular[len(oldProducts.Popular)-i - 1].Time = time.Now()
+			oldProducts.Popular[len(oldProducts.Popular)-i-1].ProductID = id
+			oldProducts.Popular[len(oldProducts.Popular)-i-1].Time = time.Now()
 		}
 	}
 	oldProducts.UserID = userID
 	return &oldProducts, nil
+}
+
+func (tr *TrendsRepository) checkSuffix(word string) bool {
+	if len(word) < 5 {
+		return true
+	}
+	stop := []string{"ими", "ыми", "его", "ого", "ему", "ому", "ее", "ие",
+		"ые", "ое", "ей", "ий", "ый", "ой", "ем", "им", "ым",
+		"ом", "их", "ых", "ую", "юю", "ая", "яя", "ою", "ею"}
+
+	for _, item := range stop {
+		suf := word[len(word)-len(item):]
+		if suf == item {
+			return false
+		}
+	}
+	return true
+}
+
+func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID uint64) ([]uint64, error) {
+	query := tr.dbConnPsql.QueryRow(
+		`
+				SELECT p.name
+				FROM product AS p
+				WHERE p.id=$1
+				`,
+		productID)
+	var title string
+	err := query.Scan(&title)
+	if err != nil {
+		return nil, err
+	}
+
+	var words models.Trends
+	words.UserID = userID
+	cleanContent := stopwords.CleanString(title, "ru", true)
+	sn := strings.TrimSpace(cleanContent)
+	s := strings.FieldsFunc(sn, func(r rune) bool { return strings.ContainsRune(" .,:-", r) })
+	for _, item := range s {
+		if !tr.checkSuffix(item) {
+			continue
+		}
+
+		stemmed, err := snowball.Stem(item, "russian", true)
+		if err == nil {
+			words.Popular = append(words.Popular, models.Popular{
+				Title: stemmed,
+				Count: 1,
+				Date:  time.Now(),
+			})
+		}
+	}
+
+	productsID, err := tr.getNewTrendsProductID(userID, words, "likes")
+	if err != nil {
+		return nil, err
+	}
+	return productsID, nil
 }
 
 func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
@@ -157,7 +228,7 @@ func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
 	if err != nil {
 		return nil, err
 	}
-	d  := fmt.Sprintf("%v", val.Data)
+	d := fmt.Sprintf("%v", val.Data)
 	json.Unmarshal([]byte(removeLastChar(d)), &products)
 
 	var productsID []uint64
@@ -168,7 +239,7 @@ func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
 }
 
 func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
-	for _, item := range ui1.Popular{
+	for _, item := range ui1.Popular {
 		found := false
 		for i, item_2 := range ui2.Popular {
 			if item.Title == item_2.Title {
@@ -185,12 +256,12 @@ func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 		}
 	}
 
-    i := 0
+	i := 0
 	for i < len(ui2.Popular) {
-		if ui2.Popular[i].Date.Unix() < time.Now().Add(-10 * time.Hour).Unix() {
+		if ui2.Popular[i].Date.Unix() < time.Now().Add(-10*time.Hour).Unix() {
 			ui2.Popular = remove(ui2.Popular, i)
 			i -= 1
-		} 
+		}
 		i += 1
 	}
 
@@ -200,14 +271,14 @@ func (tr *TrendsRepository) updateData(ui1 *models.Trends, ui2 *models.Trends) {
 func remove(slice []models.Popular, i int) []models.Popular {
 	slice[i] = slice[len(slice)-1]
 	return slice[:len(slice)-1]
-  }
+}
 
 func removeLastChar(str string) string {
-      for len(str) > 0 {
-              _, size := utf8.DecodeLastRuneInString(str)
-              return str[2:len(str)-size - 1]
-      }
-      return str
+	for len(str) > 0 {
+		_, size := utf8.DecodeLastRuneInString(str)
+		return str[2 : len(str)-size-1]
+	}
+	return str
 }
 
 func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
@@ -223,7 +294,7 @@ func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
 
 	if resp.Code == 3 {
 		val, _ := tr.dbConn.Call("get_user_trend", []interface{}{ui.UserID})
-		d  := fmt.Sprintf("%v", val.Data)
+		d := fmt.Sprintf("%v", val.Data)
 		oldModel := &models.Trends{}
 		json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
