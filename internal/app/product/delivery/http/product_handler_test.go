@@ -942,7 +942,7 @@ func TestProductHandler_TrendsPageHandler_Success(t *testing.T) {
 	var userID uint64 = 1;
 	prodUcase.EXPECT().TrendList(&userID).Return([]*models.ProductListData{}, nil)
 
-	prodHandler.TrendsPageHandler(w, r.WithContext(ctx))
+	prodHandler.TrendHandler(w, r.WithContext(ctx))
 
 	assert.Equal(t, http.StatusOK, w.Code)
 
@@ -950,7 +950,7 @@ func TestProductHandler_TrendsPageHandler_Success(t *testing.T) {
 	w = httptest.NewRecorder()
 	prodUcase.EXPECT().TrendList(&userID).Return(nil, errors.UnexpectedInternal(sql.ErrConnDone))
 
-	prodHandler.TrendsPageHandler(w, r.WithContext(ctx))
+	prodHandler.TrendHandler(w, r.WithContext(ctx))
 
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 }
