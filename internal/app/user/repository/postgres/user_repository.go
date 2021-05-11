@@ -3,6 +3,8 @@ package repository
 import (
 	"context"
 	"database/sql"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/null_value"
+
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
@@ -28,13 +30,13 @@ func (ur *UserRepository) Insert(user *models.UserData) error {
 				INSERT INTO users(email, telephone, password, name, surname, sex, birthdate, avatar)
 				VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
 				RETURNING id`,
-		user.Email,
-		user.Telephone,
-		user.Password,
+		null_value.NewNullString(user.Email),
+		null_value.NewNullString(user.Telephone),
+		null_value.NewNullString(user.Password),
 		user.Name,
 		user.Surname,
-		user.Sex,
-		user.DateBirth,
+		null_value.NewNullString(user.Sex),
+		null_value.NewNullString(user.DateBirth),
 		user.LinkImages)
 
 	err = query.Scan(&user.ID)
@@ -92,21 +94,10 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 		return nil, err
 	}
 
-	if nullEmail.Valid {
-		user.Email = nullEmail.String
-	}
-
-	if nullTelephone.Valid {
-		user.Telephone = nullTelephone.String
-	}
-
-	if nullPassword.Valid {
-		user.Password = nullPassword.String
-	}
-
-	if nullSex.Valid {
-		user.Sex = nullSex.String
-	}
+	user.Email = null_value.NewStringFromNull(nullEmail)
+	user.Telephone = null_value.NewStringFromNull(nullTelephone)
+	user.Password = null_value.NewStringFromNull(nullPassword)
+	user.Sex = null_value.NewStringFromNull(nullSex)
 
 	if nullDate.Valid {
 		date := nullDate.Time
@@ -152,21 +143,10 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		return nil, err
 	}
 
-	if nullEmail.Valid {
-		user.Email = nullEmail.String
-	}
-
-	if nullTelephone.Valid {
-		user.Telephone = nullTelephone.String
-	}
-
-	if nullPassword.Valid {
-		user.Password = nullPassword.String
-	}
-
-	if nullSex.Valid {
-		user.Sex = nullSex.String
-	}
+	user.Email = null_value.NewStringFromNull(nullEmail)
+	user.Telephone = null_value.NewStringFromNull(nullTelephone)
+	user.Password = null_value.NewStringFromNull(nullPassword)
+	user.Sex = null_value.NewStringFromNull(nullSex)
 
 	if nullDate.Valid {
 		date := nullDate.Time
@@ -191,13 +171,13 @@ func (ur *UserRepository) Update(user *models.UserData) error {
 				avatar = $13
 				WHERE id = $1;`,
 		user.ID,
-		user.Email,
-		user.Telephone,
-		user.Password,
+		null_value.NewNullString(user.Email),
+		null_value.NewNullString(user.Telephone),
+		null_value.NewNullString(user.Password),
 		user.Name,
 		user.Surname,
-		user.Sex,
-		user.DateBirth,
+		null_value.NewNullString(user.Sex),
+		null_value.NewNullString(user.DateBirth),
 		user.Latitude,
 		user.Longitude,
 		user.Radius,
