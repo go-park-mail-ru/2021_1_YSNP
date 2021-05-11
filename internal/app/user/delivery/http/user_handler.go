@@ -121,13 +121,12 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:    "session_id",
-		Value:   session.Value,
-		Expires: session.ExpiresAt,
-		Path:    "/",
-		//Secure:   true,
-		//SameSite: http.SameSiteLaxMode,
-		//HttpOnly: true,
+		Name:     "session_id",
+		Value:    session.Value,
+		Expires:  session.ExpiresAt,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
 	}
 	logger.Debug("cookie ", cookie)
 
@@ -468,9 +467,6 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	token, err := conf.Exchange(ctx, code)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
 		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
@@ -483,9 +479,6 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Get(fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken))
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
 		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
@@ -495,9 +488,6 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
 		logger.Error(err)
-		errE := errors.UnexpectedBadRequest(err)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
 		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
@@ -515,8 +505,6 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	errE := uh.userUcase.CreateOrLogin(userOAuth)
 	if errE != nil {
 		logger.Error(errE.Message)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
 		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
@@ -526,21 +514,19 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	errE = uh.sessUcase.Create(session)
 	if errE != nil {
 		logger.Error(errE.Message)
-		w.WriteHeader(errE.HttpError)
-		w.Write(errors.JSONError(errE))
 		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:    "session_id",
-		Value:   session.Value,
-		Expires: session.ExpiresAt,
-		Path:    "/",
-		//Secure:   true,
-		//SameSite: http.SameSiteLaxMode,
-		//HttpOnly: true,
+		Name:     "session_id",
+		Value:    session.Value,
+		Expires:  session.ExpiresAt,
+		Path:     "/",
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
 	}
 	logger.Debug("cookie ", cookie)
 
