@@ -66,7 +66,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 	}
 
 	profile := &models.ProfileData{
-		ID: 		userID,
+		ID:         userID,
 		Name:       user.Name,
 		Surname:    user.Surname,
 		Sex:        user.Sex,
@@ -138,6 +138,10 @@ func (uu *UserUsecase) UpdateAvatar(userID uint64, fileHeader *multipart.FileHea
 		return nil, errors.UnexpectedInternal(err)
 	}
 
+	if oldAvatar == "/static/avatar/profile.webp" {
+		return user, nil
+	}
+
 	err = uu.uploadRepo.RemovePhoto(oldAvatar)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -192,4 +196,19 @@ func (uu *UserUsecase) UpdateLocation(userID uint64, data *models.LocationReques
 	}
 
 	return user, nil
+}
+
+func (uu *UserUsecase) CreateOrLogin(userOAuth *models.UserOAuthRequest) *errors.Error {
+	userID := uu.userRepo.SelectByOAuthID(userOAuth.UserOAuthID)
+	if userID != 0 {
+		userOAuth.ID = userID
+		return nil
+	}
+
+	err := uu.userRepo.InsertOAuth(userOAuth)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
 }

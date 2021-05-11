@@ -8,9 +8,10 @@ import (
 
 	"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
+	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
 
-	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	appConfig "github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
@@ -50,10 +51,11 @@ import (
 )
 
 func main() {
-	configs, err := configs.LoadConfig("./config.json")
+	configs, err := appConfig.LoadConfig("./config.json")
 	if err != nil {
 		log.Fatal(err)
 	}
+	appConfig.Configs = configs
 
 	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
 	if err != nil {
@@ -80,12 +82,20 @@ func main() {
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+	logger.StartServerLog(configs.GetMainHost(), configs.GetMainPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
+
+	jaeger, err := metrics.NewJaeger("client")
+	if err != nil {
+		log.Fatal("cannot create tracer", err)
+	}
+
+	jaeger.SetGlobalTracer()
+	defer jaeger.Close()
 
 	sessionGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
-		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -95,7 +105,7 @@ func main() {
 
 	chatGRPCConn, err := grpc.Dial(
 		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
-		grpc.WithUnaryInterceptor(ic.ClientLogInterceptor),
+		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
 		log.Fatal(err)
@@ -140,7 +150,7 @@ func main() {
 	chatWSHandler.Configure(api, mw, wsSrv)
 
 	server := http.Server{
-		Addr:         fmt.Sprint(":", configs.GetServerPort()),
+		Addr:         fmt.Sprint(":", configs.GetMainPort()),
 		Handler:      router,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,

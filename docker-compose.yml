@@ -1,46 +1,84 @@
-version: '3'
+version: "3"
 
 # docker rm $(docker ps -a -q) && docker volume prune -f
 
+volumes:
+  postgres-data:
+  tarantool-data:
+
 services:
+  main:
+    image: salekhin/main
+    ports:
+      - "8080:8080"
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - postgres
+      - tarantool
+
+  auth:
+    image: salekhin/auth
+    ports:
+      - "8081:8081"
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - tarantool
+
+  chat:
+    image: salekhin/chat
+    ports:
+      - "8082:8082"
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - postgres
+
   postgres:
     image: postgis/postgis
     build:
       context: ./
       dockerfile: Dockerfile
     environment:
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ysnpkoyapassword
       POSTGRES_DB: ysnpkoyadb
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
       SHARED_PRELOAD_LIBRARIES: pg_cron
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
-      - './configs/sql/:/docker-entrypoint-initdb.d/'
+      - ./postgres-data:/var/lib/postgresql/data
+      - $PWD/configs/sql/:/docker-entrypoint-initdb.d/
+
   tarantool:
-    image: tarantool/tarantool:2.6.0
+    image: tarantool/tarantool
     environment:
       TARANTOOL_USER_NAME: admin
       TARANTOOL_USER_PASSWORD: pass
     ports:
-      - '3301:3301'
+      - "3301:3301"
     volumes:
-      - './configs/lua/:/opt/tarantool/'
+      - ./tarantool-data:/var/lib/tarantool
+      - $PWD/configs/lua/:/opt/tarantool/
     command: tarantool /opt/tarantool/app.lua
+
   prometheus:
     image: prom/prometheus
     ports:
       - "9090:9090"
     volumes:
-      - "./metrics:/etc/prometheus"
+      - $PWD/metrics:/etc/prometheus
+
   alertmanager:
     image: prom/alertmanager
     ports:
       - "9093:9093"
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
     volumes:
-      - "./metrics:/etc/alertmanager"
+      - $PWD/metrics:/etc/alertmanager
+
   alertmanager-bot:
     image: metalmatze/alertmanager-bot
     command:
@@ -53,20 +91,28 @@ services:
       TELEGRAM_ADMIN: "138632615\n211453202\n389692057\n535095969"
       TELEGRAM_TOKEN: 1751242193:AAGNrFE61pvarspGfU4FBzhYF2ECUnf0eKo
     volumes:
-      - "./metrics/alertmanager-bot/templates:/templates"
+      - $PWD/metrics/alertmanager-bot/templates:/templates
+
   grafana:
-      image: grafana/grafana
-      ports:
-        - 5000:5000
-      environment:
-        GF_SERVER_HTTP_PORT: 5000
+    image: grafana/grafana
+    ports:
+      - "5000:5000"
+    environment:
+      GF_SERVER_HTTP_PORT: 5000
+
   node_exporter:
     image: quay.io/prometheus/node-exporter:latest
     container_name: node_exporter
     command:
-      - '--path.rootfs=/host'
+      - "--path.rootfs=/host"
     ports:
-      - '9100:9100'
+      - "9100:9100"
     restart: unless-stopped
     volumes:
-      - '/:/host:ro' 
+      - "/:/host:ro"
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - "6831:6831/udp"
+      - "16686:16686"

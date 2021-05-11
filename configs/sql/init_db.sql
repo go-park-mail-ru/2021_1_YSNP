@@ -13,22 +13,31 @@ CREATE EXTENSION postgis_topology;
 
 GRANT ALL PRIVILEGES ON database ysnpkoyaDB TO postgres;
 
+ALTER USER postgres WITH PASSWORD 'ysnpkoyapassword';
+
 create table if not exists users
 (
     id        serial primary key,
-    email     varchar(64)        not null,
-    telephone varchar(12) unique not null,
-    password  text               not null,
-    name      varchar(64)        not null,
-    surname   varchar(64)        not null,
-    sex       varchar(12)        not null,
-    birthdate date,
+    email     varchar(64)           default NULL,
+    telephone varchar(12) unique    default NULL,
+    password  text                  default NULL,
+    name      varchar(64)  not null,
+    surname   varchar(64)  not null,
+    sex       varchar(12)           default 'notstated',
+    birthdate date                  default NULL,
     reg_date  timestamp,
-    latitude  float                       DEFAULT 55.753808,
-    longitude float                       DEFAULT 37.620017,
-    radius    int                         DEFAULT 0,
-    address   varchar(128)                DEFAULT 'Москва',
-    avatar    varchar(128)       NOT NULL DEFAULT ''
+    latitude  float                 DEFAULT 55.753808,
+    longitude float                 DEFAULT 37.620017,
+    radius    int                   DEFAULT 0,
+    address   varchar(128)          DEFAULT 'Москва',
+    avatar    varchar(512) NOT NULL DEFAULT ''
+);
+
+create table if not exists users_oauth
+(
+    user_id    int unique   not null,
+    oauth_type varchar(20)  not null,
+    oauth_id   float unique not null
 );
 
 create table if not exists category
@@ -78,60 +87,66 @@ CREATE TABLE IF NOT EXISTS user_favorite
     FOREIGN KEY (product_id) REFERENCES product (id) ON DELETE CASCADE
 );
 
-create table if not exists chats(
-                                    id serial primary key,
-                                    creation_time timestamp,
+create table if not exists chats
+(
+    id               serial primary key,
+    creation_time    timestamp,
 
-                                    last_msg_id integer default 0,  -- trigger
-                                    last_msg_content text default '',  -- trigger
-                                    last_msg_time timestamp not null default NOW()  -- trigger
+    last_msg_id      integer            default 0,    -- trigger
+    last_msg_content text               default '',   -- trigger
+    last_msg_time    timestamp not null default NOW() -- trigger
 );
 
 
 
-create table if not exists user_chats(
-                                      user_id integer not null,
-                                      partner_id integer not null,
-                                      product_id integer not null,
-                                      chat_id integer not null,
-                                      last_read_msg_id int default 0,
+create table if not exists user_chats
+(
+    user_id          integer not null,
+    partner_id       integer not null,
+    product_id       integer not null,
+    chat_id          integer not null,
+    last_read_msg_id int default 0,
 
-                                      new_messages int default 0,  -- trigger
+    new_messages     int default 0, -- trigger
 
-                                      primary key (user_id, partner_id, product_id),
-                                      foreign key(user_id) references users(id) on delete cascade,
-                                      foreign key(partner_id) references users(id) on delete cascade,
-                                      foreign key (product_id) references product(id) on delete cascade,
-                                      foreign key(chat_id) references chats(id) on delete cascade
+    primary key (user_id, partner_id, product_id),
+    foreign key (user_id) references users (id) on delete cascade,
+    foreign key (partner_id) references users (id) on delete cascade,
+    foreign key (product_id) references product (id) on delete cascade,
+    foreign key (chat_id) references chats (id) on delete cascade
 );
 
 
-create table if not exists messages(
-                                       id serial primary key,
-                                       content text not null,
-                                       creation_time timestamp not null default NOW(),
-                                       chat_id integer not null,
-                                       user_id integer not null,
+create table if not exists messages
+(
+    id            serial primary key,
+    content       text      not null,
+    creation_time timestamp not null default NOW(),
+    chat_id       integer   not null,
+    user_id       integer   not null,
 
-                                       foreign key(user_id) references users(id) on delete cascade,
-                                       foreign key(chat_id) references chats(id) on delete cascade
+    foreign key (user_id) references users (id) on delete cascade,
+    foreign key (chat_id) references chats (id) on delete cascade
 );
 
-CREATE OR REPLACE FUNCTION msg_change() RETURNS TRIGGER AS $msg_change$
+CREATE OR REPLACE FUNCTION msg_change() RETURNS TRIGGER AS
+$msg_change$
 BEGIN
     IF (TG_OP = 'INSERT') THEN
         UPDATE user_chats
         SET new_messages = new_messages + 1
-        where user_chats.chat_id = NEW.chat_id AND user_chats.partner_id = NEW.user_id;
+        where user_chats.chat_id = NEW.chat_id
+          AND user_chats.partner_id = NEW.user_id;
 
         UPDATE user_chats
         SET last_read_msg_id = NEW.id
-        where user_chats.chat_id = NEW.chat_id AND user_chats.user_id = NEW.user_id;
+        where user_chats.chat_id = NEW.chat_id
+          AND user_chats.user_id = NEW.user_id;
 
         UPDATE chats
-        SET last_msg_id = NEW.id,
+        SET last_msg_id      = NEW.id,
             last_msg_content = NEW.content,
-            last_msg_time = NEW.creation_time
+            last_msg_time    = NEW.creation_time
         WHERE chats.id = NEW.chat_id;
 
     END IF;
@@ -141,44 +156,47 @@ $msg_change$ LANGUAGE plpgsql;
 
 
 CREATE TRIGGER upd_msgs
-    AFTER INSERT ON messages
-    FOR EACH ROW EXECUTE PROCEDURE msg_change();
-
-INSERT INTO users (email, telephone, password, name, surname, sex)
-VALUES ('asd', '123', '123', '123', '123', 'M');
+    AFTER INSERT
+    ON messages
+    FOR EACH ROW
+EXECUTE PROCEDURE msg_change();
 
 INSERT INTO category (title)
 VALUES ('Транспорт'),
        ('Недвижмость'),
-       ('Хобби и отдых'),
        ('Работа'),
+       ('Услуги'),
+       ('Личные вещи'),
        ('Для дома и дачи'),
        ('Бытовая электрика'),
-       ('Личные вещи'),
-       ('Животные');
+       ('Хобби и отдых'),
+       ('Животные')
 
-INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude)
-VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
-       ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
+-- INSERT INTO users (email, telephone, password, name, surname, sex)
+-- VALUES ('asd', '123', '123', '123', '123', 'M');
 
-INSERT INTO product_images (product_id, img_link)
-VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
-       (2, '/static/product/3af8506c-0608-498e-b2b7-7f7a445aa6df.webp'),
-       (3, '/static/product/4abcea38-00ad-4365-85af-1c144085ebd2.webp'),
-       (4, '/static/product/6d835ba7-1ecc-478d-8832-a64b3c58124c.webp'),
-       (5, '/static/product/8b644046-55b7-40a2-beab-308a964630ab.jpg'),
-       (6, '/static/product/697bade2-a4cb-49fc-bad3-c2205554b92a.jpeg'),
-       (7, '/static/product/936de281-1bdb-46e5-a404-3bf2a3fdbaac.webp'),
-       (8, '/static/product/ba1b1a47-97d3-4efb-aed2-f574fc28970f.webp'),
-       (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
-       (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
-       (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');
+-- INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude)
+-- VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
+--        ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
+--
+-- INSERT INTO product_images (product_id, img_link)
+-- VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
+--        (2, '/static/product/3af8506c-0608-498e-b2b7-7f7a445aa6df.webp'),
+--        (3, '/static/product/4abcea38-00ad-4365-85af-1c144085ebd2.webp'),
+--        (4, '/static/product/6d835ba7-1ecc-478d-8832-a64b3c58124c.webp'),
+--        (5, '/static/product/8b644046-55b7-40a2-beab-308a964630ab.jpg'),
+--        (6, '/static/product/697bade2-a4cb-49fc-bad3-c2205554b92a.jpeg'),
+--        (7, '/static/product/936de281-1bdb-46e5-a404-3bf2a3fdbaac.webp'),
+--        (8, '/static/product/ba1b1a47-97d3-4efb-aed2-f574fc28970f.webp'),
+--        (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
+--        (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
+--        (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');

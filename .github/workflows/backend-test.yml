@@ -1,0 +1,50 @@
+name: Backend Test
+
+on:
+  pull_request:
+    branches:
+      - master
+      - dev
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Run golangci lint
+        uses: golangci/golangci-lint-action@v1
+        with:
+          version: v1.29
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Run test with cover
+        run: make test-func
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to DockerHub
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+      - name: Build Docker images
+        run: |
+          sudo docker build -t build -f docker/build.Dockerfile .
+          sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/main:${GITHUB_SHA::8} -t ${{ secrets.DOCKERHUB_USERNAME }}/main:latest -f docker/main.Dockerfile .
+          sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/auth:${GITHUB_SHA::8} -t ${{ secrets.DOCKERHUB_USERNAME }}/auth:latest -f docker/auth.Dockerfile .
+          sudo docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/chat:${GITHUB_SHA::8} -t ${{ secrets.DOCKERHUB_USERNAME }}/chat:latest -f docker/chat.Dockerfile .
+
+      - name: Push images to DockerHub
+        run: |
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/main --all-tags
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/auth --all-tags
+          docker push ${{ secrets.DOCKERHUB_USERNAME }}/chat --all-tags
+
+      - name: Upload docker compose
+        uses: actions/upload-artifact@v1
+        with:
+          name: docker-compose
+          path: docker-compose.yml

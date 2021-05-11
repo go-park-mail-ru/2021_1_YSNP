@@ -1,8 +1,10 @@
-static/
-postgres-data/
-tarantool-data/
+README.md
 
-config.json
+Dockerfile
+docker-compose.yml
+
+static/
+docker/
 
 ### Code ###
 .vscode/*
