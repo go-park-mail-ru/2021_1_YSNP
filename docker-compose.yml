@@ -41,7 +41,7 @@ services:
       context: ./
       dockerfile: Dockerfile
     environment:
-      POSTGRES_PASSWORD: ysnpkoyapassword
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ysnpkoyadb
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
       SHARED_PRELOAD_LIBRARIES: pg_cron
@@ -50,6 +50,9 @@ services:
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       - $PWD/configs/sql/:/docker-entrypoint-initdb.d/
+    restart: on-failure
+    healthcheck:
+      test: "exit 0"
 
   tarantool:
     image: tarantool/tarantool
