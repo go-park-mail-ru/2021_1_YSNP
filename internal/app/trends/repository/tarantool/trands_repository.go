@@ -40,9 +40,8 @@ func (tr *TrendsRepository) getProductIDForTrend(userID uint64, title string, li
 	if err != nil {
 		return nil, err
 	}
-
-	var productsID []uint64
 	defer query.Close()
+	var productsID []uint64
 	for query.Next() {
 		var id uint64
 		err := query.Scan(
@@ -126,6 +125,8 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		if err != nil {
 			return err
 		}
+
+		fmt.Println("NEW TRENDS:", data)
 
 		dataStr := string(data)
 		_, err1 := tr.dbConn.Replace("trends_products", []interface{}{userID, dataStr})

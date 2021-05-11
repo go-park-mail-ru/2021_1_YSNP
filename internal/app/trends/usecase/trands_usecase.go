@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -44,6 +45,7 @@ func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors.Error
 	sn := strings.TrimSpace(cleanContent)
 	s := strings.FieldsFunc(sn, func(r rune) bool { return strings.ContainsRune(" .,:-", r) })
 
+	fmt.Println("S PARSED: ", s)
 	ua := &models.Trends{}
 	ua.UserID = ui.UserID
 	for _, item := range s {
