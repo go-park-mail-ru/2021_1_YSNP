@@ -23,7 +23,7 @@ create table if not exists users
     password  text                  default NULL,
     name      varchar(64)  not null,
     surname   varchar(64)  not null,
-    sex       varchar(12)           default NULL,
+    sex       varchar(12)           default 'notstated',
     birthdate date                  default NULL,
     reg_date  timestamp,
     latitude  float                 DEFAULT 55.753808,

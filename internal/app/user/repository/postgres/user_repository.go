@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"database/sql"
-	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/null_value"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
+	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/null_value"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
 )
 
