@@ -35,9 +35,11 @@ create table if not exists users
 
 create table if not exists users_oauth
 (
-    user_id    int unique   not null,
-    oauth_type varchar(20)  not null,
-    oauth_id   float unique not null
+    user_id    int unique  not null,
+    oauth_type varchar(20) not null,
+    oauth_id   float       not null,
+
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
 create table if not exists category
