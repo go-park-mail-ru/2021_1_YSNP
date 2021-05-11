@@ -82,7 +82,7 @@ func main() {
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
 	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+	logger.StartServerLog(configs.GetMainHost(), configs.GetMainPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("client")
@@ -150,7 +150,7 @@ func main() {
 	chatWSHandler.Configure(api, mw, wsSrv)
 
 	server := http.Server{
-		Addr:         fmt.Sprint(":", configs.GetServerPort()),
+		Addr:         fmt.Sprint(":", configs.GetMainPort()),
 		Handler:      router,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,

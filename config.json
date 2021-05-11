@@ -1,13 +1,17 @@
 {
-  "server": {
+  "frontend": {
+    "url": "https://ykoya.ru/"
+  },
+  "main": {
+    "url": "https://ykoya.ru/api/v1/",
     "host": "89.208.199.170",
     "port": "8080"
   },
-  "auth_microservice": {
+  "auth": {
     "host": "auth",
     "port": "8081"
   },
-  "chat_microservice": {
+  "chat": {
     "host": "chat",
     "port": "8082"
   },
@@ -30,5 +34,12 @@
   "jaeger": {
     "host": "jaeger",
     "port": 6831
+  },
+  "VKOAuth": {
+    "app_id": "7848246",
+    "app_key": "AQC2rbWwpMP5Uqdwpi1c",
+    "app_secret": "47aebea847aebea847aebea8f147d97f9e447ae47aebea8273b9756e928baeed2c64a0d",
+    "app_url": "https://api.vk.com/method/users.get?fields=email,photo_max&access_token=%s&v=5.130",
+    "redirect_url": "oauth/vk"
   }
 }

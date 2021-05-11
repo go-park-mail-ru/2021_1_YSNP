@@ -18,19 +18,26 @@ ALTER USER postgres WITH PASSWORD 'ysnpkoyapassword';
 create table if not exists users
 (
     id        serial primary key,
-    email     varchar(64)        not null,
-    telephone varchar(12) unique not null,
-    password  text               not null,
-    name      varchar(64)        not null,
-    surname   varchar(64)        not null,
-    sex       varchar(12)        not null,
-    birthdate date,
+    email     varchar(64)           default NULL,
+    telephone varchar(12) unique    default NULL,
+    password  text                  default NULL,
+    name      varchar(64)  not null,
+    surname   varchar(64)  not null,
+    sex       varchar(12)           default 'notstated',
+    birthdate date                  default NULL,
     reg_date  timestamp,
-    latitude  float                       DEFAULT 55.753808,
-    longitude float                       DEFAULT 37.620017,
-    radius    int                         DEFAULT 0,
-    address   varchar(128)                DEFAULT 'Москва',
-    avatar    varchar(128)       NOT NULL DEFAULT ''
+    latitude  float                 DEFAULT 55.753808,
+    longitude float                 DEFAULT 37.620017,
+    radius    int                   DEFAULT 0,
+    address   varchar(128)          DEFAULT 'Москва',
+    avatar    varchar(512) NOT NULL DEFAULT ''
+);
+
+create table if not exists users_oauth
+(
+    user_id    int unique   not null,
+    oauth_type varchar(20)  not null,
+    oauth_id   float unique not null
 );
 
 create table if not exists category
