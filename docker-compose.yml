@@ -5,6 +5,8 @@ version: "3"
 volumes:
   postgres-data:
   tarantool-data:
+  mongo-data:
+  elasticsearch-data:
 
 services:
   main:
@@ -18,7 +20,12 @@ services:
     depends_on:
       - postgres
       - tarantool
-      - consul
+    #      - consul
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "main_service"
 
   auth:
     image: salekhin/auth
@@ -30,7 +37,13 @@ services:
       - $PWD/static:/app/static
     depends_on:
       - tarantool
-      - consul
+      #      - consul
+      - graylog
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "auth_service"
 
   chat:
     image: salekhin/chat
@@ -42,7 +55,12 @@ services:
       - $PWD/static:/app/static
     depends_on:
       - postgres
-      - consul
+    #      - consul
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "chat_service"
 
   consul:
     image: consul
@@ -64,9 +82,12 @@ services:
     volumes:
       - ./postgres-data:/var/lib/postgresql/data
       - $PWD/configs/sql/:/docker-entrypoint-initdb.d/
-    restart: on-failure
-    healthcheck:
-      test: "exit 0"
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "postgres"
 
   tarantool:
     image: tarantool/tarantool
@@ -79,6 +100,11 @@ services:
       - ./tarantool-data:/var/lib/tarantool
       - $PWD/configs/lua/:/opt/tarantool/
     command: tarantool /opt/tarantool/app.lua
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://127.0.0.1:12201"
+        tag: "tarantool"
 
   prometheus:
     image: prom/prometheus
@@ -133,3 +159,57 @@ services:
     ports:
       - "6831:6831/udp"
       - "16686:16686"
+
+
+  mongo:
+    image: mongo:4.2
+    volumes:
+      - ./mongo-data:/data/db
+    networks:
+      - graylog
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - ./elasticsearch-data:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - graylog
+    restart: always
+
+  graylog:
+    image: graylog/graylog:4.0
+    environment:
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+    entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+    networks:
+      - graylog
+    ports:
+      - "9000:9000"
+      - "1514:1514"
+      - "1514:1514/udp"
+      - "12201:12201"
+      - "12201:12201/udp"
+    depends_on:
+      - mongo
+      - elasticsearch
+    restart: always
+
+networks:
+  graylog:
+    driver: bridge
