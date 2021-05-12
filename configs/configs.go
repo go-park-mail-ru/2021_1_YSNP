@@ -104,7 +104,7 @@ func LoadConfig() error {
 	viper.SetConfigName(fileName)
 	viper.SetConfigType(fileType)
 
-	logger.Info(mode, filePath, fileName, fileType)
+	logger.Info(" mode = ", mode, " filePath = ", filePath, " fileName = ", fileName, " fileType = ", fileType)
 
 	//if err := viper.ReadInConfig(); err != nil {
 	//	return err
