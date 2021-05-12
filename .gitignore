@@ -1,4 +1,6 @@
 static/
+config-files/
+
 postgres-data/
 tarantool-data/
 
