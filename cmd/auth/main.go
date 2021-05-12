@@ -12,7 +12,7 @@ import (
 	authRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/repository/tarantool"
 	authUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/auth/usecase"
 
-	appConfig "github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
@@ -21,13 +21,12 @@ import (
 )
 
 func main() {
-	configs, err := appConfig.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	appConfig.Configs = configs
 
-	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.Configs.GetTarantoolUser(), configs.Configs.GetTarantoolPassword(), configs.Configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,14 +35,14 @@ func main() {
 	au := authUsecase.NewSessionUsecase(ar)
 	handler := authGRPC.NewAuthHandlerServer(au)
 
-	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()))
+	lis, err := net.Listen("tcp", fmt.Sprint(configs.Configs.GetAuthHost(), ":", configs.Configs.GetAuthPort()))
 	if err != nil {
 		log.Fatalln("Can't listen session microservice port", err)
 	}
 	defer lis.Close()
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode())
+	logger.StartServerLog(configs.Configs.GetAuthHost(), configs.Configs.GetAuthPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("auth")

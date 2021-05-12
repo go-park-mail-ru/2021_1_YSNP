@@ -473,7 +473,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	token, err := conf.Exchange(ctx, code)
 	if err != nil {
 		logger.Error(err)
-		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("token ", token)
@@ -485,7 +485,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	resp, err := client.Get(fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken))
 	if err != nil {
 		logger.Error(err)
-		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	defer resp.Body.Close()
@@ -494,7 +494,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	err = json.NewDecoder(resp.Body).Decode(&data)
 	if err != nil {
 		logger.Error(err)
-		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Info("oauth data ", data)
@@ -511,7 +511,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	errE := uh.userUcase.CreateOrLogin(userOAuth)
 	if errE != nil {
 		logger.Error(errE.Message)
-		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("userID ", userOAuth.ID)
@@ -520,7 +520,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	errE = uh.sessUcase.Create(session)
 	if errE != nil {
 		logger.Error(errE.Message)
-		http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 		return
 	}
 	logger.Debug("session ", session)
@@ -537,5 +537,5 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("cookie ", cookie)
 
 	http.SetCookie(w, &cookie)
-	http.Redirect(w, r, configs.Configs.GetFrontendUrl(), http.StatusTemporaryRedirect)
+	http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
 }

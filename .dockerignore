@@ -2,6 +2,7 @@ README.md
 
 Dockerfile
 docker-compose.yml
+config.json
 
 static/
 docker/

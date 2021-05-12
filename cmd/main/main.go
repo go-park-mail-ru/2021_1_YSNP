@@ -11,7 +11,7 @@ import (
 	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
 
-	appConfig "github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
@@ -51,19 +51,18 @@ import (
 )
 
 func main() {
-	configs, err := appConfig.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	appConfig.Configs = configs
 
-	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.Configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.Configs.GetTarantoolUser(), configs.Configs.GetTarantoolPassword(), configs.Configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -81,8 +80,8 @@ func main() {
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetMainHost(), configs.GetMainPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode())
+	logger.StartServerLog(configs.Configs.GetMainHost(), configs.Configs.GetMainPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("client")
@@ -94,7 +93,7 @@ func main() {
 	defer jaeger.Close()
 
 	sessionGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
+		fmt.Sprint(configs.Configs.GetAuthHost(), ":", configs.Configs.GetAuthPort()),
 		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -104,7 +103,7 @@ func main() {
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
 	chatGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
+		fmt.Sprint(configs.Configs.GetChatHost(), ":", configs.Configs.GetChatPort()),
 		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -150,7 +149,7 @@ func main() {
 	chatWSHandler.Configure(api, mw, wsSrv)
 
 	server := http.Server{
-		Addr:         fmt.Sprint(":", configs.GetMainPort()),
+		Addr:         fmt.Sprint(":", configs.Configs.GetMainPort()),
 		Handler:      router,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,

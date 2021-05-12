@@ -11,29 +11,43 @@ services:
     image: salekhin/main
     ports:
       - "8080:8080"
+    environment:
+      - APP_MODE=production
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
       - tarantool
+      - consul
 
   auth:
     image: salekhin/auth
     ports:
       - "8081:8081"
+    environment:
+      - APP_MODE=production
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - tarantool
+      - consul
 
   chat:
     image: salekhin/chat
     ports:
       - "8082:8082"
+    environment:
+      - APP_MODE=production
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
+      - consul
+
+  consul:
+    image: consul
+    ports:
+      - "8500:8500"
 
   postgres:
     image: postgis/postgis
