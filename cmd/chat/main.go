@@ -12,7 +12,7 @@ import (
 	chatRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/repository/postgres"
 	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/microservices/chat/usecase"
 
-	appConfig "github.com/go-park-mail-ru/2021_1_YSNP/configs"
+	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/databases"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/interceptor"
@@ -21,13 +21,12 @@ import (
 )
 
 func main() {
-	configs, err := appConfig.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
-	appConfig.Configs = configs
 
-	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.Configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,14 +36,14 @@ func main() {
 	cu := chatUsecase.NewChatUsecase(cr)
 	handler := chatGRPC.NewChatServer(cu)
 
-	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()))
+	lis, err := net.Listen("tcp", fmt.Sprint(configs.Configs.GetChatHost(), ":", configs.Configs.GetChatPort()))
 	if err != nil {
 		log.Fatalln("Can't listen chat microservice port", err)
 	}
 	defer lis.Close()
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode())
+	logger.StartServerLog(configs.Configs.GetChatHost(), configs.Configs.GetChatPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("chat")
