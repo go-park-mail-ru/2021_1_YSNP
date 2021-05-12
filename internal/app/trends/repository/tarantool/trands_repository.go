@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/bbalet/stopwords"
 	"github.com/kljensen/snowball"
+	"math/rand"
 	"sort"
 	"strconv"
 	"strings"
@@ -30,22 +31,32 @@ func NewTrendsRepository(conn *tarantool.Connection, conn2 *sql.DB) trends.Trend
 	}
 }
 
-func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends, orderBy string) ([]uint64, error) {
+func (tr *TrendsRepository) getNewTrendsProductID(userID uint64, oldModel models.Trends, orderBy string, categoryID uint64) ([]uint64, error) {
 	selectQuery := `
 				SELECT p.id
 				FROM product as p
 				INNER JOIN users as u ON p.owner_id=u.id and u.id<>$1
-				WHERE LOWER(p.name) LIKE ANY(ARRAY[LOWER($2)`
+				WHERE `
+	var step int
 
-	titleLike := ""
 	var trendValue []interface{}
 	trendValue = append(trendValue, userID)
+	if categoryID != 0 {
+		selectQuery += `p.category_id = $2 and p.close = false and LOWER(p.name) LIKE ANY(ARRAY[LOWER($3)`
+		trendValue = append(trendValue, categoryID)
+		step = 3
+	} else {
+		selectQuery += `p.close = false and LOWER(p.name) LIKE ANY(ARRAY[LOWER($2)`
+		step = 2
+	}
+
+	titleLike := ""
 	for i, trend := range oldModel.Popular {
 		if i == 0 {
 			trendValue = append(trendValue, "%"+trend.Title+"%")
 			continue
 		}
-		titleLike += ", LOWER($" + strconv.Itoa(i+2) + ")"
+		titleLike += ", LOWER($" + strconv.Itoa(i+step) + ")"
 		trendValue = append(trendValue, "%"+trend.Title+"%")
 	}
 	selectQuery += titleLike
@@ -90,9 +101,43 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	oldModel := &models.Trends{}
 	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
 
-	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, "date")
+	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, "date", 0)
 	if err != nil {
 		return err
+	}
+
+	if len(productsID) < 10 {
+		index := len(productsID)
+		var pId uint64
+		b := true
+		if index < 1 {
+			if len(oldModel.Popular) > 0 {
+				query := tr.dbConnPsql.QueryRow(
+					`
+				SELECT p.id
+				FROM product AS p
+				WHERE LOWER(p.name) LIKE LOWER($1)
+				`,
+					"%"+oldModel.Popular[rand.Intn(len(oldModel.Popular))].Title+"%")
+				err := query.Scan(&pId)
+				if err != nil {
+					return err
+				}
+			} else {
+				b = false
+			}
+		} else {
+			pId = productsID[rand.Intn(len(productsID))]
+		}
+		if b {
+			addProd, err := tr.getProdIdSameCategory(pId, userID)
+			if err != nil {
+				return err
+			}
+			for _, val := range addProd {
+				productsID = append(productsID, val)
+			}
+		}
 	}
 
 	oldProducts := &models.TrendProducts{}
@@ -133,6 +178,49 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 		return err1
 	}
 	return nil
+}
+
+func (tr *TrendsRepository) getProdIdSameCategory(productID uint64, userID uint64) ([]uint64, error) {
+	query := tr.dbConnPsql.QueryRow(
+		`
+				SELECT p.category_id
+				FROM product AS p
+				WHERE p.id=$1
+				`,
+		productID)
+	var categoryId uint64
+	err := query.Scan(&categoryId)
+	if err != nil {
+		return nil, err
+	}
+	selectQuery := `
+				SELECT p.id
+				FROM product as p
+				INNER JOIN users as u ON p.owner_id=u.id and u.id<>$1
+				WHERE p.category_id=$2 and p.id<>$3
+				LIMIT 5`
+
+	var trendValue []interface{}
+	trendValue = append(trendValue, userID)
+	trendValue = append(trendValue, categoryId)
+	trendValue = append(trendValue, productID)
+	queryProd, err := tr.dbConnPsql.Query(selectQuery, trendValue...)
+	if err != nil {
+		return nil, err
+	}
+
+	var productsID []uint64
+	defer queryProd.Close()
+	for queryProd.Next() {
+		var id uint64
+		err := queryProd.Scan(
+			&id)
+		if err != nil {
+			return nil, err
+		}
+		productsID = append(productsID, id)
+	}
+	return productsID, nil
 }
 
 func replaceNewTrends(productsID []uint64, oldProducts models.TrendProducts, userID uint64) (*models.TrendProducts, error) {
@@ -184,13 +272,14 @@ func (tr *TrendsRepository) checkSuffix(word string) bool {
 func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID uint64) ([]uint64, error) {
 	query := tr.dbConnPsql.QueryRow(
 		`
-				SELECT p.name
+				SELECT p.name, p.category_id
 				FROM product AS p
 				WHERE p.id=$1
 				`,
 		productID)
 	var title string
-	err := query.Scan(&title)
+	var categoryId uint64
+	err := query.Scan(&title, &categoryId)
 	if err != nil {
 		return nil, err
 	}
@@ -215,9 +304,19 @@ func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID u
 		}
 	}
 
-	productsID, err := tr.getNewTrendsProductID(userID, words, "likes")
+	productsID, err := tr.getNewTrendsProductID(userID, words, "likes", categoryId)
 	if err != nil {
 		return nil, err
+	}
+	productsID = append(productsID)
+	if len(productsID) < 10 {
+		addProd, err := tr.getProdIdSameCategory(productID, userID)
+		if err != nil {
+			return nil, err
+		}
+		for _, val := range addProd {
+			productsID = append(productsID, val)
+		}
 	}
 	return productsID, nil
 }

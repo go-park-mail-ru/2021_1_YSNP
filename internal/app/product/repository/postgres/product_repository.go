@@ -260,7 +260,7 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 	FROM product as p
 	left join product_images as pi on pi.product_id=p.id
 	left join user_favorite uf on p.id = uf.product_id and uf.user_id = $1
-	WHERE p.id IN (`
+	WHERE p.close=false and p.id IN (`
 
 	var val []interface{}
 	val = append(val, *userID)
