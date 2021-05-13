@@ -31,7 +31,7 @@ func NewJaeger(serverName string) (Jaeger, error) {
 	}
 
 	tracer, closer, err := jaegerCfgInstance.NewTracer(
-		jaegercfg.Logger(jaegerlog.StdLogger),
+		jaegercfg.Logger(jaegerlog.NullLogger),
 		jaegercfg.Metrics(metrics.NullFactory),
 	)
 
