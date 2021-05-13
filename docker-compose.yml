@@ -20,12 +20,12 @@ services:
     depends_on:
       - postgres
       - tarantool
-    #      - consul
+      - consul
     logging:
       driver: gelf
       options:
         gelf-address: "udp://127.0.0.1:12201"
-        tag: "main_service"
+        tag: "main"
 
   auth:
     image: salekhin/auth
@@ -37,13 +37,12 @@ services:
       - $PWD/static:/app/static
     depends_on:
       - tarantool
-      #      - consul
-      - graylog
+      - consul
     logging:
       driver: gelf
       options:
         gelf-address: "udp://127.0.0.1:12201"
-        tag: "auth_service"
+        tag: "auth"
 
   chat:
     image: salekhin/chat
@@ -55,12 +54,12 @@ services:
       - $PWD/static:/app/static
     depends_on:
       - postgres
-    #      - consul
+      - consul
     logging:
       driver: gelf
       options:
         gelf-address: "udp://127.0.0.1:12201"
-        tag: "chat_service"
+        tag: "chat"
 
   consul:
     image: consul
@@ -94,12 +93,13 @@ services:
     environment:
       TARANTOOL_USER_NAME: admin
       TARANTOOL_USER_PASSWORD: pass
+    command: tarantool /opt/tarantool/app.lua
     ports:
       - "3301:3301"
     volumes:
       - ./tarantool-data:/var/lib/tarantool
       - $PWD/configs/lua/:/opt/tarantool/
-    command: tarantool /opt/tarantool/app.lua
+    restart: always
     logging:
       driver: gelf
       options:

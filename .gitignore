@@ -3,6 +3,8 @@ config-files/
 
 postgres-data/
 tarantool-data/
+elasticsearch-data/
+mongo-data/
 
 config.json
 
