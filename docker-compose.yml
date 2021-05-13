@@ -24,7 +24,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:12201"
+        gelf-address: "udp://localhost:12201"
         tag: "main"
 
   auth:
@@ -41,7 +41,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:12201"
+        gelf-address: "udp://localhost:12201"
         tag: "auth"
 
   chat:
@@ -58,7 +58,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:12201"
+        gelf-address: "udp://localhost:12201"
         tag: "chat"
 
   consul:
@@ -85,7 +85,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:12201"
+        gelf-address: "udp://localhost:12201"
         tag: "postgres"
 
   tarantool:
@@ -103,7 +103,7 @@ services:
     logging:
       driver: gelf
       options:
-        gelf-address: "udp://127.0.0.1:12201"
+        gelf-address: "udp://localhost:12201"
         tag: "tarantool"
 
   prometheus:
