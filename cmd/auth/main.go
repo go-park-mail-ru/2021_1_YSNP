@@ -41,7 +41,7 @@ func main() {
 	}
 	defer lis.Close()
 
-	logger := logger.NewLogger(configs.Configs.GetLoggerMode())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetLoggerHost())
 	logger.StartServerLog(configs.Configs.GetAuthHost(), configs.Configs.GetAuthPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 

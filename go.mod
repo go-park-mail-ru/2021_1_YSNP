@@ -9,6 +9,7 @@ require (
 	github.com/bbalet/stopwords v1.0.0
 	github.com/bketelsen/crypt v0.0.3 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
+	github.com/fabienm/go-logrus-formatters v1.0.0 // indirect
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
 	github.com/golang/mock v1.5.0
 	github.com/golang/protobuf v1.5.2
