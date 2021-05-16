@@ -5,6 +5,7 @@ postgres-data/
 tarantool-data/
 elasticsearch-data/
 mongo-data/
+vault-data/
 
 config.json
 

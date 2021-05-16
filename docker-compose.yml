@@ -3,6 +3,7 @@ version: "3"
 # docker rm $(docker ps -a -q) && docker volume prune -f
 
 volumes:
+  vault-data:
   postgres-data:
   tarantool-data:
 
@@ -13,12 +14,15 @@ services:
       - "8080:8080"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
       - tarantool
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -31,11 +35,14 @@ services:
       - "8081:8081"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - tarantool
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -48,11 +55,14 @@ services:
       - "8082:8082"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -63,6 +73,17 @@ services:
     image: consul
     ports:
       - "8500:8500"
+
+  vault:
+    image: vault
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault-data:/vault/data
+      - $PWD/configs/vault:/vault/config
+    command: vault server -config=/vault/config/vault.json
 
   postgres:
     image: postgis/postgis
@@ -195,8 +216,6 @@ services:
       - graylog
     ports:
       - "9000:9000"
-      - "1514:1514"
-      - "1514:1514/udp"
       - "12201:12201"
       - "12201:12201/udp"
     depends_on:
