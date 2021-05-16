@@ -80,7 +80,7 @@ func main() {
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
 
-	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetLoggerHost())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetMainHost())
 	logger.StartServerLog(configs.Configs.GetMainHost(), configs.Configs.GetMainPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 

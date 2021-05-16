@@ -32,7 +32,6 @@ type config struct {
 
 	Logger struct {
 		Mode string
-		Host string
 	}
 
 	Postgres struct {
@@ -250,10 +249,6 @@ func (c *config) GetChatPort() string {
 
 func (c *config) GetLoggerMode() string {
 	return c.Logger.Mode
-}
-
-func (c *config) GetLoggerHost() string {
-	return c.Logger.Host
 }
 
 func (c *config) GetPostgresConfig() string {
