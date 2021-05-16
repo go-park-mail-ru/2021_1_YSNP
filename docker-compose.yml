@@ -3,6 +3,7 @@ version: "3"
 # docker rm $(docker ps -a -q) && docker volume prune -f
 
 volumes:
+  vault-data:
   postgres-data:
   tarantool-data:
   mongo-data:
@@ -10,17 +11,20 @@ volumes:
 
 services:
   main:
-    image: salekhin/main
+    image: main
     ports:
       - "8080:8080"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
       - tarantool
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -28,16 +32,19 @@ services:
         tag: "main"
 
   auth:
-    image: salekhin/auth
+    image: auth
     ports:
       - "8081:8081"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - tarantool
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -45,16 +52,19 @@ services:
         tag: "auth"
 
   chat:
-    image: salekhin/chat
+    image: chat
     ports:
       - "8082:8082"
     environment:
       - APP_MODE=production
+    env_file:
+      - ./service.env
     volumes:
       - $PWD/static:/app/static
     depends_on:
       - postgres
       - consul
+      - vault
     logging:
       driver: gelf
       options:
@@ -65,6 +75,17 @@ services:
     image: consul
     ports:
       - "8500:8500"
+
+  vault:
+    image: vault
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault-data:/vault/data
+      - $PWD/configs/vault:/vault/config
+    command: vault server -config=/vault/config/vault.json
 
   postgres:
     image: postgis/postgis
