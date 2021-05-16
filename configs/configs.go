@@ -350,7 +350,7 @@ func (c *config) GetTarantoolConfig() string {
 }
 
 func (c config) GetVaultConfig() string {
-	return fmt.Sprint(c.Vault.Host, ":", c.Vault.Port)
+	return fmt.Sprint("http://", c.Vault.Host, ":", c.Vault.Port)
 }
 
 func (c config) GetJaegerConfig() string {
