@@ -12,8 +12,6 @@ services:
     image: salekhin/main
     ports:
       - "8080:8080"
-    environment:
-      - APP_MODE=production
     env_file:
       - ./service.env
     volumes:
@@ -33,8 +31,6 @@ services:
     image: salekhin/auth
     ports:
       - "8081:8081"
-    environment:
-      - APP_MODE=production
     env_file:
       - ./service.env
     volumes:
@@ -53,8 +49,6 @@ services:
     image: salekhin/chat
     ports:
       - "8082:8082"
-    environment:
-      - APP_MODE=production
     env_file:
       - ./service.env
     volumes:

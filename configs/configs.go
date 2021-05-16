@@ -36,16 +36,16 @@ type config struct {
 	}
 
 	Postgres struct {
-		User     string
-		Password string
-		Name     string
+		User     string `json:"-"`
+		Password string `json:"-"`
+		Name     string `json:"-"`
 		Host     string
 		Port     int
 	}
 
 	Tarantool struct {
-		User     string
-		Password string
+		User     string `json:"-"`
+		Password string `json:"-"`
 		Host     string
 		Port     int
 	}
@@ -61,10 +61,10 @@ type config struct {
 	}
 
 	VKOAuth struct {
-		AppID       string `json:"app_id" mapstructure:"app_id"`
-		AppKey      string `json:"app_key" mapstructure:"app_key"`
-		AppSecret   string `json:"app_secret" mapstructure:"app_secret"`
-		AppUrl      string `json:"app_url" mapstructure:"app_url"`
+		AppID       string `json:"-" mapstructure:"app_id"`
+		AppKey      string `json:"-" mapstructure:"app_key"`
+		AppSecret   string `json:"-" mapstructure:"app_secret"`
+		AppUrl      string `json:"-" mapstructure:"app_url"`
 		RedirectURL string `json:"redirect_url" mapstructure:"redirect_url"`
 		FrontURL    string `json:"front_url" mapstructure:"front_url"`
 	}
@@ -135,6 +135,10 @@ func LoadConfig() error {
 			return err
 		}
 
+		if err := remoteVaultConfig(); err != nil {
+			return err
+		}
+
 	case "development":
 		prefix = "development"
 		consulConfigs.Host = "89.208.199.170"
@@ -143,6 +147,10 @@ func LoadConfig() error {
 		consulConfigs.Port = "8500"
 
 		if err := remoteConsulConfig(); err != nil {
+			return err
+		}
+
+		if err := remoteVaultConfig(); err != nil {
 			return err
 		}
 
