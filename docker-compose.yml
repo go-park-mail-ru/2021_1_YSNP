@@ -11,7 +11,7 @@ volumes:
 
 services:
   main:
-    image: main
+    image: salekhin/main
     ports:
       - "8080:8080"
     environment:
@@ -32,7 +32,7 @@ services:
         tag: "main"
 
   auth:
-    image: auth
+    image: salekhin/auth
     ports:
       - "8081:8081"
     environment:
@@ -52,7 +52,7 @@ services:
         tag: "auth"
 
   chat:
-    image: chat
+    image: salekhin/chat
     ports:
       - "8082:8082"
     environment:
@@ -75,6 +75,11 @@ services:
     image: consul
     ports:
       - "8500:8500"
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "consul"
 
   vault:
     image: vault
@@ -86,6 +91,11 @@ services:
       - ./vault-data:/vault/data
       - $PWD/configs/vault:/vault/config
     command: vault server -config=/vault/config/vault.json
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "vault"
 
   postgres:
     image: postgis/postgis
@@ -216,14 +226,12 @@ services:
     environment:
       - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
       - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
-      - GRAYLOG_HTTP_EXTERNAL_URI=http://127.0.0.1:9000/
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://ykoya.ru:9000/
     entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
     networks:
       - graylog
     ports:
       - "9000:9000"
-      - "1514:1514"
-      - "1514:1514/udp"
       - "12201:12201"
       - "12201:12201/udp"
     depends_on:
