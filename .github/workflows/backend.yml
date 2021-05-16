@@ -76,8 +76,14 @@ jobs:
           key: ${{ secrets.PRIVATE_KEY }}
           script: |
             echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+
+            sudo docker image rm $(docker images ${{ secrets.DOCKERHUB_USERNAME }}/main -q)
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/main
+
+            docker image rm $(docker images ${{ secrets.DOCKERHUB_USERNAME }}/auth -q)
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/auth
+
+            docker image rm $(docker images ${{ secrets.DOCKERHUB_USERNAME }}/chat -q)
             sudo docker pull ${{ secrets.DOCKERHUB_USERNAME }}/chat
 
       - name: Run project
