@@ -6,8 +6,6 @@ volumes:
   vault-data:
   postgres-data:
   tarantool-data:
-  mongo-data:
-  elasticsearch-data:
 
 services:
   main:
@@ -75,11 +73,6 @@ services:
     image: consul
     ports:
       - "8500:8500"
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://localhost:12201"
-        tag: "consul"
 
   vault:
     image: vault
@@ -91,11 +84,6 @@ services:
       - ./vault-data:/vault/data
       - $PWD/configs/vault:/vault/config
     command: vault server -config=/vault/config/vault.json
-    logging:
-      driver: gelf
-      options:
-        gelf-address: "udp://localhost:12201"
-        tag: "vault"
 
   postgres:
     image: postgis/postgis
@@ -194,8 +182,6 @@ services:
 
   mongo:
     image: mongo:4.2
-    volumes:
-      - ./mongo-data:/data/db
     networks:
       - graylog
     restart: always
@@ -207,8 +193,6 @@ services:
       - transport.host=localhost
       - network.host=0.0.0.0
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
-    volumes:
-      - ./elasticsearch-data:/usr/share/elasticsearch/data
     ulimits:
       memlock:
         soft: -1
