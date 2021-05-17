@@ -83,3 +83,10 @@ type UserOAuthRequest struct {
 	UserOAuthID   float64 `json:"user_oauth_id"`
 	UserOAuthType string  `json:"user_oauth_type"`
 }
+
+type Achievement struct {
+	Titie 		string  `json:"title"`
+	Description string  `json:"description"`
+	Date 		string  `json:"date"`
+	LinkPic     string  `json:"link_pic"`
+}
