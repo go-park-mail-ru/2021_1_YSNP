@@ -53,7 +53,7 @@ func (m *Middleware) NewLogger(logger *logrus.Entry) {
 
 func CorsControlMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-		w.Header().Set("Access-Control-Allow-Headers", "X-CSRF-Token")
+		w.Header().Set("Access-Control-Allow-Headers", "X-CSRF-Token, sentry-trace")
 
 		switch req.Header.Get("Origin") {
 		case "http://localhost:3000":

@@ -13,7 +13,8 @@ func NewLogger(mode string, host string) *Logger {
 	switch mode {
 	case "production":
 		setProductionFormatter(host)
-		setProductionLevel()
+		//setProductionLevel()
+		setDevelopmentLevel()
 
 	case "development":
 		setDevelopmentFormatter()
