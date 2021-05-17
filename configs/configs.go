@@ -64,7 +64,7 @@ type config struct {
 		AppID       string `json:"-" mapstructure:"app_id"`
 		AppKey      string `json:"-" mapstructure:"app_key"`
 		AppSecret   string `json:"-" mapstructure:"app_secret"`
-		AppUrl      string `json:"-" mapstructure:"app_url"`
+		AppUrl      string `json:"app_url" mapstructure:"app_url"`
 		RedirectURL string `json:"redirect_url" mapstructure:"redirect_url"`
 		FrontURL    string `json:"front_url" mapstructure:"front_url"`
 	}
