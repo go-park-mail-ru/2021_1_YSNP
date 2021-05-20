@@ -30,7 +30,7 @@ var userTest = &models.UserData{
 	Telephone:  "+79169230768",
 	Password:   "Qwerty12",
 	DateBirth:  "2021-03-08",
-	LinkImages: "",
+	LinkImages: "/static/avatar/profile.webp",
 }
 
 //var byteData = bytes.NewReader([]byte(`
@@ -196,6 +196,7 @@ func TestUserHandler_SignUpHandler_TelephoneAlreadyExists(t *testing.T) {
 		Telephone: "+79169230768",
 		Password:  "Qwerty12",
 		DateBirth: "2021-03-08",
+		LinkImages: "/static/avatar/profile.webp",
 	}
 
 	r := httptest.NewRequest("POST", "/api/v1/signup", byteData)
@@ -539,6 +540,7 @@ func TestUserHandler_ChangeProfileHandler_Success(t *testing.T) {
 	userHandler.Configure(router, nil)
 
 	userTest.Password = ""
+	userTest.LinkImages = ""
 
 	userUcase.EXPECT().UpdateProfile(gomock.Eq(userTest.ID), gomock.Eq(userTest)).Return(userTest, nil)
 

@@ -48,6 +48,21 @@ func (mr *MockTrendsRepositoryMockRecorder) CreateTrendsProducts(arg0 interface{
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateTrendsProducts", reflect.TypeOf((*MockTrendsRepository)(nil).CreateTrendsProducts), arg0)
 }
 
+// GetRecommendationProducts mocks base method.
+func (m *MockTrendsRepository) GetRecommendationProducts(arg0, arg1 uint64) ([]uint64, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetRecommendationProducts", arg0, arg1)
+	ret0, _ := ret[0].([]uint64)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// GetRecommendationProducts indicates an expected call of GetRecommendationProducts.
+func (mr *MockTrendsRepositoryMockRecorder) GetRecommendationProducts(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetRecommendationProducts", reflect.TypeOf((*MockTrendsRepository)(nil).GetRecommendationProducts), arg0, arg1)
+}
+
 // GetTrendsProducts mocks base method.
 func (m *MockTrendsRepository) GetTrendsProducts(arg0 uint64) ([]uint64, error) {
 	m.ctrl.T.Helper()
