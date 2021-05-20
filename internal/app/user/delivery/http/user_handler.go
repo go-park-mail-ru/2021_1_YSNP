@@ -40,6 +40,7 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 
 	r.HandleFunc("/me", mw.SetCSRFToken(mw.CheckAuthMiddleware(uh.GetProfileHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/{id:[0-9]+}", mw.SetCSRFToken(mw.CheckAuthMiddleware(uh.GetSellerHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/landing/{id:[0-9]+}", uh.GetUserLandingHandler).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/user", mw.CheckAuthMiddleware(uh.ChangeProfileHandler)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/password", mw.CheckAuthMiddleware(uh.ChangeProfilePasswordHandler)).Methods(http.MethodPost, http.MethodOptions)
@@ -265,6 +266,40 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	w.WriteHeader(http.StatusOK)
 	w.Write(body)
 }
+
+func (uh *UserHandler) GetUserLandingHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	vars := mux.Vars(r)
+	sellerID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("seller id ", sellerID)
+
+	user, errE := uh.userUcase.GetSellerByID(sellerID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Debug("seller ", user)
+
+	body, err := json.Marshal(user)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(body)
+}
+
 
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
