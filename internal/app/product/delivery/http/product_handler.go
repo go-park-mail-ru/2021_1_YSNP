@@ -48,8 +48,8 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 	r.HandleFunc("/product/{id:[0-9]+}/trend/list", mw.SetCSRFToken(ph.ProductTrendsHandler)).Methods(http.MethodGet, http.MethodOptions)
 
 	r.HandleFunc("/product/buyer/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.SetProductBuyer)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/product/review/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/user/{id:[0-9]+}/reviews", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -721,6 +721,7 @@ func (ph *ProductHandler)CreateProductReview(w http.ResponseWriter, r *http.Requ
 		w.Write(errors.JSONError(errE))
 		return
 	}
+	review.ReviewerID = userID
 
 	errE := ph.productUcase.CreateProductReview(review)
 	if errE != nil {
