@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/gorilla/csrf"
+	//"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
@@ -23,6 +23,11 @@ import (
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
 	categoryUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/usecase"
+
+
+	achievementHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/delivery/http"
+	achievementRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/repository/postgres"
+	achievementUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/usecase"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
@@ -73,12 +78,14 @@ func main() {
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 	uploadRepo := uploadRepo.NewUploadRepository()
+	achievementRepo := achievementRepo.NewAchievementRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
+	achievementUsecase := achievementUsecase.NewAchievementUsecase(achievementRepo)
 
 	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetMainHost())
 	logger.StartServerLog(configs.Configs.GetMainHost(), configs.Configs.GetMainPort())
@@ -117,6 +124,7 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
+	achievementHandler := achievementHandler.NewAchievementHandler(achievementUsecase)
 
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
@@ -132,8 +140,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-		csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	wsSrv := websocket.NewWSServer(logger)
 	wsSrv.Run()
@@ -145,6 +153,7 @@ func main() {
 	trendsHandler.Configure(api, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
+	achievementHandler.Configure(api, mw)
 	chatHandler.Configure(api, mw, wsSrv)
 	chatWSHandler.Configure(api, mw, wsSrv)
 

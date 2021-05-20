@@ -19,7 +19,7 @@ func NewAchievementRepository(conn *sql.DB) achievement.AchievementRepository {
 
 func(ar *AchievementRepository) GetUserAchievements(userId int) ([]*models.Achievement, error) {
 	req, err := ar.dbConn.Query(`
-		SELECT a.title a.description ua.date a.link_pic
+		SELECT a.title, a.description, ua.date, a.link_pic
 		FROM user_achievement ua
 		JOIN achievement a ON ua.a_id = a.id
 		WHERE ua.user_id = $1

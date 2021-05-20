@@ -79,16 +79,16 @@ DECLARE
     P_COUNT INTEGER;
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
-    IF (P_COUNT == 1) THEN
-        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1)
+    IF (P_COUNT = 1) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
     end if;
 
-    IF (P_COUNT == 10) THEN
-        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2)
+    IF (P_COUNT = 10) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
     end if;
 
-    IF (P_COUNT == 100) THEN
-        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3)
+    IF (P_COUNT = 100) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
     end if;
     
     RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
@@ -202,7 +202,7 @@ VALUES ('Транспорт'),
        ('Для дома и дачи'),
        ('Бытовая электрика'),
        ('Хобби и отдых'),
-       ('Животные')
+       ('Животные');
 
 
 
@@ -223,7 +223,7 @@ VALUES ('Транспорт', 'Транспорт', 'https://achievement-images.
        ('Для дома и дачи', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Бытовая электрика', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Хобби и отдых', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png')
+       ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png');
 
 create table if not exists user_achievement
 (
@@ -232,7 +232,7 @@ create table if not exists user_achievement
     date           timestamp not null default NOW(),
     a_id           integer   not null,
 
-    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION,
     FOREIGN KEY (a_id) REFERENCES achievement (id) ON DELETE NO ACTION
 );
 
