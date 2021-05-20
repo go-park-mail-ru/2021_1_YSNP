@@ -787,7 +787,7 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 
 func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType string) (bool, error) {
 	var result bool
-	selectQuery := `SELECT`
+	selectQuery := `SELECT `
 	if (reviewType == "buyer") {
 		selectQuery += `buyer_left_review FROM product
                 WHERE product.id = $1`
