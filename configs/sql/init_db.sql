@@ -64,6 +64,9 @@ CREATE TABLE IF NOT EXISTS product
     views       int                   DEFAULT 0,
     tariff      int                   DEFAULT 0,
     close       boolean               DEFAULT false,
+    buyer_id    int                   DEFAULT null,
+    buyer_left_review boolean         DEFAULT null,
+    seller_left_review boolean        DEFAULT null,
 
     FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (category_id) REFERENCES category (id) ON DELETE NO ACTION
@@ -129,6 +132,29 @@ create table if not exists messages
 
     foreign key (user_id) references users (id) on delete cascade,
     foreign key (chat_id) references chats (id) on delete cascade
+);
+
+create table if not exists reviews
+(
+    id               serial primary key,
+    creation_time    timestamp
+);
+
+create table if not exists user_reviews
+(
+  review_id        int      not null,
+  content          text     not null,
+  rating           float    not null,
+  reviewer_id      int      not null,
+  product_id       int      not null unique,
+  target_id        int      not null ,
+  type             varchar(12) not null,
+
+  primary key (reviewer_id, product_id),
+  foreign key (reviewer_id) references users (id) on delete cascade,
+  foreign key (product_id) references product (id) on delete cascade,
+  foreign key (review_id) references reviews(id) on delete cascade,
+  foreign key (target_id) references users(id) on delete cascade
 );
 
 CREATE OR REPLACE FUNCTION msg_change() RETURNS TRIGGER AS

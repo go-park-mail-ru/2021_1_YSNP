@@ -166,6 +166,21 @@ func (mr *MockProductUsecaseMockRecorder) ListLatest(arg0, arg1 interface{}) *go
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListLatest", reflect.TypeOf((*MockProductUsecase)(nil).ListLatest), arg0, arg1)
 }
 
+// RecommendationList mocks base method.
+func (m *MockProductUsecase) RecommendationList(arg0, arg1 uint64) ([]*models.ProductListData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RecommendationList", arg0, arg1)
+	ret0, _ := ret[0].([]*models.ProductListData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// RecommendationList indicates an expected call of RecommendationList.
+func (mr *MockProductUsecaseMockRecorder) RecommendationList(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecommendationList", reflect.TypeOf((*MockProductUsecase)(nil).RecommendationList), arg0, arg1)
+}
+
 // SetTariff mocks base method.
 func (m *MockProductUsecase) SetTariff(arg0 uint64, arg1 int) *errors.Error {
 	m.ctrl.T.Helper()

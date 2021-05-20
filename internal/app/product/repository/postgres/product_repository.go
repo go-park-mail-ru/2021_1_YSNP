@@ -647,3 +647,217 @@ func (pr *ProductRepository) UpdateProductViews(productID uint64, count int) err
 
 	return nil
 }
+
+func (pr *ProductRepository)SelectProductReviewers(productID uint64, userID uint64) ([]*models.UserData, error){
+	var users []*models.UserData
+
+	query, err := pr.dbConn.Query(
+		`
+				SELECT u.id, u.name, u.avatar
+From users as u
+left join user_chats as uc on uc.product_id = $1 and uc.user_id = u.id and uc.user_id != $2
+left join user_favorite as uf on uf.product_id = $1 and uf.user_id = u.id
+where uf.user_id notnull or uc.chat_id notnull`,
+productID,
+userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	for query.Next() {
+		user := &models.UserData{}
+
+		err := query.Scan(
+			&user.ID,
+			&user.Name,
+			&user.LinkImages)
+
+		if err != nil {
+			return nil, err
+		}
+
+		users = append(users, user)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, err
+}
+
+func (pr *ProductRepository)InsertProductBuyer(productID uint64, buyerID uint64) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				UPDATE product
+                SET buyer_id=$1, buyer_left_review = false, seller_left_review = false
+                WHERE product.id = $2`,
+		buyerID,
+		productID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository)InsertReview(review *models.Review) error {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return err
+	}
+
+	query := tx.QueryRow(
+		`
+				INSERT INTO reviews (creation_time) 
+			VALUES ($1) 
+			RETURNING id, creation_time; `,
+		time.Now())
+
+	err = query.Scan(&review.ID, &review.CreationTime)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	_, err = tx.Exec(
+		`
+				INSERT INTO user_reviews (review_id, content, rating, reviewer_id, product_id,  type)
+				VALUES ($1, $2, $3, $4, $5, $6)`,
+		review.ID,
+		review.Content,
+		review.Rating,
+		review.ReviewerID,
+		review.ProductID,
+		review.Type)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+
+	updateQuery := `UPDATE product`
+	if (review.Type == "buyer") {
+		updateQuery += `SET buyer_left_review = true
+                WHERE product.id = $1`
+	} else {
+		updateQuery += `SET seller_left_review = true
+                WHERE product.id = $1`
+	}
+	_, err = tx.Exec(updateQuery,
+		review.ProductID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType string) (bool, error) {
+	var result bool
+	selectQuery := `SELECT`
+	if (reviewType == "buyer") {
+		selectQuery += `buyer_left_review FROM product
+                WHERE product.id = $1`
+	} else {
+		selectQuery += `seller_left_review FROM product
+                WHERE product.id = $1`
+	}
+	err := pr.dbConn.QueryRow(selectQuery,
+		productID).Scan(&result)
+	if err != nil {
+		return false, err
+	}
+
+	return result, nil
+}
+
+func (pr *ProductRepository)SelectUserReviews(userID uint64) ([]*models.Review, error){
+	var reviews []*models.Review
+
+	query, err := pr.dbConn.Query(
+		`
+				WITH ORDERED AS
+(SELECT r.id, r.creation_time, ur.content, ur.rating, ur.type, ur.reviewer_id, u.name as uname, u.avatar, ur.product_id, p.name, pi.img_link, ROW_NUMBER() OVER (PARTITION BY r.id) As rn
+				FROM user_reviews AS ur
+				JOIN reviews AS r on ur.review_id = r.id
+				JOIN users AS u ON u.id = ur.reviewer_id
+				JOIN product AS p ON p.id = ur.product_id
+				Left Join product_images pi on p.id = pi.product_id
+WHERE ur.target_id = $1
+    ORDER BY r.creation_time DESC
+)
+SELECT
+id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id, name, img_link
+FROM
+    ORDERED
+WHERE
+    rn = 1`,
+		userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	for query.Next() {
+		review := &models.Review{}
+
+		err := query.Scan(
+			&review.ID,
+			&review.CreationTime,
+			&review.Content,
+			&review.Rating,
+			&review.Type,
+			&review.ReviewerID,
+			&review.ReviewerName,
+			&review.ReviewerAvatar,
+			&review.ProductID,
+			&review.ProductName,
+			&review.ProductImage)
+
+		if err != nil {
+			return nil, err
+		}
+
+		reviews= append(reviews, review)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	return reviews, err
+}

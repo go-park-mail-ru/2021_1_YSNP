@@ -12,11 +12,17 @@ type ProductRepository interface {
 	InsertPhoto(content *models.ProductData) error
 	UpdateTariff(productID uint64, tariff int) error
 
+	InsertProductBuyer(productID uint64, buyerID uint64) error
+	InsertReview(review *models.Review) error
+	CheckProductReview(productID uint64, reviewType string) (bool,error)
+	SelectUserReviews(userID uint64) ([]*models.Review, error)
+
 	SelectByID(productID uint64) (*models.ProductData, error)
 	SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error)
 	SelectLatest(userID *uint64, content *models.Page) ([]*models.ProductListData, error)
 	SelectUserAd(userId uint64, content *models.Page) ([]*models.ProductListData, error)
 	SelectUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, error)
+	SelectProductReviewers(productID uint64, userID uint64) ([]*models.UserData, error)
 
 	InsertProductLike(userID uint64, productID uint64) error
 	DeleteProductLike(userID uint64, productID uint64) error
