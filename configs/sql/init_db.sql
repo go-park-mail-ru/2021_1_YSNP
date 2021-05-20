@@ -72,6 +72,36 @@ CREATE TABLE IF NOT EXISTS product
 CREATE INDEX idx_product ON product USING GIST
     (Geography(ST_SetSRID(ST_POINT(longitude, latitude), 4326)));
 
+
+CREATE OR REPLACE FUNCTION check_achievement() RETURNS TRIGGER AS
+$check_achievement$
+DECLARE
+    P_COUNT INTEGER;
+BEGIN
+    SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
+    IF (P_COUNT = 1) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
+    end if;
+
+    IF (P_COUNT = 10) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
+    end if;
+
+    IF (P_COUNT = 100) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
+    end if;
+    
+    RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
+END;
+$check_achievement$ LANGUAGE plpgsql;
+
+CREATE TRIGGER check_achievement
+    AFTER INSERT
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement();
+
+
 CREATE TABLE IF NOT EXISTS product_images
 (
     product_id int                 NOT NULL,
@@ -172,7 +202,40 @@ VALUES ('Транспорт'),
        ('Для дома и дачи'),
        ('Бытовая электрика'),
        ('Хобби и отдых'),
-       ('Животные')
+       ('Животные');
+
+
+
+create table if not exists achievement
+(
+    id             serial primary key,
+    title          text      not null,
+    description    text      not null,
+    link_pic       text      not null
+);
+
+INSERT INTO achievement (title, description, link_pic)
+VALUES ('Транспорт', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Недвижмость','Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Работа','Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Услуги', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Личные вещи', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Для дома и дачи', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Бытовая электрика', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Хобби и отдых', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png');
+
+create table if not exists user_achievement
+(
+    id             serial primary key,
+    user_id        integer   not null,
+    date           timestamp not null default NOW(),
+    a_id           integer   not null,
+
+    FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION,
+    FOREIGN KEY (a_id) REFERENCES achievement (id) ON DELETE NO ACTION
+);
+
 
 -- INSERT INTO users (email, telephone, password, name, surname, sex)
 -- VALUES ('asd', '123', '123', '123', '123', 'M');
