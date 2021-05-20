@@ -742,13 +742,14 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 
 	_, err = tx.Exec(
 		`
-				INSERT INTO user_reviews (review_id, content, rating, reviewer_id, product_id,  type)
-				VALUES ($1, $2, $3, $4, $5, $6)`,
+				INSERT INTO user_reviews (review_id, content, rating, reviewer_id, product_id,  target_id, type)
+				VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 		review.ID,
 		review.Content,
 		review.Rating,
 		review.ReviewerID,
 		review.ProductID,
+		review.TargetID,
 		review.Type)
 	if err != nil {
 		rollbackErr := tx.Rollback()
