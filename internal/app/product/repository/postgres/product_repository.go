@@ -760,7 +760,7 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 	}
 
 
-	updateQuery := `UPDATE product`
+	updateQuery := `UPDATE product `
 	if (review.Type == "buyer") {
 		updateQuery += `SET buyer_left_review = true
                 WHERE product.id = $1`
