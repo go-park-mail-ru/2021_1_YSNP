@@ -261,7 +261,7 @@ func (pu *ProductUsecase)SetProductBuyer(productID uint64, buyerID uint64) *erro
 }
 
 func (pu *ProductUsecase)CreateProductReview(review *models.Review) *errors.Error{
-	has, err := pu.productRepo.CheckProductReview(review.ProductID, review.Type)
+	has, err := pu.productRepo.CheckProductReview(review.ProductID, review.Type, review.ReviewerID)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
@@ -286,6 +286,19 @@ func (pu *ProductUsecase)GetUserReviews(userID uint64) ([]*models.Review, *error
 
 	if len(reviews) == 0 {
 		return []*models.Review{}, nil
+	}
+
+	return reviews, nil
+}
+
+func (pu *ProductUsecase)GetWaitingReviews(userID uint64) ([]*models.WaitingReview, *errors.Error){
+	reviews, err := pu.productRepo.SelectWaitingReviews(userID)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	if len(reviews) == 0 {
+		return []*models.WaitingReview{}, nil
 	}
 
 	return reviews, nil

@@ -786,20 +786,24 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 	return nil
 }
 
-func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType string) (bool, error) {
+func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType string, reviewerID uint64) (bool, error) {
 	var result bool
+	var revID uint64
 	selectQuery := `SELECT `
 	if (reviewType == "buyer") {
-		selectQuery += `buyer_left_review FROM product
+		selectQuery += `buyer_id, buyer_left_review FROM product
                 WHERE product.id = $1`
 	} else {
-		selectQuery += `seller_left_review FROM product
+		selectQuery += `owner_id, seller_left_review FROM product
                 WHERE product.id = $1`
 	}
 	err := pr.dbConn.QueryRow(selectQuery,
-		productID).Scan(&result)
+		productID).Scan(&revID, &result)
 	if err != nil {
 		return false, err
+	}
+	if revID != reviewerID {
+		return true, nil
 	}
 
 	return result, nil
@@ -853,6 +857,64 @@ WHERE
 			return nil, err
 		}
 
+		reviews= append(reviews, review)
+	}
+
+	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	return reviews, err
+}
+
+func (pr *ProductRepository)SelectWaitingReviews(userID uint64) ([]*models.WaitingReview, error){
+	var reviews []*models.WaitingReview
+
+	query, err := pr.dbConn.Query(
+		`
+				WITH ORDERED AS
+(SELECT u.id as uid, u.name as uname, u.avatar, p.id as pid, p.name as pname, p.owner_id, pi.img_link, ROW_NUMBER() OVER (PARTITION BY p.id) As rn
+				FROM product as p
+				left JOIN users AS u ON (u.id = p.owner_id and p.seller_left_review = false) or (u.id = p.buyer_id and p.buyer_left_review = false)
+				Left Join product_images pi on p.id = pi.product_id
+WHERE u.id = $1
+    ORDER BY p.date DESC
+)
+SELECT
+uid, uname, avatar, pid, pname, owner_id, img_link
+FROM
+    ORDERED
+WHERE
+    rn = 1`,
+		userID)
+	if err != nil {
+		return nil, err
+	}
+
+	defer query.Close()
+
+	for query.Next() {
+		var owner uint64
+		review := &models.WaitingReview{}
+
+		err := query.Scan(
+			&review.TargetID,
+			&review.TargetName,
+			&review.TargetAvatar,
+			&review.ProductID,
+			&review.ProductName,
+			&owner,
+			&review.ProductImage)
+
+		if err != nil {
+			return nil, err
+		}
+
+		if owner == userID {
+			review.Type = "seller"
+		} else {
+			review.Type = "buyer"
+		}
 		reviews= append(reviews, review)
 	}
 

@@ -765,3 +765,40 @@ func (ph *ProductHandler)GetUserReviews(w http.ResponseWriter, r *http.Request){
 		return
 	}
 }
+
+func (ph *ProductHandler)GetWaitingReviews(w http.ResponseWriter, r *http.Request){
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	reviews, errE := ph.productUcase.GetUserReviews(userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err := json.NewEncoder(w).Encode(reviews)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}

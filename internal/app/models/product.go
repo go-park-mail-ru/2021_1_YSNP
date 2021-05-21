@@ -57,3 +57,13 @@ type Review struct {
 	Type string `json:"type"`
 	CreationTime time.Time `json:"creation_time"`
 }
+
+type WaitingReview struct {
+	ProductID uint64 `json:"product_id"`
+	ProductName string `json:"product_name"`
+	ProductImage string `json:"product_image"`
+	TargetID uint64 `json:"target_id"`
+	TargetName string `json:"target_name"`
+	TargetAvatar string `json:"target_avatar"`
+	Type string `json:"type"`
+}

@@ -169,7 +169,7 @@ var CustomErrors = map[ErrorType]*Error{
 	ReviewExist: {
 		ErrorCode: ReviewExist,
 		HttpError: http.StatusBadRequest,
-		Message:   "user has already left a review on this product",
+		Message:   "forbidden to leave the review",
 	},
 }
 
