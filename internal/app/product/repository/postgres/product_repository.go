@@ -809,7 +809,7 @@ func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType stri
 	return result, nil
 }
 
-func (pr *ProductRepository)SelectUserReviews(userID uint64) ([]*models.Review, error){
+func (pr *ProductRepository)SelectUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, error){
 	var reviews []*models.Review
 
 	query, err := pr.dbConn.Query(
@@ -821,7 +821,7 @@ func (pr *ProductRepository)SelectUserReviews(userID uint64) ([]*models.Review, 
 				JOIN users AS u ON u.id = ur.reviewer_id
 				JOIN product AS p ON p.id = ur.product_id
 				Left Join product_images pi on p.id = pi.product_id
-WHERE ur.target_id = $1
+WHERE ur.target_id = $1 and ur.type = $2
     ORDER BY r.creation_time DESC
 )
 SELECT
@@ -829,8 +829,12 @@ id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id
 FROM
     ORDERED
 WHERE
-    rn = 1`,
-		userID)
+    rn = 1
+    LIMIT $3 OFFSET $4`,
+		userID,
+		reviewType,
+		content.Count,
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}
@@ -867,15 +871,19 @@ WHERE
 	return reviews, err
 }
 
-func (pr *ProductRepository)SelectWaitingReviews(userID uint64) ([]*models.WaitingReview, error){
+func (pr *ProductRepository)SelectWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, error){
 	var reviews []*models.WaitingReview
 
-	query, err := pr.dbConn.Query(
-		`
-				WITH ORDERED AS
+
+	selectQuery :=`
+WITH ORDERED AS
 (SELECT u.id as uid, u.name as uname, u.avatar, p.id as pid, p.name as pname, p.owner_id, pi.img_link, ROW_NUMBER() OVER (PARTITION BY p.id) As rn
 				FROM product as p
-				left JOIN users AS u ON (u.id = p.owner_id and p.seller_left_review = false) or (u.id = p.buyer_id and p.buyer_left_review = false)
+				left JOIN users AS u ON `
+
+	if reviewType == "seller" {
+		selectQuery += `
+u.id = p.owner_id and p.seller_left_review = false
 				Left Join product_images pi on p.id = pi.product_id
 WHERE u.id = $1
     ORDER BY p.date DESC
@@ -885,8 +893,28 @@ uid, uname, avatar, pid, pname, owner_id, img_link
 FROM
     ORDERED
 WHERE
-    rn = 1`,
-		userID)
+    rn = 1
+    LIMIT $2 OFFSET $3`
+	} else {
+		selectQuery += `
+u.id = p.buyer_id and p.buyer_left_review = false
+				Left Join product_images pi on p.id = pi.product_id
+WHERE u.id = $1
+    ORDER BY p.date DESC
+)
+SELECT
+uid, uname, avatar, pid, pname, owner_id, img_link
+FROM
+    ORDERED
+WHERE
+    rn = 1
+    LIMIT $2 OFFSET $3`
+	}
+	query, err := pr.dbConn.Query(
+		selectQuery,
+		userID,
+		content.Count,
+		content.From*content.Count)
 	if err != nil {
 		return nil, err
 	}

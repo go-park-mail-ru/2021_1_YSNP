@@ -278,8 +278,8 @@ func (pu *ProductUsecase)CreateProductReview(review *models.Review) *errors.Erro
 
 }
 
-func (pu *ProductUsecase)GetUserReviews(userID uint64) ([]*models.Review, *errors.Error){
-	reviews, err := pu.productRepo.SelectUserReviews(userID)
+func (pu *ProductUsecase)GetUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, *errors.Error){
+	reviews, err := pu.productRepo.SelectUserReviews(userID, reviewType, content)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
@@ -291,8 +291,8 @@ func (pu *ProductUsecase)GetUserReviews(userID uint64) ([]*models.Review, *error
 	return reviews, nil
 }
 
-func (pu *ProductUsecase)GetWaitingReviews(userID uint64) ([]*models.WaitingReview, *errors.Error){
-	reviews, err := pu.productRepo.SelectWaitingReviews(userID)
+func (pu *ProductUsecase)GetWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, *errors.Error){
+	reviews, err := pu.productRepo.SelectWaitingReviews(userID, reviewType, content)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}
