@@ -939,9 +939,9 @@ WHERE
 		}
 
 		if owner == userID {
-			review.Type = "seller"
-		} else {
 			review.Type = "buyer"
+		} else {
+			review.Type = "seller"
 		}
 		reviews= append(reviews, review)
 	}
