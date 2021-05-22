@@ -50,6 +50,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 	r.HandleFunc("/product/buyer/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.SetProductBuyer)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/review/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/user/{id:[0-9]+}/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/me/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/reviews/await/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetWaitingReviews))).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -757,7 +758,17 @@ func (ph *ProductHandler)GetUserReviews(w http.ResponseWriter, r *http.Request){
 	logger.Info("page ", page)
 
 	vars := mux.Vars(r)
-	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	userID, err := strconv.ParseUint(vars["id"], 10, 64)
+	if err != nil {
+		userID, ok = r.Context().Value(middleware.ContextUserID).(uint64)
+		if !ok {
+			errE := errors.Cause(errors.UserUnauthorized)
+			logger.Error(errE.Message)
+			w.WriteHeader(errE.HttpError)
+			w.Write(errors.JSONError(errE))
+			return
+		}
+	}
 	reviewType, _ := vars["type"]
 	logger.Info("user id ", userID)
 
