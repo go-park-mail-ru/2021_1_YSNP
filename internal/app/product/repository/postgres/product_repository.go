@@ -883,9 +883,9 @@ WITH ORDERED AS
 
 	if reviewType == "seller" {
 		selectQuery += `
-u.id = p.buyer_id and p.seller_left_review = false
+u.id = p.owner_id and p.buyer_left_review = false
 				Left Join product_images pi on p.id = pi.product_id
-WHERE p.owner_id = $1
+WHERE p.buyer_id = $1
     ORDER BY p.date DESC
 )
 SELECT
@@ -897,9 +897,9 @@ WHERE
     LIMIT $2 OFFSET $3`
 	} else {
 		selectQuery += `
-u.id = p.owner_id and p.buyer_left_review = false
+u.id = p.buyer_id and p.seller_left_review = false
 				Left Join product_images pi on p.id = pi.product_id
-WHERE p.buyer_id = $1
+WHERE p.owner_id = $1
     ORDER BY p.date DESC
 )
 SELECT
