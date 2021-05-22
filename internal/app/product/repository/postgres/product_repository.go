@@ -885,7 +885,7 @@ WITH ORDERED AS
 		selectQuery += `
 u.id = p.owner_id and p.buyer_left_review = false
 				Left Join product_images pi on p.id = pi.product_id
-WHERE p.buyer_id = $1
+WHERE p.buyer_id = $1 and u.id notnull
     ORDER BY p.date DESC
 )
 SELECT
@@ -899,7 +899,7 @@ WHERE
 		selectQuery += `
 u.id = p.buyer_id and p.seller_left_review = false
 				Left Join product_images pi on p.id = pi.product_id
-WHERE p.owner_id = $1
+WHERE p.owner_id = $1 and u.id notnull
     ORDER BY p.date DESC
 )
 SELECT
