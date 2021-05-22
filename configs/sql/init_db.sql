@@ -146,7 +146,7 @@ create table if not exists user_reviews
   content          text     not null,
   rating           float    not null,
   reviewer_id      int      not null,
-  product_id       int      not null unique,
+  product_id       int      not null,
   target_id        int      not null ,
   type             varchar(12) not null,
 
