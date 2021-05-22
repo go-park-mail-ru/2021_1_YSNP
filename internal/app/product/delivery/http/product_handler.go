@@ -49,8 +49,9 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/buyer/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.SetProductBuyer)).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/product/review/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
+
 	r.HandleFunc("/user/{id:[0-9]+}/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
-	r.HandleFunc("/user/me/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/me/reviews/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetUserReviews))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/reviews/await/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetWaitingReviews))).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -650,7 +651,7 @@ func (ph *ProductHandler) ProductTrendsHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
-func (ph *ProductHandler) SetProductBuyer (w http.ResponseWriter, r *http.Request){
+func (ph *ProductHandler) SetProductBuyer(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -670,7 +671,6 @@ func (ph *ProductHandler) SetProductBuyer (w http.ResponseWriter, r *http.Reques
 	vars := mux.Vars(r)
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	logger.Info("product id ", productID)
-
 
 	type Request struct {
 		Buyer_id uint64 `json:"buyer_id"`
@@ -697,7 +697,7 @@ func (ph *ProductHandler) SetProductBuyer (w http.ResponseWriter, r *http.Reques
 	w.Write(errors.JSONSuccess("Successful set."))
 }
 
-func (ph *ProductHandler)CreateProductReview(w http.ResponseWriter, r *http.Request){
+func (ph *ProductHandler) CreateProductReview(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -737,7 +737,7 @@ func (ph *ProductHandler)CreateProductReview(w http.ResponseWriter, r *http.Requ
 	w.Write(errors.JSONSuccess("Successful creation."))
 }
 
-func (ph *ProductHandler)GetUserReviews(w http.ResponseWriter, r *http.Request){
+func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
@@ -792,7 +792,7 @@ func (ph *ProductHandler)GetUserReviews(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func (ph *ProductHandler)GetWaitingReviews(w http.ResponseWriter, r *http.Request){
+func (ph *ProductHandler) GetWaitingReviews(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
 		logger = log.GetDefaultLogger()
