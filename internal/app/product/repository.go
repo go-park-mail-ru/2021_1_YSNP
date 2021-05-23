@@ -14,7 +14,7 @@ type ProductRepository interface {
 
 	InsertProductBuyer(productID uint64, buyerID uint64) error
 	InsertReview(review *models.Review) error
-	CheckProductReview(productID uint64, reviewType string, reviewerID uint64) (bool,error)
+	CheckProductReview(productID uint64, reviewType string, reviewerID uint64) (bool, error)
 	SelectUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, error)
 
 	SelectByID(productID uint64) (*models.ProductData, error)
