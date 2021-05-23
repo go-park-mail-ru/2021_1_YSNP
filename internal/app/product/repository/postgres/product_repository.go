@@ -807,32 +807,45 @@ func (pr *ProductRepository) CheckProductReview(productID uint64, reviewType str
 	return result, nil
 }
 
-func (pr *ProductRepository) SelectUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, error) {
+func (pr *ProductRepository) SelectUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, error) {
 	var reviews []*models.Review
 
-	query, err := pr.dbConn.Query(
-		`
-				WITH ORDERED AS
+	selectQuery := `WITH ORDERED AS
 (SELECT r.id, r.creation_time, ur.content, ur.rating, ur.type, ur.reviewer_id, u.name as uname, u.avatar, ur.product_id, p.name, pi.img_link, ROW_NUMBER() OVER (PARTITION BY r.id) As rn
 				FROM user_reviews AS ur
 				JOIN reviews AS r on ur.review_id = r.id
 				JOIN users AS u ON u.id = ur.reviewer_id
 				JOIN product AS p ON p.id = ur.product_id
 				Left Join product_images pi on p.id = pi.product_id
-WHERE ur.target_id = $1 and ur.type = $2
-    ORDER BY r.creation_time DESC
-)
-SELECT
-id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id, name, img_link
-FROM
-    ORDERED
-WHERE
-    rn = 1
-    LIMIT $3 OFFSET $4`,
-		userID,
-		reviewType,
-		content.Count,
-		content.From*content.Count)
+WHERE ur.target_id = $1 and ur.type = $2`
+	if content.Sort == "date" {
+		selectQuery += `
+			ORDER BY r.creation_time desc
+		`
+	}
+	if content.Sort == "rate" {
+		selectQuery += `
+			ORDER BY ur.rating desc
+		`
+	}
+
+	selectQuery += `
+			)
+		SELECT
+		id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id, name, img_link
+		FROM
+			ORDERED
+		WHERE
+			rn = 1
+			LIMIT $3 OFFSET $4`
+
+	var queryData []interface{}
+	queryData = append(queryData, userID)
+	queryData = append(queryData, reviewType)
+	queryData = append(queryData, content.Count)
+	queryData = append(queryData, content.From*content.Count)
+
+	query, err := pr.dbConn.Query(selectQuery, queryData...)
 	if err != nil {
 		return nil, err
 	}

@@ -788,7 +788,7 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 		logger.Warn("no logger")
 	}
 
-	page := &models.Page{}
+	page := &models.PageWithSort{}
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
 	err := decoder.Decode(page, r.URL.Query())

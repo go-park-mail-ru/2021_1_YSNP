@@ -38,6 +38,13 @@ type Page struct {
 	From  uint64 `valid:"numeric"`
 	Count uint64 `valid:"numeric"`
 }
+
+type PageWithSort struct {
+	From  uint64 `valid:"numeric"`
+	Count uint64 `valid:"numeric"`
+	Sort  string `valid:"stringlength(3|5)"`
+}
+
 //easyjson:json
 type Category struct {
 	Title string `json:"title"`
