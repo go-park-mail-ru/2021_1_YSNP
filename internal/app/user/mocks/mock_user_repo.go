@@ -48,6 +48,20 @@ func (mr *MockUserRepositoryMockRecorder) Insert(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Insert", reflect.TypeOf((*MockUserRepository)(nil).Insert), arg0)
 }
 
+// InsertOAuth mocks base method.
+func (m *MockUserRepository) InsertOAuth(arg0 *models.UserOAuthRequest) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "InsertOAuth", arg0)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// InsertOAuth indicates an expected call of InsertOAuth.
+func (mr *MockUserRepositoryMockRecorder) InsertOAuth(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "InsertOAuth", reflect.TypeOf((*MockUserRepository)(nil).InsertOAuth), arg0)
+}
+
 // SelectByID mocks base method.
 func (m *MockUserRepository) SelectByID(arg0 uint64) (*models.UserData, error) {
 	m.ctrl.T.Helper()
@@ -61,6 +75,20 @@ func (m *MockUserRepository) SelectByID(arg0 uint64) (*models.UserData, error) {
 func (mr *MockUserRepositoryMockRecorder) SelectByID(arg0 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByID", reflect.TypeOf((*MockUserRepository)(nil).SelectByID), arg0)
+}
+
+// SelectByOAuthID mocks base method.
+func (m *MockUserRepository) SelectByOAuthID(arg0 float64) uint64 {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SelectByOAuthID", arg0)
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+// SelectByOAuthID indicates an expected call of SelectByOAuthID.
+func (mr *MockUserRepositoryMockRecorder) SelectByOAuthID(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SelectByOAuthID", reflect.TypeOf((*MockUserRepository)(nil).SelectByOAuthID), arg0)
 }
 
 // SelectByTelephone mocks base method.

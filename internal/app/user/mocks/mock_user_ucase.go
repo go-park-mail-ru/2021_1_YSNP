@@ -64,6 +64,20 @@ func (mr *MockUserUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockUserUsecase)(nil).Create), arg0)
 }
 
+// CreateOrLogin mocks base method.
+func (m *MockUserUsecase) CreateOrLogin(arg0 *models.UserOAuthRequest) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateOrLogin", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// CreateOrLogin indicates an expected call of CreateOrLogin.
+func (mr *MockUserUsecaseMockRecorder) CreateOrLogin(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrLogin", reflect.TypeOf((*MockUserUsecase)(nil).CreateOrLogin), arg0)
+}
+
 // GetByID mocks base method.
 func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors.Error) {
 	m.ctrl.T.Helper()

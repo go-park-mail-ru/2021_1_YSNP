@@ -1,5 +1,5 @@
 package models
-
+//easyjson:json
 type UserData struct {
 	ID         uint64  `json:"id" valid:"numeric"`
 	Name       string  `json:"name" valid:"stringlength(1|30)"`
@@ -15,7 +15,7 @@ type UserData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 }
-
+//easyjson:json
 type ProfileData struct {
 	ID         uint64  `json:"id" valid:"numeric"`
 	Name       string  `json:"name" valid:"stringlength(1|30)"`
@@ -30,7 +30,7 @@ type ProfileData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 }
-
+//easyjson:json
 type SellerData struct {
 	ID      uint64 `json:"id" valid:"numeric"`
 	Name    string `json:"name" valid:"stringlength(1|30)"`
@@ -41,14 +41,14 @@ type SellerData struct {
 	//DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
-
+//easyjson:json
 type LocationRequest struct {
 	Latitude  float64 `json:"latitude" valid:"latitude"`
 	Longitude float64 `json:"longitude" valid:"longitude"`
 	Radius    uint64  `json:"radius" valid:"numeric"`
 	Address   string  `json:"address" valid:"type(string)"`
 }
-
+//easyjson:json
 type SignUpRequest struct {
 	Name       string `json:"name" valid:"stringlength(1|30)"`
 	Surname    string `json:"surname" valid:"stringlength(1|30)"`
@@ -60,13 +60,13 @@ type SignUpRequest struct {
 	DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
-
+//easyjson:json
 type PasswordChangeRequest struct {
 	OldPassword  string `json:"oldPassword" valid:"password"`
 	NewPassword1 string `json:"newPassword1" valid:"password, password1"`
 	NewPassword2 string `json:"newPassword2" valid:"password, password2"`
 }
-
+//easyjson:json
 type Response struct {
 	Response []struct {
 		LastName  string `json:"last_name"`
@@ -74,7 +74,7 @@ type Response struct {
 		Photo     string `json:"photo_max"`
 	}
 }
-
+//easyjson:json
 type UserOAuthRequest struct {
 	ID            uint64  `json:"id"`
 	LastName      string  `json:"last_name"`
