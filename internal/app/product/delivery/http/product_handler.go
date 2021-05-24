@@ -38,6 +38,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/{id:[0-9]+}/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.SellerAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
@@ -46,6 +47,12 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/trend/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.TrendHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/{id:[0-9]+}/trend/list", mw.SetCSRFToken(ph.ProductTrendsHandler)).Methods(http.MethodGet, http.MethodOptions)
+
+	r.HandleFunc("/product/buyer/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.SetProductBuyer)).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/product/review/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
+
+	r.HandleFunc("/user/{id:[0-9]+}/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/reviews/await/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetWaitingReviews))).Methods(http.MethodGet, http.MethodOptions)
 }
 
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
@@ -138,8 +145,26 @@ func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	users, errE := ph.productUcase.GetProductReviewers(productID, userID)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	body, err := json.Marshal(users)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(errors.JSONSuccess("Successful close."))
+	w.Write(body)
 }
 
 func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Request) {
@@ -439,6 +464,50 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (ph *ProductHandler) SellerAdHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	vars := mux.Vars(r)
+	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("user id ", userID)
+
+	page := &models.Page{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("page ", page)
+
+	products, errE := ph.productUcase.UserAdList(userID, page)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}
+
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -617,6 +686,191 @@ func (ph *ProductHandler) ProductTrendsHandler(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 	w.Header().Set("Content-Type", "application/json")
 	err := json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}
+
+func (ph *ProductHandler) SetProductBuyer(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	vars := mux.Vars(r)
+	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("product id ", productID)
+
+	type Request struct {
+		Buyer_id uint64 `json:"buyer_id"`
+	}
+	req := &Request{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	errE := ph.productUcase.SetProductBuyer(productID, req.Buyer_id)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful set."))
+}
+
+func (ph *ProductHandler) CreateProductReview(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	review := &models.Review{}
+	err := json.NewDecoder(r.Body).Decode(&review)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	review.ReviewerID = userID
+
+	errE := ph.productUcase.CreateProductReview(review)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(errors.JSONSuccess("Successful creation."))
+}
+
+func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	page := &models.PageWithSort{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("page ", page)
+
+	vars := mux.Vars(r)
+	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	reviewType, _ := vars["type"]
+	logger.Info("user id ", userID)
+
+	reviews, errE := ph.productUcase.GetUserReviews(userID, reviewType, page)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(reviews)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}
+
+func (ph *ProductHandler) GetWaitingReviews(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	userID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		errE := errors.Cause(errors.UserUnauthorized)
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("user id ", userID)
+
+	vars := mux.Vars(r)
+	reviewType, _ := vars["type"]
+	logger.Info("user id ", userID)
+
+	page := &models.Page{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("page ", page)
+
+	reviews, errE := ph.productUcase.GetWaitingReviews(userID, reviewType, page)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(reviews)
 	if err != nil {
 		logger.Error(err)
 		errE := errors.UnexpectedInternal(err)

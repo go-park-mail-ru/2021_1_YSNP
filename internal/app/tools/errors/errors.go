@@ -29,6 +29,7 @@ const (
 	WrongOwner
 	ChatNotExist
 	NoPhoto
+	ReviewExist
 )
 
 type Error struct {
@@ -164,6 +165,11 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: NoPhoto,
 		HttpError: http.StatusBadRequest,
 		Message:   "no photo",
+	},
+	ReviewExist: {
+		ErrorCode: ReviewExist,
+		HttpError: http.StatusBadRequest,
+		Message:   "forbidden to leave the review",
 	},
 }
 
