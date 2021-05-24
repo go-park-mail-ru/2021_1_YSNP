@@ -252,11 +252,10 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	return product, nil
 }
 
-
 func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*models.ProductListData, error) {
 	var products []*models.ProductListData
 
-	queries :=  `SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
+	queries := `SELECT p.id, p.name, p.date, p.amount, array_agg(pi.img_link), uf.user_id, p.tariff
 	FROM product as p
 	left join product_images as pi on pi.product_id=p.id
 	left join user_favorite uf on p.id = uf.product_id and uf.user_id = $1
@@ -267,13 +266,13 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 
 	hasId := false
 	for i, item := range idArray {
-		queries += " $" + strconv.Itoa(i + 2)  + ","
+		queries += " $" + strconv.Itoa(i+2) + ","
 		val = append(val, item)
 		hasId = true
 	}
-	
-	if 	hasId {
-		queries = queries[:len(queries) - 1]
+
+	if hasId {
+		queries = queries[:len(queries)-1]
 	} else {
 		queries += "null"
 	}
@@ -285,7 +284,7 @@ func (pr *ProductRepository) SelectTrands(idArray []uint64, userID *uint64) ([]*
 	query, err := pr.dbConn.Query(
 		queries,
 		val...,
-		)
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -648,7 +647,7 @@ func (pr *ProductRepository) UpdateProductViews(productID uint64, count int) err
 	return nil
 }
 
-func (pr *ProductRepository)SelectProductReviewers(productID uint64, userID uint64) ([]*models.UserData, error){
+func (pr *ProductRepository) SelectProductReviewers(productID uint64, userID uint64) ([]*models.UserData, error) {
 	var users []*models.UserData
 
 	query, err := pr.dbConn.Query(
@@ -658,8 +657,8 @@ From users as u
 left join user_chats as uc on uc.product_id = $1 and uc.user_id = u.id and uc.user_id != $2
 left join user_favorite as uf on uf.product_id = $1 and uf.user_id = u.id
 where uf.user_id notnull or uc.chat_id notnull`,
-productID,
-userID)
+		productID,
+		userID)
 	if err != nil {
 		return nil, err
 	}
@@ -688,7 +687,7 @@ userID)
 	return users, err
 }
 
-func (pr *ProductRepository)InsertProductBuyer(productID uint64, buyerID uint64) error {
+func (pr *ProductRepository) InsertProductBuyer(productID uint64, buyerID uint64) error {
 	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -718,7 +717,7 @@ func (pr *ProductRepository)InsertProductBuyer(productID uint64, buyerID uint64)
 	return nil
 }
 
-func (pr *ProductRepository)InsertReview(review *models.Review) error {
+func (pr *ProductRepository) InsertReview(review *models.Review) error {
 	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -759,9 +758,8 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 		return err
 	}
 
-
 	updateQuery := `UPDATE product `
-	if (review.Type == "buyer") {
+	if review.Type == "buyer" {
 		updateQuery += `SET buyer_left_review = true
                 WHERE product.id = $1`
 	} else {
@@ -786,11 +784,11 @@ func (pr *ProductRepository)InsertReview(review *models.Review) error {
 	return nil
 }
 
-func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType string, reviewerID uint64) (bool, error) {
+func (pr *ProductRepository) CheckProductReview(productID uint64, reviewType string, reviewerID uint64) (bool, error) {
 	var result bool
 	var revID uint64
 	selectQuery := `SELECT `
-	if (reviewType == "buyer") {
+	if reviewType == "buyer" {
 		selectQuery += `buyer_id, buyer_left_review FROM product
                 WHERE product.id = $1`
 	} else {
@@ -809,32 +807,45 @@ func (pr *ProductRepository)CheckProductReview(productID uint64, reviewType stri
 	return result, nil
 }
 
-func (pr *ProductRepository)SelectUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, error){
+func (pr *ProductRepository) SelectUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, error) {
 	var reviews []*models.Review
 
-	query, err := pr.dbConn.Query(
-		`
-				WITH ORDERED AS
+	selectQuery := `WITH ORDERED AS
 (SELECT r.id, r.creation_time, ur.content, ur.rating, ur.type, ur.reviewer_id, u.name as uname, u.avatar, ur.product_id, p.name, pi.img_link, ROW_NUMBER() OVER (PARTITION BY r.id) As rn
 				FROM user_reviews AS ur
 				JOIN reviews AS r on ur.review_id = r.id
 				JOIN users AS u ON u.id = ur.reviewer_id
 				JOIN product AS p ON p.id = ur.product_id
 				Left Join product_images pi on p.id = pi.product_id
-WHERE ur.target_id = $1 and ur.type = $2
-    ORDER BY r.creation_time DESC
-)
-SELECT
-id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id, name, img_link
-FROM
-    ORDERED
-WHERE
-    rn = 1
-    LIMIT $3 OFFSET $4`,
-		userID,
-		reviewType,
-		content.Count,
-		content.From*content.Count)
+WHERE ur.target_id = $1 and ur.type = $2`
+	if content.Sort == "date" {
+		selectQuery += `
+			ORDER BY r.creation_time desc
+		`
+	}
+	if content.Sort == "rate" {
+		selectQuery += `
+			ORDER BY ur.rating desc
+		`
+	}
+
+	selectQuery += `
+			)
+		SELECT
+		id, creation_time, content, rating, type, reviewer_id, uname, avatar, product_id, name, img_link
+		FROM
+			ORDERED
+		WHERE
+			rn = 1
+			LIMIT $3 OFFSET $4`
+
+	var queryData []interface{}
+	queryData = append(queryData, userID)
+	queryData = append(queryData, reviewType)
+	queryData = append(queryData, content.Count)
+	queryData = append(queryData, content.From*content.Count)
+
+	query, err := pr.dbConn.Query(selectQuery, queryData...)
 	if err != nil {
 		return nil, err
 	}
@@ -861,7 +872,7 @@ WHERE
 			return nil, err
 		}
 
-		reviews= append(reviews, review)
+		reviews = append(reviews, review)
 	}
 
 	if err := query.Err(); err != nil {
@@ -871,11 +882,10 @@ WHERE
 	return reviews, err
 }
 
-func (pr *ProductRepository)SelectWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, error){
+func (pr *ProductRepository) SelectWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, error) {
 	var reviews []*models.WaitingReview
 
-
-	selectQuery :=`
+	selectQuery := `
 WITH ORDERED AS
 (SELECT u.id as uid, u.name as uname, u.avatar, p.id as pid, p.name as pname, p.owner_id, pi.img_link, ROW_NUMBER() OVER (PARTITION BY p.id) As rn
 				FROM product as p
@@ -943,7 +953,7 @@ WHERE
 		} else {
 			review.Type = "buyer"
 		}
-		reviews= append(reviews, review)
+		reviews = append(reviews, review)
 	}
 
 	if err := query.Err(); err != nil {

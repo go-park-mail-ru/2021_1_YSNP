@@ -38,6 +38,7 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 
 	r.HandleFunc("/product/{id:[0-9]+}", mw.SetCSRFToken(ph.ProductIDHandler)).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/product/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.MainPageHandler))).Methods(http.MethodGet, http.MethodOptions)
+	r.HandleFunc("/user/{id:[0-9]+}/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.SellerAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/ad/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserAdHandler))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/favorite/list", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.UserFavoriteHandler))).Methods(http.MethodGet, http.MethodOptions)
 
@@ -51,7 +52,6 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 	r.HandleFunc("/product/review/{id:[0-9]+}", mw.CheckAuthMiddleware(ph.CreateProductReview)).Methods(http.MethodPost, http.MethodOptions)
 
 	r.HandleFunc("/user/{id:[0-9]+}/reviews/{type:seller|buyer}", mw.SetCSRFToken(ph.GetUserReviews)).Methods(http.MethodGet, http.MethodOptions)
-	r.HandleFunc("/user/me/reviews/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetUserReviews))).Methods(http.MethodGet, http.MethodOptions)
 	r.HandleFunc("/user/reviews/await/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetWaitingReviews))).Methods(http.MethodGet, http.MethodOptions)
 }
 
@@ -464,6 +464,50 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (ph *ProductHandler) SellerAdHandler(w http.ResponseWriter, r *http.Request) {
+	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
+	if !ok {
+		logger = log.GetDefaultLogger()
+		logger.Warn("no logger")
+	}
+
+	vars := mux.Vars(r)
+	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
+	logger.Info("user id ", userID)
+
+	page := &models.Page{}
+	decoder := schema.NewDecoder()
+	decoder.IgnoreUnknownKeys(true)
+	err := decoder.Decode(page, r.URL.Query())
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedBadRequest(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+	logger.Info("page ", page)
+
+	products, errE := ph.productUcase.UserAdList(userID, page)
+	if errE != nil {
+		logger.Error(errE.Message)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	err = json.NewEncoder(w).Encode(products)
+	if err != nil {
+		logger.Error(err)
+		errE := errors.UnexpectedInternal(err)
+		w.WriteHeader(errE.HttpError)
+		w.Write(errors.JSONError(errE))
+		return
+	}
+}
+
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -744,7 +788,7 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 		logger.Warn("no logger")
 	}
 
-	page := &models.Page{}
+	page := &models.PageWithSort{}
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
 	err := decoder.Decode(page, r.URL.Query())
@@ -758,17 +802,7 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 	logger.Info("page ", page)
 
 	vars := mux.Vars(r)
-	userID, err := strconv.ParseUint(vars["id"], 10, 64)
-	if err != nil {
-		userID, ok = r.Context().Value(middleware.ContextUserID).(uint64)
-		if !ok {
-			errE := errors.Cause(errors.UserUnauthorized)
-			logger.Error(errE.Message)
-			w.WriteHeader(errE.HttpError)
-			w.Write(errors.JSONError(errE))
-			return
-		}
-	}
+	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	reviewType, _ := vars["type"]
 	logger.Info("user id ", userID)
 

@@ -113,7 +113,7 @@ func (pu *ProductUsecase) GetProduct(productID uint64) (*models.ProductData, *er
 func (pu *ProductUsecase) RecommendationList(productID uint64, userID uint64) ([]*models.ProductListData, *errors.Error) {
 	productIdArray, err := pu.trendsRepo.GetRecommendationProducts(productID, userID)
 
-	for i, val := range productIdArray{
+	for i, val := range productIdArray {
 		if val == productID {
 			productIdArray = append(productIdArray[:i], productIdArray[i+1:]...)
 			break
@@ -239,7 +239,7 @@ func (pu *ProductUsecase) GetByID(productID uint64) (*models.ProductData, *error
 	return product, nil
 }
 
-func (pu *ProductUsecase)GetProductReviewers(productID uint64, userID uint64) ([]*models.UserData, *errors.Error){
+func (pu *ProductUsecase) GetProductReviewers(productID uint64, userID uint64) ([]*models.UserData, *errors.Error) {
 	users, err := pu.productRepo.SelectProductReviewers(productID, userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -251,7 +251,7 @@ func (pu *ProductUsecase)GetProductReviewers(productID uint64, userID uint64) ([
 	return users, nil
 }
 
-func (pu *ProductUsecase)SetProductBuyer(productID uint64, buyerID uint64) *errors.Error{
+func (pu *ProductUsecase) SetProductBuyer(productID uint64, buyerID uint64) *errors.Error {
 	err := pu.productRepo.InsertProductBuyer(productID, buyerID)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
@@ -260,7 +260,7 @@ func (pu *ProductUsecase)SetProductBuyer(productID uint64, buyerID uint64) *erro
 	return nil
 }
 
-func (pu *ProductUsecase)CreateProductReview(review *models.Review) *errors.Error{
+func (pu *ProductUsecase) CreateProductReview(review *models.Review) *errors.Error {
 	has, err := pu.productRepo.CheckProductReview(review.ProductID, review.Type, review.ReviewerID)
 	if err != nil {
 		return errors.UnexpectedInternal(err)
@@ -278,7 +278,7 @@ func (pu *ProductUsecase)CreateProductReview(review *models.Review) *errors.Erro
 
 }
 
-func (pu *ProductUsecase)GetUserReviews(userID uint64, reviewType string, content *models.Page) ([]*models.Review, *errors.Error){
+func (pu *ProductUsecase) GetUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, *errors.Error) {
 	reviews, err := pu.productRepo.SelectUserReviews(userID, reviewType, content)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
@@ -291,7 +291,7 @@ func (pu *ProductUsecase)GetUserReviews(userID uint64, reviewType string, conten
 	return reviews, nil
 }
 
-func (pu *ProductUsecase)GetWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, *errors.Error){
+func (pu *ProductUsecase) GetWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, *errors.Error) {
 	reviews, err := pu.productRepo.SelectWaitingReviews(userID, reviewType, content)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
