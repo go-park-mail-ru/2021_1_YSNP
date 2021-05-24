@@ -238,7 +238,7 @@ func (mr *MockProductRepositoryMockRecorder) SelectUserFavorite(arg0, arg1 inter
 }
 
 // SelectUserReviews mocks base method.
-func (m *MockProductRepository) SelectUserReviews(arg0 uint64, arg1 string, arg2 *models.Page) ([]*models.Review, error) {
+func (m *MockProductRepository) SelectUserReviews(arg0 uint64, arg1 string, arg2 *models.PageWithSort) ([]*models.Review, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "SelectUserReviews", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*models.Review)

@@ -167,7 +167,7 @@ func (mr *MockProductUsecaseMockRecorder) GetUserFavorite(arg0, arg1 interface{}
 }
 
 // GetUserReviews mocks base method.
-func (m *MockProductUsecase) GetUserReviews(arg0 uint64, arg1 string, arg2 *models.Page) ([]*models.Review, *errors.Error) {
+func (m *MockProductUsecase) GetUserReviews(arg0 uint64, arg1 string, arg2 *models.PageWithSort) ([]*models.Review, *errors.Error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "GetUserReviews", arg0, arg1, arg2)
 	ret0, _ := ret[0].([]*models.Review)

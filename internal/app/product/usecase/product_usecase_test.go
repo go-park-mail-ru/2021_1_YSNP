@@ -658,21 +658,21 @@ func TestProductUsecase_GetUserReviews(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	rv := &models.Review{ID: 0}
 
-	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.Review{rv}, nil)
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{}).Return([]*models.Review{rv}, nil)
 
-	_, err := prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	_, err := prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{})
 	assert.Equal(t, err, (*errors.Error)(nil))
 
 	//empty
-	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.Review{}, nil)
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{}).Return([]*models.Review{}, nil)
 
-	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{})
 	assert.Equal(t, err, (*errors.Error)(nil))
 
 	//err
-	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return(nil, sql.ErrConnDone)
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{}).Return(nil, sql.ErrConnDone)
 
-	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.PageWithSort{})
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }
 

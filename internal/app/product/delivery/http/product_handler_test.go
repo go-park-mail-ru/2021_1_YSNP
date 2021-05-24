@@ -1527,7 +1527,7 @@ func TestProductHandler_GetUserReviews_Success(t *testing.T) {
 
 	prodUcase := mock.NewMockProductUsecase(ctrl)
 
-	page := &models.Page{
+	page := &models.PageWithSort{
 		From:  0,
 		Count: 20,
 	}
@@ -1553,31 +1553,6 @@ func TestProductHandler_GetUserReviews_Success(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestProductHandler_GetUserReviews_Auth(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	prodUcase := mock.NewMockProductUsecase(ctrl)
-
-	r := httptest.NewRequest("POST", "/api/v1/list/?from=0&count=20", nil)
-	r = mux.SetURLVars(r, map[string]string{"type":"seller"})
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-	}))
-	logrus.SetOutput(ioutil.Discard)
-	w := httptest.NewRecorder()
-
-	rout := mux.NewRouter()
-	router := rout.PathPrefix("/api/v1").Subrouter()
-	prodHandler := NewProductHandler(prodUcase)
-	prodHandler.Configure(router, rout, nil)
-
-	prodHandler.GetUserReviews(w, r.WithContext(ctx))
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
 
 func TestProductHandler_GetUserReviews_Decode(t *testing.T) {
 	t.Parallel()
@@ -1612,7 +1587,7 @@ func TestProductHandler_GetUserReviews_Err(t *testing.T) {
 
 	prodUcase := mock.NewMockProductUsecase(ctrl)
 
-	page := &models.Page{
+	page := &models.PageWithSort{
 		From:  0,
 		Count: 20,
 	}
