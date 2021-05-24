@@ -2,12 +2,11 @@ package usecase
 
 import (
 	"database/sql"
-	"mime/multipart"
-	"testing"
-
 	"github.com/golang/mock/gomock"
 	"github.com/jackc/pgx"
 	"github.com/stretchr/testify/assert"
+	"mime/multipart"
+	"testing"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	mock "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/product/mocks"
@@ -547,5 +546,161 @@ func TestProductUsecase_TrendList(t *testing.T) {
 	prodRepo.EXPECT().SelectTrands([]uint64{}, &prodTest.OwnerID).Return([]*models.ProductListData{}, sql.ErrConnDone)
 
 	_, err = prodUcase.TrendList(&prodTest.OwnerID)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
+func TestProductUsecase_GetProductReviewers(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+	user := &models.UserData{
+		ID:         0,
+	}
+
+	prodRepo.EXPECT().SelectProductReviewers(prodTest.ID, prodTest.OwnerID).Return([]*models.UserData{user}, nil)
+
+	_, err := prodUcase.GetProductReviewers(prodTest.ID, prodTest.OwnerID)
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//empty
+	prodRepo.EXPECT().SelectProductReviewers(prodTest.ID, prodTest.OwnerID).Return([]*models.UserData{}, nil)
+
+	_, err = prodUcase.GetProductReviewers(prodTest.ID, prodTest.OwnerID)
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//err
+	prodRepo.EXPECT().SelectProductReviewers(prodTest.ID, prodTest.OwnerID).Return(nil, sql.ErrConnDone)
+
+	_, err = prodUcase.GetProductReviewers(prodTest.ID, prodTest.OwnerID)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
+func TestProductUsecase_SetProductBuyer(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+
+	prodRepo.EXPECT().InsertProductBuyer(prodTest.ID, prodTest.OwnerID).Return(nil)
+
+	err := prodUcase.SetProductBuyer(prodTest.ID, prodTest.OwnerID)
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//err
+	prodRepo.EXPECT().InsertProductBuyer(prodTest.ID, prodTest.OwnerID).Return(sql.ErrConnDone)
+
+	err = prodUcase.SetProductBuyer(prodTest.ID, prodTest.OwnerID)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
+func TestProductUsecase_CreateProductReview(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+
+	review := &models.Review{
+		Content:        "dsd",
+		Rating:         2,
+		ReviewerID:     1,
+		ProductID:      0,
+		TargetID:       3,
+		Type:           "seller",
+	}
+
+	prodRepo.EXPECT().CheckProductReview(review.ProductID, review.Type, review.ReviewerID).Return(false, nil)
+	prodRepo.EXPECT().InsertReview(review).Return(nil)
+
+	err := prodUcase.CreateProductReview(review)
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//err
+	prodRepo.EXPECT().CheckProductReview(review.ProductID, review.Type, review.ReviewerID).Return(false, sql.ErrConnDone)
+
+	err = prodUcase.CreateProductReview(review)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+
+	//err
+	prodRepo.EXPECT().CheckProductReview(review.ProductID, review.Type, review.ReviewerID).Return(true, nil)
+
+	err = prodUcase.CreateProductReview(review)
+	assert.Equal(t, err, errors.Cause(errors.ReviewExist))
+
+	//err
+	prodRepo.EXPECT().CheckProductReview(review.ProductID, review.Type, review.ReviewerID).Return(false, nil)
+	prodRepo.EXPECT().InsertReview(review).Return(sql.ErrConnDone)
+
+	err = prodUcase.CreateProductReview(review)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
+func TestProductUsecase_GetUserReviews(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+	rv := &models.Review{ID: 0}
+
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.Review{rv}, nil)
+
+	_, err := prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//empty
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.Review{}, nil)
+
+	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//err
+	prodRepo.EXPECT().SelectUserReviews(prodTest.OwnerID, "seller", &models.Page{}).Return(nil, sql.ErrConnDone)
+
+	_, err = prodUcase.GetUserReviews(prodTest.OwnerID, "seller", &models.Page{})
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
+func TestProductUsecase_GetWaitingReviews(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+	rv := &models.WaitingReview{ProductID: 0}
+
+	prodRepo.EXPECT().SelectWaitingReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.WaitingReview{rv}, nil)
+
+	_, err := prodUcase.GetWaitingReviews(prodTest.OwnerID, "seller", &models.Page{})
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//empty
+	prodRepo.EXPECT().SelectWaitingReviews(prodTest.OwnerID, "seller", &models.Page{}).Return([]*models.WaitingReview{}, nil)
+
+	_, err = prodUcase.GetWaitingReviews(prodTest.OwnerID, "seller", &models.Page{})
+	assert.Equal(t, err, (*errors.Error)(nil))
+
+	//err
+	prodRepo.EXPECT().SelectWaitingReviews(prodTest.OwnerID, "seller", &models.Page{}).Return(nil, sql.ErrConnDone)
+
+	_, err = prodUcase.GetWaitingReviews(prodTest.OwnerID, "seller", &models.Page{})
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }

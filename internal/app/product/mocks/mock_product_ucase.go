@@ -64,6 +64,20 @@ func (mr *MockProductUsecaseMockRecorder) Create(arg0 interface{}) *gomock.Call 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Create", reflect.TypeOf((*MockProductUsecase)(nil).Create), arg0)
 }
 
+// CreateProductReview mocks base method.
+func (m *MockProductUsecase) CreateProductReview(arg0 *models.Review) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "CreateProductReview", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// CreateProductReview indicates an expected call of CreateProductReview.
+func (mr *MockProductUsecaseMockRecorder) CreateProductReview(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProductReview", reflect.TypeOf((*MockProductUsecase)(nil).CreateProductReview), arg0)
+}
+
 // DislikeProduct mocks base method.
 func (m *MockProductUsecase) DislikeProduct(arg0, arg1 uint64) *errors.Error {
 	m.ctrl.T.Helper()
@@ -122,6 +136,21 @@ func (mr *MockProductUsecaseMockRecorder) GetProduct(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProduct", reflect.TypeOf((*MockProductUsecase)(nil).GetProduct), arg0)
 }
 
+// GetProductReviewers mocks base method.
+func (m *MockProductUsecase) GetProductReviewers(arg0, arg1 uint64) ([]*models.UserData, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetProductReviewers", arg0, arg1)
+	ret0, _ := ret[0].([]*models.UserData)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// GetProductReviewers indicates an expected call of GetProductReviewers.
+func (mr *MockProductUsecaseMockRecorder) GetProductReviewers(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetProductReviewers", reflect.TypeOf((*MockProductUsecase)(nil).GetProductReviewers), arg0, arg1)
+}
+
 // GetUserFavorite mocks base method.
 func (m *MockProductUsecase) GetUserFavorite(arg0 uint64, arg1 *models.Page) ([]*models.ProductListData, *errors.Error) {
 	m.ctrl.T.Helper()
@@ -135,6 +164,36 @@ func (m *MockProductUsecase) GetUserFavorite(arg0 uint64, arg1 *models.Page) ([]
 func (mr *MockProductUsecaseMockRecorder) GetUserFavorite(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserFavorite", reflect.TypeOf((*MockProductUsecase)(nil).GetUserFavorite), arg0, arg1)
+}
+
+// GetUserReviews mocks base method.
+func (m *MockProductUsecase) GetUserReviews(arg0 uint64, arg1 string, arg2 *models.Page) ([]*models.Review, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetUserReviews", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.Review)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// GetUserReviews indicates an expected call of GetUserReviews.
+func (mr *MockProductUsecaseMockRecorder) GetUserReviews(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetUserReviews", reflect.TypeOf((*MockProductUsecase)(nil).GetUserReviews), arg0, arg1, arg2)
+}
+
+// GetWaitingReviews mocks base method.
+func (m *MockProductUsecase) GetWaitingReviews(arg0 uint64, arg1 string, arg2 *models.Page) ([]*models.WaitingReview, *errors.Error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetWaitingReviews", arg0, arg1, arg2)
+	ret0, _ := ret[0].([]*models.WaitingReview)
+	ret1, _ := ret[1].(*errors.Error)
+	return ret0, ret1
+}
+
+// GetWaitingReviews indicates an expected call of GetWaitingReviews.
+func (mr *MockProductUsecaseMockRecorder) GetWaitingReviews(arg0, arg1, arg2 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetWaitingReviews", reflect.TypeOf((*MockProductUsecase)(nil).GetWaitingReviews), arg0, arg1, arg2)
 }
 
 // LikeProduct mocks base method.
@@ -179,6 +238,20 @@ func (m *MockProductUsecase) RecommendationList(arg0, arg1 uint64) ([]*models.Pr
 func (mr *MockProductUsecaseMockRecorder) RecommendationList(arg0, arg1 interface{}) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RecommendationList", reflect.TypeOf((*MockProductUsecase)(nil).RecommendationList), arg0, arg1)
+}
+
+// SetProductBuyer mocks base method.
+func (m *MockProductUsecase) SetProductBuyer(arg0, arg1 uint64) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "SetProductBuyer", arg0, arg1)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// SetProductBuyer indicates an expected call of SetProductBuyer.
+func (mr *MockProductUsecaseMockRecorder) SetProductBuyer(arg0, arg1 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "SetProductBuyer", reflect.TypeOf((*MockProductUsecase)(nil).SetProductBuyer), arg0, arg1)
 }
 
 // SetTariff mocks base method.
