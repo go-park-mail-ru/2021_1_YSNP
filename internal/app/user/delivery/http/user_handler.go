@@ -516,7 +516,7 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	logger.Info("userID ", userID)
 
 	vkUrl := fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken)
-	logger.Debug("Vk url", vkUrl)
+	logger.Debug("Vk url ", vkUrl)
 
 	client := conf.Client(ctx, token)
 	resp, err := client.Get(vkUrl)

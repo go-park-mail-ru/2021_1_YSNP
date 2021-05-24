@@ -13,6 +13,7 @@ type Session struct {
 	UserID    uint64
 	ExpiresAt time.Time
 }
+
 //easyjson:json
 type LoginRequest struct {
 	Telephone string `json:"telephone" valid:"phoneNumber"`

@@ -1,4 +1,5 @@
 package models
+
 //easyjson:json
 type Search struct {
 	Category   string  `valid:"type(string)"`

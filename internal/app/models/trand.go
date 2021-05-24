@@ -1,6 +1,7 @@
 package models
 
 import "time"
+
 //easyjson:json
 type UserInterested struct {
 	UserID uint64 `json:"userID"`

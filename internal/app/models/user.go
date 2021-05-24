@@ -1,4 +1,5 @@
 package models
+
 //easyjson:json
 type UserData struct {
 	ID         uint64  `json:"id" valid:"numeric"`
@@ -15,6 +16,7 @@ type UserData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 }
+
 //easyjson:json
 type ProfileData struct {
 	ID         uint64  `json:"id" valid:"numeric"`
@@ -30,6 +32,7 @@ type ProfileData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 }
+
 //easyjson:json
 type SellerData struct {
 	ID      uint64 `json:"id" valid:"numeric"`
@@ -41,6 +44,7 @@ type SellerData struct {
 	//DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
+
 //easyjson:json
 type LocationRequest struct {
 	Latitude  float64 `json:"latitude" valid:"latitude"`
@@ -48,6 +52,7 @@ type LocationRequest struct {
 	Radius    uint64  `json:"radius" valid:"numeric"`
 	Address   string  `json:"address" valid:"type(string)"`
 }
+
 //easyjson:json
 type SignUpRequest struct {
 	Name       string `json:"name" valid:"stringlength(1|30)"`
@@ -60,20 +65,23 @@ type SignUpRequest struct {
 	DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
 }
+
 //easyjson:json
 type PasswordChangeRequest struct {
 	OldPassword  string `json:"oldPassword" valid:"password"`
 	NewPassword1 string `json:"newPassword1" valid:"password, password1"`
 	NewPassword2 string `json:"newPassword2" valid:"password, password2"`
 }
+
 //easyjson:json
 type Response struct {
 	Response []struct {
 		LastName  string `json:"last_name"`
 		FirstName string `json:"first_name"`
 		Photo     string `json:"photo_max"`
-	}
+	} `json:"response"`
 }
+
 //easyjson:json
 type UserOAuthRequest struct {
 	ID            uint64  `json:"id"`
@@ -85,8 +93,8 @@ type UserOAuthRequest struct {
 }
 
 type Achievement struct {
-	Titie 		string  `json:"title"`
-	Description string  `json:"description"`
-	Date 		string  `json:"date"`
-	LinkPic     string  `json:"link_pic"`
+	Titie       string `json:"title"`
+	Description string `json:"description"`
+	Date        string `json:"date"`
+	LinkPic     string `json:"link_pic"`
 }
