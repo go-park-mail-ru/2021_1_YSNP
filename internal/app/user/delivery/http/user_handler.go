@@ -300,7 +300,6 @@ func (uh *UserHandler) GetUserLandingHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(body)
 }
 
-
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -516,8 +515,11 @@ func (uh *UserHandler) VKOauth(w http.ResponseWriter, r *http.Request) {
 	userID := token.Extra("user_id")
 	logger.Info("userID ", userID)
 
+	vkUrl := fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken)
+	logger.Debug("Vk url", vkUrl)
+
 	client := conf.Client(ctx, token)
-	resp, err := client.Get(fmt.Sprintf(configs.Configs.GetVKAppUrl(), token.AccessToken))
+	resp, err := client.Get(vkUrl)
 	if err != nil {
 		logger.Error(err)
 		http.Redirect(w, r, configs.Configs.GetVKFrontUrl(), http.StatusTemporaryRedirect)
