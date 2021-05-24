@@ -11,6 +11,10 @@ type Logger struct {
 
 func NewLogger(mode string, host string) *Logger {
 	switch mode {
+	case "prod":
+		setProductionFormatter(host)
+		setDevelopmentLevel()
+
 	case "production":
 		setProductionFormatter(host)
 		setProductionLevel()
