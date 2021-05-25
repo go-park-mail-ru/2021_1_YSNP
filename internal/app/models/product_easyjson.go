@@ -491,6 +491,8 @@ func easyjsonCf3f67efDecodeGithubComGoParkMailRu20211YSNPInternalAppModels3(in *
 			out.OwnerSurname = string(in.String())
 		case "ownerLinkImages":
 			out.OwnerLinkImages = string(in.String())
+		case "owner_rating":
+			out.OwnerRating = float64(in.Float64())
 		case "close":
 			out.Close = bool(in.Bool())
 		default:
@@ -602,6 +604,11 @@ func easyjsonCf3f67efEncodeGithubComGoParkMailRu20211YSNPInternalAppModels3(out 
 		const prefix string = ",\"ownerLinkImages\":"
 		out.RawString(prefix)
 		out.String(string(in.OwnerLinkImages))
+	}
+	{
+		const prefix string = ",\"owner_rating\":"
+		out.RawString(prefix)
+		out.Float64(float64(in.OwnerRating))
 	}
 	{
 		const prefix string = ",\"close\":"
