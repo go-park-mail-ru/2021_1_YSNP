@@ -78,6 +78,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 		Radius:     user.Radius,
 		Address:    user.Address,
 		LinkImages: user.LinkImages,
+		Rating: user.Rating,
 	}
 
 	return profile, nil
@@ -98,6 +99,7 @@ func (uu *UserUsecase) GetSellerByID(userID uint64) (*models.SellerData, *errors
 		Surname:    user.Surname,
 		Telephone:  user.Telephone,
 		LinkImages: user.LinkImages,
+		Rating: user.Rating,
 	}
 
 	return profile, nil

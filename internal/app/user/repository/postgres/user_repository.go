@@ -65,7 +65,7 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 				SELECT id, email, telephone, password, 
 				name, surname, sex, birthdate, 
 				latitude, longitude, radius, address,
-				avatar
+				avatar, score, reviews
 				FROM users
 				WHERE telephone=$1`,
 		telephone)
@@ -75,6 +75,7 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 	var nullPassword sql.NullString
 	var nullSex sql.NullString
 	var nullDate sql.NullTime
+	var reviews int
 
 	err := query.Scan(
 		&user.ID,
@@ -89,7 +90,9 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 		&user.Longitude,
 		&user.Radius,
 		&user.Address,
-		&user.LinkImages)
+		&user.LinkImages,
+		&user.Rating,
+		&reviews)
 	if err != nil {
 		return nil, err
 	}
@@ -98,6 +101,7 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 	user.Telephone = null_value.NewStringFromNull(nullTelephone)
 	user.Password = null_value.NewStringFromNull(nullPassword)
 	user.Sex = null_value.NewStringFromNull(nullSex)
+	user.Rating = user.Rating / float64(reviews)
 
 	if nullDate.Valid {
 		date := nullDate.Time
@@ -114,7 +118,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		`
 				SELECT id, email, telephone, password, 
 			    name, surname, sex, birthdate, 
-				latitude, longitude, radius, address, avatar
+				latitude, longitude, radius, address, avatar, score, reviews
 				FROM users
 				WHERE id=$1`,
 		userID)
@@ -124,6 +128,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 	var nullPassword sql.NullString
 	var nullSex sql.NullString
 	var nullDate sql.NullTime
+	var reviews int
 
 	err := query.Scan(
 		&user.ID,
@@ -138,7 +143,9 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		&user.Longitude,
 		&user.Radius,
 		&user.Address,
-		&user.LinkImages)
+		&user.LinkImages,
+		&user.Rating,
+		&reviews)
 	if err != nil {
 		return nil, err
 	}
@@ -147,6 +154,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 	user.Telephone = null_value.NewStringFromNull(nullTelephone)
 	user.Password = null_value.NewStringFromNull(nullPassword)
 	user.Sex = null_value.NewStringFromNull(nullSex)
+	user.Rating = user.Rating / float64(reviews)
 
 	if nullDate.Valid {
 		date := nullDate.Time

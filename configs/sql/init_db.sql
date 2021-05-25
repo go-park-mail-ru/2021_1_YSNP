@@ -30,7 +30,9 @@ create table if not exists users
     longitude float                 DEFAULT 37.620017,
     radius    int                   DEFAULT 0,
     address   varchar(128)          DEFAULT 'Москва',
-    avatar    varchar(512) NOT NULL DEFAULT ''
+    avatar    varchar(512) NOT NULL DEFAULT '',
+    score     int                   DEFAULT 0,
+    reviews   int                   DEFAULT 0
 );
 
 create table if not exists users_oauth

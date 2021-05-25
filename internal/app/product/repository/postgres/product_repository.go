@@ -776,6 +776,16 @@ func (pr *ProductRepository) InsertReview(review *models.Review) error {
 		return err
 	}
 
+	_, err = tx.Exec(`UPDATE users SET score= score + $1, reviews = reviews + 1 WHERE id = $2`,
+		review.Rating, review.TargetID)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return rollbackErr
+		}
+		return err
+	}
+
 	err = tx.Commit()
 	if err != nil {
 		return err

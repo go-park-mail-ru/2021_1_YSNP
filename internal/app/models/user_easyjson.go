@@ -163,6 +163,8 @@ func easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels1(in *
 			out.Address = string(in.String())
 		case "linkImages":
 			out.LinkImages = string(in.String())
+		case "rating":
+			out.Rating = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -241,6 +243,11 @@ func easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels1(out 
 		const prefix string = ",\"linkImages\":"
 		out.RawString(prefix)
 		out.String(string(in.LinkImages))
+	}
+	{
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Float64(float64(in.Rating))
 	}
 	out.RawByte('}')
 }
@@ -419,6 +426,8 @@ func easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels3(in *
 			out.Telephone = string(in.String())
 		case "linkImages":
 			out.LinkImages = string(in.String())
+		case "rating":
+			out.Rating = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -457,6 +466,11 @@ func easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels3(out 
 		const prefix string = ",\"linkImages\":"
 		out.RawString(prefix)
 		out.String(string(in.LinkImages))
+	}
+	{
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Float64(float64(in.Rating))
 	}
 	out.RawByte('}')
 }
@@ -701,6 +715,8 @@ func easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels5(in *
 			out.Address = string(in.String())
 		case "linkImages":
 			out.LinkImages = string(in.String())
+		case "rating":
+			out.Rating = float64(in.Float64())
 		default:
 			in.SkipRecursive()
 		}
@@ -774,6 +790,11 @@ func easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels5(out 
 		const prefix string = ",\"linkImages\":"
 		out.RawString(prefix)
 		out.String(string(in.LinkImages))
+	}
+	{
+		const prefix string = ",\"rating\":"
+		out.RawString(prefix)
+		out.Float64(float64(in.Rating))
 	}
 	out.RawByte('}')
 }
@@ -967,91 +988,4 @@ func (v *LocationRequest) UnmarshalJSON(data []byte) error {
 // UnmarshalEasyJSON supports easyjson.Unmarshaler interface
 func (v *LocationRequest) UnmarshalEasyJSON(l *jlexer.Lexer) {
 	easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels7(l, v)
-}
-func easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels8(in *jlexer.Lexer, out *Achievement) {
-	isTopLevel := in.IsStart()
-	if in.IsNull() {
-		if isTopLevel {
-			in.Consumed()
-		}
-		in.Skip()
-		return
-	}
-	in.Delim('{')
-	for !in.IsDelim('}') {
-		key := in.UnsafeFieldName(false)
-		in.WantColon()
-		if in.IsNull() {
-			in.Skip()
-			in.WantComma()
-			continue
-		}
-		switch key {
-		case "title":
-			out.Titie = string(in.String())
-		case "description":
-			out.Description = string(in.String())
-		case "date":
-			out.Date = string(in.String())
-		case "link_pic":
-			out.LinkPic = string(in.String())
-		default:
-			in.SkipRecursive()
-		}
-		in.WantComma()
-	}
-	in.Delim('}')
-	if isTopLevel {
-		in.Consumed()
-	}
-}
-func easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels8(out *jwriter.Writer, in Achievement) {
-	out.RawByte('{')
-	first := true
-	_ = first
-	{
-		const prefix string = ",\"title\":"
-		out.RawString(prefix[1:])
-		out.String(string(in.Titie))
-	}
-	{
-		const prefix string = ",\"description\":"
-		out.RawString(prefix)
-		out.String(string(in.Description))
-	}
-	{
-		const prefix string = ",\"date\":"
-		out.RawString(prefix)
-		out.String(string(in.Date))
-	}
-	{
-		const prefix string = ",\"link_pic\":"
-		out.RawString(prefix)
-		out.String(string(in.LinkPic))
-	}
-	out.RawByte('}')
-}
-
-// MarshalJSON supports json.Marshaler interface
-func (v Achievement) MarshalJSON() ([]byte, error) {
-	w := jwriter.Writer{}
-	easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels8(&w, v)
-	return w.Buffer.BuildBytes(), w.Error
-}
-
-// MarshalEasyJSON supports easyjson.Marshaler interface
-func (v Achievement) MarshalEasyJSON(w *jwriter.Writer) {
-	easyjson9e1087fdEncodeGithubComGoParkMailRu20211YSNPInternalAppModels8(w, v)
-}
-
-// UnmarshalJSON supports json.Unmarshaler interface
-func (v *Achievement) UnmarshalJSON(data []byte) error {
-	r := jlexer.Lexer{Data: data}
-	easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels8(&r, v)
-	return r.Error()
-}
-
-// UnmarshalEasyJSON supports easyjson.Unmarshaler interface
-func (v *Achievement) UnmarshalEasyJSON(l *jlexer.Lexer) {
-	easyjson9e1087fdDecodeGithubComGoParkMailRu20211YSNPInternalAppModels8(l, v)
 }

@@ -15,6 +15,7 @@ type UserData struct {
 	Radius     uint64  `json:"radius" valid:"numeric"`
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
+	Rating 	   float64 `json:"rating"`
 }
 
 //easyjson:json
@@ -31,6 +32,7 @@ type ProfileData struct {
 	Radius     uint64  `json:"radius" valid:"numeric"`
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
+	Rating     float64 `json:"rating"`
 }
 
 //easyjson:json
@@ -43,6 +45,7 @@ type SellerData struct {
 	Telephone string `json:"telephone" valid:"phoneNumber"`
 	//DateBirth  string `json:"dateBirth" valid:"-"`
 	LinkImages string `json:"linkImages" valid:"type(string)"`
+	Rating  float64   `json:"rating"`
 }
 
 //easyjson:json
