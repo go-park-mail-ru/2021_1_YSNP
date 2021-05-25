@@ -100,11 +100,42 @@ BEGIN
 END;
 $check_achievement$ LANGUAGE plpgsql;
 
+
+CREATE OR REPLACE FUNCTION check_achievement_sold() RETURNS TRIGGER AS
+$check_achievement_sold$
+DECLARE
+    S_COUNT INTEGER;
+BEGIN
+    SELECT COUNT(*) from product where owner_id = NEW.owner_id and product.close = true INTO S_COUNT;
+    IF (S_COUNT = 1) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 4);
+    end if;
+
+    IF (S_COUNT = 10) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 5);
+    end if;
+
+    IF (S_COUNT = 100) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 6);
+    end if;
+    
+    RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
+END;
+$check_achievement_sold$ LANGUAGE plpgsql;
+
+
 CREATE TRIGGER check_achievement
     AFTER INSERT
     ON product
     FOR EACH ROW
 EXECUTE PROCEDURE check_achievement();
+
+CREATE TRIGGER check_achievement_sold
+    AFTER UPDATE
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_sold();
+
 
 
 CREATE TABLE IF NOT EXISTS product_images
@@ -243,12 +274,12 @@ create table if not exists achievement
 );
 
 INSERT INTO achievement (title, description, link_pic)
-VALUES ('Транспорт', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Недвижмость','Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Работа','Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Услуги', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Личные вещи', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Для дома и дачи', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+VALUES ('Новичок', 'Первое объявление', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Опытный','Десять объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Шарящий','Сто объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Малый бизнесмен', 'Первая продажа', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Бизнесмен', 'Десять продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+       ('Директор по продажам', 'Сто продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Бытовая электрика', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Хобби и отдых', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png');
