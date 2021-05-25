@@ -213,7 +213,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
 				left join category as cat on cat.id=p.category_id
-				GROUP BY p.id, cat.title, u.name, u.surname, u.avatar`,
+				GROUP BY p.id, cat.title, u.name, u.surname, u.avatar, u.score, u.reviews`,
 		productID)
 
 	product := &models.ProductData{}
