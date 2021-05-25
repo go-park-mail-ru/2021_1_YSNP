@@ -803,7 +803,7 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 
 	vars := mux.Vars(r)
 	userID, _ := strconv.ParseUint(vars["id"], 10, 64)
-	reviewType, _ := vars["type"]
+	reviewType := vars["type"]
 	logger.Info("user id ", userID)
 
 	reviews, errE := ph.productUcase.GetUserReviews(userID, reviewType, page)
@@ -844,7 +844,8 @@ func (ph *ProductHandler) GetWaitingReviews(w http.ResponseWriter, r *http.Reque
 	logger.Info("user id ", userID)
 
 	vars := mux.Vars(r)
-	reviewType, _ := vars["type"]
+	reviewType := vars["type"]
+	
 	logger.Info("user id ", userID)
 
 	page := &models.Page{}

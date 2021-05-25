@@ -99,8 +99,11 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	val, _ := tr.dbConn.Call("get_user_trend", []interface{}{userID})
 	d := fmt.Sprintf("%v", val.Data)
 	oldModel := &models.Trends{}
-	json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
-
+	jsonErr := json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
+	if jsonErr != nil {
+		return jsonErr
+	}
+	
 	productsID, err := tr.getNewTrendsProductID(userID, *oldModel, "date", 0)
 	if err != nil {
 		return err
@@ -134,10 +137,8 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 			if err != nil {
 				return err
 			}
-			for _, val := range addProd {
-				productsID = append(productsID, val)
+			productsID = append(productsID, addProd...)
 			}
-		}
 	}
 
 	oldProducts := &models.TrendProducts{}
@@ -158,8 +159,16 @@ func (tr *TrendsRepository) CreateTrendsProducts(userID uint64) error {
 	resp, _ := tr.dbConn.Insert("trends_products", []interface{}{userID, dataStr})
 	if resp.Code == 3 {
 		val, err = tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
+		if err != nil {
+			return err
+		}
+
 		d = fmt.Sprintf("%v", val.Data)
-		json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
+		jsonErr := json.Unmarshal([]byte(removeLastChar(d)), &oldProducts)
+
+		if jsonErr != nil {
+			return  jsonErr
+		}
 
 		oldProducts, err = replaceNewTrends(productsID, *oldProducts, userID)
 		if err != nil {
@@ -314,9 +323,7 @@ func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID u
 		if err != nil {
 			return nil, err
 		}
-		for _, val := range addProd {
-			productsID = append(productsID, val)
-		}
+		productsID = append(productsID, addProd...)
 	}
 	return productsID, nil
 }
@@ -328,8 +335,10 @@ func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
 		return nil, err
 	}
 	d := fmt.Sprintf("%v", val.Data)
-	json.Unmarshal([]byte(removeLastChar(d)), &products)
-
+	jsonErr := json.Unmarshal([]byte(removeLastChar(d)), &products)
+	if jsonErr != nil {
+		return nil, jsonErr
+	}
 	var productsID []uint64
 	for _, val := range products.Popular {
 		productsID = append(productsID, val.ProductID)
@@ -395,8 +404,10 @@ func (tr *TrendsRepository) InsertOrUpdate(ui *models.Trends) error {
 		val, _ := tr.dbConn.Call("get_user_trend", []interface{}{ui.UserID})
 		d := fmt.Sprintf("%v", val.Data)
 		oldModel := &models.Trends{}
-		json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
-
+		jsonErr := json.Unmarshal([]byte(removeLastChar(d)), &oldModel)
+		if jsonErr != nil {
+			return  jsonErr
+		}
 		tr.updateData(ui, oldModel)
 
 		data, err = json.Marshal(oldModel)
