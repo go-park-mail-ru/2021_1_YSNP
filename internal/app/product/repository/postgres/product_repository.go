@@ -208,7 +208,7 @@ func (pr *ProductRepository) InsertPhoto(content *models.ProductData) error {
 func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, error) {
 	query := pr.dbConn.QueryRow(
 		`
-				SELECT p.id, p.name, p.date, p.amount, p.description, cat.title, p.owner_id, u.name, u.surname, u.avatar, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff, p.close
+				SELECT p.id, p.name, p.date, p.amount, p.description, cat.title, p.owner_id, u.name, u.surname, u.avatar, u.score, u.reviews, p.likes, p.views, p.longitude, p.latitude, p.address, array_agg(pi.img_link), p.tariff, p.close
 				FROM product AS p
 				inner JOIN users as u ON p.owner_id=u.id and p.id=$1
 				left join product_images as pi on pi.product_id=p.id
@@ -219,6 +219,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	product := &models.ProductData{}
 	var linkStr string
 	var date time.Time
+	var reviews int
 
 	err := query.Scan(
 		&product.ID,
@@ -231,6 +232,8 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 		&product.OwnerName,
 		&product.OwnerSurname,
 		&product.OwnerLinkImages,
+		&product.OwnerRating,
+		&reviews,
 		&product.Likes,
 		&product.Views,
 		&product.Longitude,
@@ -244,6 +247,7 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	}
 
 	product.Date = date.Format("2006-01-02")
+	if (reviews != 0){product.OwnerRating = product.OwnerRating / float64(reviews)}
 	linkStr = linkStr[1 : len(linkStr)-1]
 	if linkStr != "NULL" {
 		product.LinkImages = strings.Split(linkStr, ",")
