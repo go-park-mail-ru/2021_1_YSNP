@@ -101,7 +101,7 @@ func (ur *UserRepository) SelectByTelephone(telephone string) (*models.UserData,
 	user.Telephone = null_value.NewStringFromNull(nullTelephone)
 	user.Password = null_value.NewStringFromNull(nullPassword)
 	user.Sex = null_value.NewStringFromNull(nullSex)
-	user.Rating = user.Rating / float64(reviews)
+	if (reviews != 0){user.Rating = user.Rating / float64(reviews)}
 
 	if nullDate.Valid {
 		date := nullDate.Time
@@ -154,7 +154,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 	user.Telephone = null_value.NewStringFromNull(nullTelephone)
 	user.Password = null_value.NewStringFromNull(nullPassword)
 	user.Sex = null_value.NewStringFromNull(nullSex)
-	user.Rating = user.Rating / float64(reviews)
+	if (reviews != 0){user.Rating = user.Rating / float64(reviews)}
 
 	if nullDate.Valid {
 		date := nullDate.Time
