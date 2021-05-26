@@ -10,4 +10,7 @@ type UploadRepository interface {
 
 	RemovePhoto(imgUrl string) error
 	RemovePhotos(imgUrls []string) error
+
+	ResizePhoto(imgUrl string) error
+	ResizePhotos(imgUrls []string) error
 }

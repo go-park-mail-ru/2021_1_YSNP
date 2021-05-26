@@ -7,7 +7,6 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/bbalet/stopwords v1.0.0
-	github.com/bketelsen/crypt v0.0.3 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/fabienm/go-logrus-formatters v1.0.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
@@ -26,6 +25,7 @@ require (
 	github.com/lib/pq v1.10.0 // indirect
 	github.com/mailru/easyjson v0.7.7
 	github.com/microcosm-cc/bluemonday v1.0.5
+	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646
 	github.com/opentracing-contrib/go-grpc v0.0.0-20210225150812-73cb765af46e
 	github.com/opentracing/opentracing-go v1.1.0
 	github.com/pkg/errors v0.9.1

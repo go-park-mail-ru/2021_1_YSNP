@@ -1,12 +1,16 @@
 package FileSystem
 
 import (
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"mime/multipart"
 	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/nfnt/resize"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/upload"
 )
@@ -93,6 +97,82 @@ func (ur *UploadRepository) RemovePhotos(imgUrls []string) error {
 
 	for _, photo := range imgUrls {
 		err := ur.RemovePhoto(photo)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (ur *UploadRepository) ResizePhoto(imgUrl string) error {
+	imgIn, err := os.Open(imgUrl)
+	if err != nil {
+		return err
+	}
+	defer imgIn.Close()
+
+	imgForDecode, err := os.Open(imgUrl)
+	if err != nil {
+		return err
+	}
+	defer imgForDecode.Close()
+
+	var imgJpg image.Image
+
+	switch filepath.Ext(imgUrl) {
+	case ".jpeg", ".jpg":
+		imgJpg, err = jpeg.Decode(imgForDecode)
+		if err != nil {
+			return err
+		}
+
+	case ".png":
+		imgJpg, err = png.Decode(imgForDecode)
+		if err != nil {
+			return err
+		}
+
+	default:
+		return nil
+	}
+
+	width, height := imgJpg.Bounds().Dx(), imgJpg.Bounds().Dy()
+	imgJpg = resize.Resize(uint(width), uint(height), imgJpg, resize.Bicubic)
+
+	imgOut, err := os.Create(imgUrl)
+	if err != nil {
+		return err
+	}
+	switch filepath.Ext(imgUrl) {
+	case ".jpeg":
+	case ".jpg":
+		err = jpeg.Encode(imgOut, imgJpg, nil)
+		if err != nil {
+			return err
+		}
+
+	case ".png":
+		err = png.Encode(imgOut, imgJpg)
+		if err != nil {
+			return err
+		}
+
+	default:
+		return nil
+	}
+	defer imgOut.Close()
+
+	return nil
+}
+
+func (ur *UploadRepository) ResizePhotos(imgUrls []string) error {
+	if len(imgUrls) == 0 {
+		return nil
+	}
+
+	for _, photo := range imgUrls {
+		err := ur.ResizePhoto(photo)
 		if err != nil {
 			return err
 		}

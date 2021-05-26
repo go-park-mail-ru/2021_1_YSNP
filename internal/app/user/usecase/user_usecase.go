@@ -78,7 +78,7 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 		Radius:     user.Radius,
 		Address:    user.Address,
 		LinkImages: user.LinkImages,
-		Rating: user.Rating,
+		Rating:     user.Rating,
 	}
 
 	return profile, nil
@@ -99,7 +99,7 @@ func (uu *UserUsecase) GetSellerByID(userID uint64) (*models.SellerData, *errors
 		Surname:    user.Surname,
 		Telephone:  user.Telephone,
 		LinkImages: user.LinkImages,
-		Rating: user.Rating,
+		Rating:     user.Rating,
 	}
 
 	return profile, nil
@@ -129,6 +129,11 @@ func (uu *UserUsecase) UpdateAvatar(userID uint64, fileHeader *multipart.FileHea
 	}
 
 	imgUrl, err := uu.uploadRepo.InsertPhoto(fileHeader, "static/avatar/")
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
+	err = uu.uploadRepo.ResizePhoto(imgUrl)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

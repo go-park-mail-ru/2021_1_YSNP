@@ -81,6 +81,11 @@ func (pu *ProductUsecase) UpdatePhoto(productID uint64, ownerID uint64, filesHea
 		return nil, errors.UnexpectedInternal(err)
 	}
 
+	err = pu.uploadRepo.ResizePhotos(imgUrls)
+	if err != nil {
+		return nil, errors.UnexpectedInternal(err)
+	}
+
 	//	oldPhotos := product.LinkImages
 	product.LinkImages = imgUrls
 	err = pu.productRepo.InsertPhoto(product)
