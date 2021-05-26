@@ -67,7 +67,7 @@ func TestProductUsecase_GetByID_Success(t *testing.T) {
 	//error
 	prodRepo.EXPECT().SelectByID(gomock.Eq(prodTest.ID)).Return(nil, sql.ErrConnDone)
 
-	product, err = prodUcase.GetByID(prodTest.ID)
+	_, err = prodUcase.GetByID(prodTest.ID)
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }
 
@@ -461,7 +461,7 @@ func TestProductUsecase_Close(t *testing.T) {
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 
 	//error
-	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(&models.ProductData{OwnerID: prodTest.OwnerID+1}, nil)
+	prodRepo.EXPECT().SelectByID(prodTest.ID).Return(&models.ProductData{OwnerID: prodTest.OwnerID + 1}, nil)
 	err = prodUcase.Close(prodTest.ID, prodTest.OwnerID)
 	assert.Equal(t, err, errors.Cause(errors.WrongOwner))
 
@@ -559,7 +559,7 @@ func TestProductUsecase_GetProductReviewers(t *testing.T) {
 	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	user := &models.UserData{
-		ID:         0,
+		ID: 0,
 	}
 
 	prodRepo.EXPECT().SelectProductReviewers(prodTest.ID, prodTest.OwnerID).Return([]*models.UserData{user}, nil)
@@ -613,12 +613,12 @@ func TestProductUsecase_CreateProductReview(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 
 	review := &models.Review{
-		Content:        "dsd",
-		Rating:         2,
-		ReviewerID:     1,
-		ProductID:      0,
-		TargetID:       3,
-		Type:           "seller",
+		Content:    "dsd",
+		Rating:     2,
+		ReviewerID: 1,
+		ProductID:  0,
+		TargetID:   3,
+		Type:       "seller",
 	}
 
 	prodRepo.EXPECT().CheckProductReview(review.ProductID, review.Type, review.ReviewerID).Return(false, nil)

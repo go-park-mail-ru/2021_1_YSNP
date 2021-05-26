@@ -25,10 +25,10 @@ func TestChatHandler_CreateChat_Success(t *testing.T) {
 	chatHandler := NewChatServer(chatUcase)
 	chatUcase.EXPECT().CreateChat(req, uint64(1)).Return(&models.ChatResponse{}, nil)
 
-	chatHandler.CreateChat(context.Background(), &protoChat.ChatCreateReq{
+	_, _ = chatHandler.CreateChat(context.Background(), &protoChat.ChatCreateReq{
 		PartnerID: int64(1),
 		ProductID: int64(2),
-		UserID: int64(1),
+		UserID:    int64(1),
 	})
 
 	//error
@@ -37,7 +37,7 @@ func TestChatHandler_CreateChat_Success(t *testing.T) {
 	_, err := chatHandler.CreateChat(context.Background(), &protoChat.ChatCreateReq{
 		PartnerID: int64(1),
 		ProductID: int64(2),
-		UserID: int64(1),
+		UserID:    int64(1),
 	})
 	assert.Error(t, err)
 }
@@ -53,7 +53,7 @@ func TestChatServer_GetChatByID_Success(t *testing.T) {
 	chatHandler := NewChatServer(chatUcase)
 	chatUcase.EXPECT().GetChatById(uint64(2), uint64(1)).Return(&models.ChatResponse{}, nil)
 
-	chatHandler.GetChatByID(context.Background(), &protoChat.GetChatByIDReq{
+	_, _ = chatHandler.GetChatByID(context.Background(), &protoChat.GetChatByIDReq{
 		UserID: int64(1),
 		ChatID: int64(2),
 	})
@@ -80,9 +80,9 @@ func TestChatServer_GetUserChats_Success(t *testing.T) {
 
 	chat := &models.ChatResponse{PartnerID: 1}
 
-	chatUcase.EXPECT().GetUserChats(uint64(1)).Return([]*models.ChatResponse{chat},nil)
+	chatUcase.EXPECT().GetUserChats(uint64(1)).Return([]*models.ChatResponse{chat}, nil)
 
-	chatHandler.GetUserChats(context.Background(), &protoChat.UserID{UserID: int64(1)})
+	_, _ = chatHandler.GetUserChats(context.Background(), &protoChat.UserID{UserID: int64(1)})
 
 	//error
 	chatUcase.EXPECT().GetUserChats(uint64(1)).Return(nil, errors.UnexpectedInternal(sql.ErrConnDone))
@@ -105,7 +105,7 @@ func TestChatServer_CreateMessage_Success(t *testing.T) {
 		Content: "dfsfsd",
 	}, uint64(0)).Return(&models.MessageResp{}, nil)
 
-	chatHandler.CreateMessage(context.Background(), &protoChat.CreateMessageReq{
+	_, _ = chatHandler.CreateMessage(context.Background(), &protoChat.CreateMessageReq{
 		UserID:  0,
 		ChatID:  1,
 		Content: "dfsfsd",
@@ -143,7 +143,7 @@ func TestChatServer_GetLastNMessages_Success(t *testing.T) {
 		Count:  2,
 	}).Return([]*models.MessageResp{msg}, nil)
 
-	chatHandler.GetLastNMessages(context.Background(), &protoChat.GetLastNMessagesReq{
+	_, _ = chatHandler.GetLastNMessages(context.Background(), &protoChat.GetLastNMessagesReq{
 		UserID: 0,
 		ChatID: 1,
 		Count:  2,
@@ -182,7 +182,7 @@ func TestChatServer_GetNMessagesBefore_Success(t *testing.T) {
 		LastMessageID: uint64(2),
 	}).Return([]*models.MessageResp{msg}, nil)
 
-	chatHandler.GetNMessagesBefore(context.Background(), &protoChat.GetNMessagesReq{
+	_, _ = chatHandler.GetNMessagesBefore(context.Background(), &protoChat.GetNMessagesReq{
 		ChatID:        0,
 		Count:         1,
 		LastMessageId: 2,
