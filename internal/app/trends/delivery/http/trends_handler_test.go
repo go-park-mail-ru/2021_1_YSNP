@@ -71,6 +71,57 @@ func TestTrendsHandler_CreateTrends(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, w.Code)
 }
 
+func TestTrendsHandler_CreateTrends__NoLogger(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodUcase := mock.NewMockTrendsUsecase(ctrl)
+
+	ui := &models.UserInterested{
+		UserID: 1,
+		Text:   "aaaaaa",
+	}
+
+	var byteData = bytes.NewReader([]byte(`
+			{
+				"userID":0,
+				"text":"aaaaaa"
+				}
+	`))
+
+	r := httptest.NewRequest("POST", "/product/create", byteData)
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextUserID, uint64(1))
+	w := httptest.NewRecorder()
+
+	rout := mux.NewRouter()
+	router := rout.PathPrefix("/api/v1").Subrouter()
+	prodHandler := NewTrendsHandler(prodUcase)
+	prodHandler.Configure(router, nil)
+
+	prodUcase.EXPECT().InsertOrUpdate(ui).Return(nil)
+
+	prodHandler.CreateTrends(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusOK, w.Code)
+
+	//error
+	byteData = bytes.NewReader([]byte(`
+			{
+				"userID":0,
+				"text":"aaaaaa"
+	`))
+
+	r = httptest.NewRequest("POST", "/product/create", byteData)
+	w = httptest.NewRecorder()
+
+	prodHandler.CreateTrends(w, r.WithContext(ctx))
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
 func TestTrendsHandler_CreateTrends_Unauth(t *testing.T) {
 	t.Parallel()
 
