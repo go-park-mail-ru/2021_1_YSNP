@@ -247,7 +247,10 @@ func (pr *ProductRepository) SelectByID(productID uint64) (*models.ProductData, 
 	}
 
 	product.Date = date.Format("2006-01-02")
-	if (reviews != 0){product.OwnerRating = product.OwnerRating / float64(reviews)}
+	if reviews != 0 {
+		product.OwnerRating = product.OwnerRating / float64(reviews)
+	}
+
 	linkStr = linkStr[1 : len(linkStr)-1]
 	if linkStr != "NULL" {
 		product.LinkImages = strings.Split(linkStr, ",")
