@@ -449,32 +449,6 @@ func TestUserHandler_GetSellerHandler_LoggerError(t *testing.T) {
 	assert.Equal(t, http.StatusOK, w.Code)
 }
 
-func TestUserHandler_GetSellerHandler_UserUnauth(t *testing.T) {
-	t.Parallel()
-
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	userUcase := uMock.NewMockUserUsecase(ctrl)
-	sessUcase := mock.NewMockSessionUsecase(ctrl)
-
-	r := httptest.NewRequest("GET", "/api/v1/user/0", nil)
-	r = mux.SetURLVars(r, map[string]string{"id": "0"})
-	ctx := r.Context()
-	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
-		"logger": "LOGRUS",
-	}))
-	logrus.SetOutput(ioutil.Discard)
-	w := httptest.NewRecorder()
-
-	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
-	userHandler := NewUserHandler(userUcase, sessUcase)
-	userHandler.Configure(router, nil)
-
-	userHandler.GetSellerHandler(w, r.WithContext(ctx))
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
-}
-
 func TestUserHandler_GetSellerHandler_UserNotExist(t *testing.T) {
 	t.Parallel()
 

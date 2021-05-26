@@ -24,6 +24,7 @@ var userTest = &models.UserData{
 	Radius:     0,
 	Address:    "",
 	LinkImages: "",
+	Rating: 0,
 }
 
 func TestUserRepository_SelectByID_OK(t *testing.T) {
@@ -40,7 +41,7 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", "score", "reviews"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -54,7 +55,9 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 		userTest.Longitude,
 		userTest.Radius,
 		userTest.Address,
-		userTest.LinkImages)
+		userTest.LinkImages,
+		userTest.Rating,
+		0)
 	mock.ExpectQuery(`SELECT`).WithArgs(userTest.ID).WillReturnRows(rows)
 
 	user, err := userRepo.SelectByID(userTest.ID)
@@ -116,7 +119,7 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", "score", "reviews"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -130,7 +133,9 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 		userTest.Longitude,
 		userTest.Radius,
 		userTest.Address,
-		userTest.LinkImages)
+		userTest.LinkImages,
+		userTest.Rating,
+		0)
 	mock.ExpectQuery(`SELECT`).WithArgs(userTest.Telephone).WillReturnRows(rows)
 
 	user, err := userRepo.SelectByTelephone(userTest.Telephone)
@@ -153,7 +158,7 @@ func TestUserRepository_SelectByTelephone_Error(t *testing.T) {
 
 	userRepo := NewUserRepository(db)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", })
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
