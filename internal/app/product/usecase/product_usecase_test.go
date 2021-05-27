@@ -549,6 +549,22 @@ func TestProductUsecase_TrendList(t *testing.T) {
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }
 
+func TestProductUsecase_TrendList_Error(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+
+	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return(nil, sql.ErrConnDone)
+
+	_, err := prodUcase.TrendList(&prodTest.OwnerID)
+	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+}
+
 func TestProductUsecase_GetProductReviewers(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
