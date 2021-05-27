@@ -314,6 +314,21 @@ func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID u
 	}
 
 	var productsID []uint64
+	if len(words.Popular) == 0 {
+		wordsFromTitle := strings.Split(title, " ")
+		for _, w := range wordsFromTitle {
+			if len(w) > 2 {
+				words.Popular = append(words.Popular, models.Popular{
+					Title: w,
+					Count: 1,
+					Date:  time.Now(),
+				})
+			}
+		}
+	}
+	if len(words.Popular) == 0 {
+		return nil, nil
+	}
 	resp, _ := tr.dbConn.Insert("trends", []interface{}{userID, words})
 
 	if resp.Code == 3 {

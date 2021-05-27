@@ -121,7 +121,9 @@ func (pu *ProductUsecase) RecommendationList(productID uint64, userID uint64) ([
 			break
 		}
 	}
-
+	if len(productIdArray) == 0 {
+		return []*models.ProductListData{}, nil
+	}
 	products, err := pu.productRepo.SelectTrands(productIdArray, &userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
