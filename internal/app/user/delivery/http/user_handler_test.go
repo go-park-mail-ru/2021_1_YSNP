@@ -3,6 +3,7 @@ package delivery
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -1189,4 +1190,190 @@ func TestUserHandler_UploadAvatarHandler_NoAuthError(t *testing.T) {
 
 	userHandler.UploadAvatarHandler(w, r.WithContext(ctx))
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestUserHandler_GetSellerTelephoneHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/user/0/telephone", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.GetSellerTelephoneHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestUserHandler_GetSellerTelephoneHandler_NoAuthError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/user/0/telephone", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userHandler.GetSellerTelephoneHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestUserHandler_GetSellerTelephoneHandler_OK(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/user/0/telephone", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetSellerByID(userTest.ID).Return(&models.SellerData{}, nil)
+
+	userHandler.GetSellerTelephoneHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+
+func TestUserHandler_GetSellerTelephoneHandler_PartFormError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("POST", "/api/v1/user/0/telephone", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetSellerByID(userTest.ID).Return(nil, errors.UnexpectedInternal(fmt.Errorf("")))
+	userHandler.GetSellerTelephoneHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestUserHandler_GetUserLandingHandler_LoggerError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/user/0/telephone", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetSellerByID(userTest.ID).Return(&models.SellerData{}, nil)
+
+	userHandler.GetUserLandingHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
+}
+
+func TestUserHandler_GetUserLandingHandler_PartFormError(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/user/landing/0", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetSellerByID(userTest.ID).Return(nil, errors.UnexpectedInternal(fmt.Errorf("")))
+	userHandler.GetUserLandingHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestUserHandler_GetUserLandingHandler_OK(t *testing.T) {
+	t.Parallel()
+
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userUcase := uMock.NewMockUserUsecase(ctrl)
+	sessUcase := mock.NewMockSessionUsecase(ctrl)
+
+	r := httptest.NewRequest("GET", "/api/v1/user/landing/0", nil)
+	r = mux.SetURLVars(r, map[string]string{"id": "0"})
+	ctx := r.Context()
+	ctx = context.WithValue(ctx, middleware.ContextLogger, logrus.WithFields(logrus.Fields{
+		"logger": "LOGRUS",
+	}))
+	ctx = context.WithValue(ctx, middleware.ContextUserID, userTest.ID)
+	logrus.SetOutput(ioutil.Discard)
+	w := httptest.NewRecorder()
+
+	router := mux.NewRouter().PathPrefix("/api/v1").Subrouter()
+	userHandler := NewUserHandler(userUcase, sessUcase)
+	userHandler.Configure(router, nil)
+
+	userUcase.EXPECT().GetSellerByID(userTest.ID).Return(&models.SellerData{}, nil)
+	userHandler.GetUserLandingHandler(w, r.WithContext(ctx))
+	assert.Equal(t, http.StatusOK, w.Code)
 }

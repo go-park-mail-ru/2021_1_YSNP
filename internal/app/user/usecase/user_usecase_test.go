@@ -2,6 +2,7 @@ package usecase
 
 import (
 	"database/sql"
+	"fmt"
 	"mime/multipart"
 	"testing"
 
@@ -298,6 +299,26 @@ func TestUserUsecase_UpdateAvatar_Error(t *testing.T) {
 	assert.Equal(t, err.ErrorCode, errors.InternalError)
 }
 
+func TestUserUsecase_UpdateAvatar_ErrorOldAvatar(t *testing.T) {
+	//t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
+
+	userRepo.EXPECT().SelectByID(gomock.Eq(userTest.ID)).Return(userTest, nil)
+	uploadRepo.EXPECT().InsertPhoto(&multipart.FileHeader{}, "static/avatar/").Return("", nil)
+	userRepo.EXPECT().Update(gomock.Eq(userTest)).Return(nil)
+	uploadRepo.EXPECT().RemovePhoto(gomock.Any()).Return(nil)
+
+	userTest.LinkImages = "static/avatar/profile.webp"
+
+	_, err := userUcase.UpdateAvatar(userTest.ID, &multipart.FileHeader{})
+	assert.Equal(t, err, (*errors.Error)(nil))
+}
+
 func TestUserUsecase_CheckPassword_WrongPassword(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
@@ -435,4 +456,81 @@ func TestUserUsecase_GetSellerByID_UserNotExist(t *testing.T) {
 	user, err := userUcase.GetSellerByID(userTest.ID)
 	assert.Equal(t, err, errors.Cause(errors.UserNotExist))
 	assert.Equal(t, user, (*models.SellerData)(nil))
+}
+
+func TestUserUsecase_CreateOrLogin_Login(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
+
+	ctx := models.UserOAuthRequest{
+		ID: userTest.ID,
+		LastName:    "Максим",
+		FirstName:    "Торжков",
+		UserOAuthID:  34,
+		UserOAuthType: "type",
+		Photo: userTest.LinkImages,
+
+	}
+
+	userRepo.EXPECT().SelectByOAuthID(ctx.UserOAuthID).Return(uint64(2))
+
+	err := userUcase.CreateOrLogin(&ctx)
+	assert.Equal(t, err, (*errors.Error)(nil))
+}
+
+func TestUserUsecase_CreateOrLogin_Insert(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
+
+	ctx := models.UserOAuthRequest{
+		ID: userTest.ID,
+		LastName:    "Максим",
+		FirstName:    "Торжков",
+		UserOAuthID:  34,
+		UserOAuthType: "type",
+		Photo: userTest.LinkImages,
+
+	}
+
+	userRepo.EXPECT().SelectByOAuthID(ctx.UserOAuthID).Return(userTest.ID)
+	userRepo.EXPECT().InsertOAuth(&ctx).Return(nil)
+
+	err := userUcase.CreateOrLogin(&ctx)
+	assert.Equal(t, err, (*errors.Error)(nil))
+}
+
+
+func TestUserUsecase_CreateOrLogin_Error(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
+
+	userRepo := mock.NewMockUserRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	userUcase := NewUserUsecase(userRepo, uploadRepo)
+
+	ctx := models.UserOAuthRequest{
+		ID: userTest.ID,
+		LastName:    "Максим",
+		FirstName:    "Торжков",
+		UserOAuthID:  34,
+		UserOAuthType: "type",
+		Photo: userTest.LinkImages,
+
+	}
+
+	userRepo.EXPECT().SelectByOAuthID(ctx.UserOAuthID).Return(userTest.ID)
+	userRepo.EXPECT().InsertOAuth(&ctx).Return(fmt.Errorf(""))
+	err := userUcase.CreateOrLogin(&ctx)
+	assert.Equal(t, err, errors.UnexpectedInternal(fmt.Errorf("")))
 }
