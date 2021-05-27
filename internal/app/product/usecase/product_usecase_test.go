@@ -525,7 +525,7 @@ func TestProductUsecase_GetProduct(t *testing.T) {
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
 }
 
-func TestProductUsecase_TrendList(t *testing.T) {
+func TestProductUsecase_TrendList_Empty(t *testing.T) {
 	t.Parallel()
 	ctrl := gomock.NewController(t)
 	defer ctrl.Finish()
@@ -536,17 +536,27 @@ func TestProductUsecase_TrendList(t *testing.T) {
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 
 	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return([]uint64{}, nil)
-	prodRepo.EXPECT().SelectTrands([]uint64{}, &prodTest.OwnerID).Return([]*models.ProductListData{}, nil)
+	//prodRepo.EXPECT().SelectTrands([]uint64{}, &prodTest.OwnerID).Return([]*models.ProductListData{}, nil)
 
 	_, err := prodUcase.TrendList(&prodTest.OwnerID)
 	assert.Equal(t, err, (*errors.Error)(nil))
+}
 
-	//error
-	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return([]uint64{}, nil)
-	prodRepo.EXPECT().SelectTrands([]uint64{}, &prodTest.OwnerID).Return([]*models.ProductListData{}, sql.ErrConnDone)
+func TestProductUsecase_TrendList_Success(t *testing.T) {
+	t.Parallel()
+	ctrl := gomock.NewController(t)
+	defer ctrl.Finish()
 
-	_, err = prodUcase.TrendList(&prodTest.OwnerID)
-	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
+	prodRepo := mock.NewMockProductRepository(ctrl)
+	uploadRepo := uMock.NewMockUploadRepository(ctrl)
+	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
+	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
+
+	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return([]uint64{1}, nil)
+	prodRepo.EXPECT().SelectTrands([]uint64{1}, &prodTest.OwnerID).Return([]*models.ProductListData{}, nil)
+
+	_, err := prodUcase.TrendList(&prodTest.OwnerID)
+	assert.Equal(t, err, (*errors.Error)(nil))
 }
 
 func TestProductUsecase_TrendList_Error(t *testing.T) {
@@ -559,7 +569,8 @@ func TestProductUsecase_TrendList_Error(t *testing.T) {
 	trendsRepo := tMock.NewMockTrendsRepository(ctrl)
 	prodUcase := NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 
-	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return(nil, sql.ErrConnDone)
+	trendsRepo.EXPECT().GetTrendsProducts(prodTest.OwnerID).Return([]uint64{1}, nil)
+	prodRepo.EXPECT().SelectTrands([]uint64{1}, &prodTest.OwnerID).Return(nil, sql.ErrConnDone)
 
 	_, err := prodUcase.TrendList(&prodTest.OwnerID)
 	assert.Equal(t, err, errors.UnexpectedInternal(sql.ErrConnDone))
