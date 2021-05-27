@@ -82,17 +82,20 @@ CREATE OR REPLACE FUNCTION check_achievement() RETURNS TRIGGER AS
 $check_achievement$
 DECLARE
     P_COUNT INTEGER;
+    ACHIVE INTEGER ARRAY;
+--     CHECK_ACHIVE INTEGER ARRAY DEFAULT  ARRAY[1, 2, 3];
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
-    IF (P_COUNT = 1) THEN
+    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
+    IF (P_COUNT = 1 and length(ACHIVE) = 0) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
     end if;
 
-    IF (P_COUNT = 10) THEN
+    IF (P_COUNT = 10 and length(ACHIVE) < 3) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
     end if;
 
-    IF (P_COUNT = 100) THEN
+    IF (P_COUNT = 100 and length(ACHIVE) < 5) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
     end if;
     
@@ -105,17 +108,19 @@ CREATE OR REPLACE FUNCTION check_achievement_sold() RETURNS TRIGGER AS
 $check_achievement_sold$
 DECLARE
     S_COUNT INTEGER;
+    ACHIVE INTEGER ARRAY;
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id and product.close = true INTO S_COUNT;
-    IF (S_COUNT = 1) THEN
+    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
+    IF (S_COUNT = 1 and length(ACHIVE) < 2) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 4);
     end if;
 
-    IF (S_COUNT = 10) THEN
+    IF (S_COUNT = 10 and length(ACHIVE) < 4) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 5);
     end if;
 
-    IF (S_COUNT = 100) THEN
+    IF (S_COUNT = 100 and length(ACHIVE) < 6) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 6);
     end if;
     
@@ -131,7 +136,7 @@ CREATE TRIGGER check_achievement
 EXECUTE PROCEDURE check_achievement();
 
 CREATE TRIGGER check_achievement_sold
-    AFTER UPDATE
+    AFTER UPDATE of close
     ON product
     FOR EACH ROW
 EXECUTE PROCEDURE check_achievement_sold();
@@ -286,11 +291,11 @@ VALUES ('Новичок', 'Первое объявление', 'https://achievem
 
 create table if not exists user_achievement
 (
-    id             serial primary key,
     user_id        integer   not null,
     date           timestamp not null default NOW(),
     a_id           integer   not null,
 
+    primary key (user_id, a_id),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE NO ACTION,
     FOREIGN KEY (a_id) REFERENCES achievement (id) ON DELETE NO ACTION
 );

@@ -27,6 +27,7 @@ var prodTest = &models.ProductData{
 	LinkImages:  []string{"test_str.jpg"},
 	Tariff:      0,
 	Close: false,
+	OwnerRating: 0,
 }
 
 func TestProductRepository_Insert_Success(t *testing.T) {
@@ -112,7 +113,7 @@ func TestProductRepository_SelectByID_Success(t *testing.T) {
 	linkStr := "{" + strings.Join(prodTest.LinkImages, ",") + "}"
 
 	rows := sqlmock.NewRows([]string{"p.id", "p.name", "p.date", "p.amount", "p.description", "cat.title", "p.owner_id", "u.name",
-		"u.surname", "u.avatar", "p.likes", "p.views", "p.longitude", "p.latitude", "p.address", "array_agg(pi.img_link)", "p.tariff", "p.close"})
+		"u.surname", "u.avatar", "u.score", "u.reviews", "p.likes", "p.views", "p.longitude", "p.latitude", "p.address", "array_agg(pi.img_link)", "p.tariff", "p.close"})
 	rows.AddRow(
 		&prodTest.ID,
 		&prodTest.Name,
@@ -124,6 +125,8 @@ func TestProductRepository_SelectByID_Success(t *testing.T) {
 		&prodTest.OwnerName,
 		&prodTest.OwnerSurname,
 		&prodTest.OwnerLinkImages,
+		&prodTest.OwnerRating,
+		0,
 		&prodTest.Likes,
 		&prodTest.Views,
 		&prodTest.Longitude,

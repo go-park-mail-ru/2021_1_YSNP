@@ -2,3 +2,6 @@ issues:
   exclude:
     - w.Write
     - os.Chdir
+    - ptypes
+    - ptypes.Timestamp
+    - grpc.ErrClientConnClosing

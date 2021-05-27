@@ -64,6 +64,7 @@ func (tu *TrendsUsecase) InsertOrUpdate(ui *models.UserInterested) *errors.Error
 	if err != nil {
 		return errors.UnexpectedInternal(err)
 	}
+	//nolint:errcheck
 	go tu.TrendsRepo.CreateTrendsProducts(ui.UserID)
 	return nil
 }
