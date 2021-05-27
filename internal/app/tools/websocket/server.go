@@ -11,7 +11,7 @@ import (
 type WSContext struct {
 	Request  *models.WSMessageReq
 	Response *models.WSMessageResp
-	handler  func(ctx *WSContext)
+	//handler  func(ctx *WSContext)
 }
 
 func (c *WSContext) WriteResponse(status int, userID uint64, msgType string, data []byte) {

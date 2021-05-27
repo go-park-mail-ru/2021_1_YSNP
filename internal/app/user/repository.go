@@ -9,4 +9,7 @@ type UserRepository interface {
 	SelectByTelephone(telephone string) (*models.UserData, error)
 	SelectByID(userID uint64) (*models.UserData, error)
 	Update(user *models.UserData) error
+
+	InsertOAuth(userOAuth *models.UserOAuthRequest) error
+	SelectByOAuthID(userOAuthID float64) uint64
 }

@@ -1,8 +1,84 @@
-version: '3'
+version: "3"
 
 # docker rm $(docker ps -a -q) && docker volume prune -f
 
+volumes:
+  vault-data:
+  postgres-data:
+  tarantool-data:
+
 services:
+  main:
+    image: salekhin/main
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./service.env
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - postgres
+      - tarantool
+      - consul
+      - vault
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "main"
+
+  auth:
+    image: salekhin/auth
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./service.env
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - tarantool
+      - consul
+      - vault
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "auth"
+
+  chat:
+    image: salekhin/chat
+    ports:
+      - "8082:8082"
+    env_file:
+      - ./service.env
+    volumes:
+      - $PWD/static:/app/static
+    depends_on:
+      - postgres
+      - consul
+      - vault
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "chat"
+
+  consul:
+    image: consul
+    ports:
+      - "8500:8500"
+
+  vault:
+    image: vault
+    cap_add:
+      - IPC_LOCK
+    ports:
+      - "8200:8200"
+    volumes:
+      - ./vault-data:/vault/data
+      - $PWD/configs/vault:/vault/config
+    command: vault server -config=/vault/config/vault.json
+
   postgres:
     image: postgis/postgis
     build:
@@ -14,36 +90,50 @@ services:
       POSTGRES_MULTIPLE_EXTENSIONS: postgis,hstore,postgis_topology,postgis_raster,pgrouting
       SHARED_PRELOAD_LIBRARIES: pg_cron
     ports:
-      - '5432:5432'
+      - "5432:5432"
     volumes:
-      - './configs/sql/:/docker-entrypoint-initdb.d/'
+      - ./postgres-data:/var/lib/postgresql/data
+      - $PWD/configs/sql/:/docker-entrypoint-initdb.d/
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "postgres"
 
   tarantool:
-    image: tarantool/tarantool:2.6.0
+    image: tarantool/tarantool
     environment:
       TARANTOOL_USER_NAME: admin
       TARANTOOL_USER_PASSWORD: pass
-    ports:
-      - '3301:3301'
-    volumes:
-      - './configs/lua/:/opt/tarantool/'
     command: tarantool /opt/tarantool/app.lua
+    ports:
+      - "3301:3301"
+    volumes:
+      - ./tarantool-data:/var/lib/tarantool
+      - $PWD/configs/lua/:/opt/tarantool/
+    restart: always
+    logging:
+      driver: gelf
+      options:
+        gelf-address: "udp://localhost:12201"
+        tag: "tarantool"
 
   prometheus:
     image: prom/prometheus
     ports:
       - "9090:9090"
     volumes:
-      - "./metrics:/etc/prometheus"
+      - $PWD/metrics:/etc/prometheus
 
   alertmanager:
     image: prom/alertmanager
     ports:
       - "9093:9093"
     command:
-      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - "--config.file=/etc/alertmanager/alertmanager.yml"
     volumes:
-      - "./metrics:/etc/alertmanager"
+      - $PWD/metrics:/etc/alertmanager
 
   alertmanager-bot:
     image: metalmatze/alertmanager-bot
@@ -57,12 +147,12 @@ services:
       TELEGRAM_ADMIN: "138632615\n211453202\n389692057\n535095969"
       TELEGRAM_TOKEN: 1751242193:AAGNrFE61pvarspGfU4FBzhYF2ECUnf0eKo
     volumes:
-      - "./metrics/alertmanager-bot/templates:/templates"
+      - $PWD/metrics/alertmanager-bot/templates:/templates
 
   grafana:
     image: grafana/grafana
     ports:
-      - 5000:5000
+      - "5000:5000"
     environment:
       GF_SERVER_HTTP_PORT: 5000
 
@@ -70,15 +160,63 @@ services:
     image: quay.io/prometheus/node-exporter:latest
     container_name: node_exporter
     command:
-      - '--path.rootfs=/host'
+      - "--path.rootfs=/host"
     ports:
-      - '9100:9100'
+      - "9100:9100"
     restart: unless-stopped
     volumes:
-      - '/:/host:ro'
+      - "/:/host:ro"
 
   jaeger:
     image: jaegertracing/all-in-one
     ports:
       - "6831:6831/udp"
       - "16686:16686"
+
+
+  mongo:
+    image: mongo:4.2
+    networks:
+      - graylog
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    environment:
+      - http.host=0.0.0.0
+      - transport.host=localhost
+      - network.host=0.0.0.0
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    deploy:
+      resources:
+        limits:
+          memory: 1g
+    networks:
+      - graylog
+    restart: always
+
+  graylog:
+    image: graylog/graylog:4.0
+    environment:
+      - GRAYLOG_PASSWORD_SECRET=somepasswordpepper
+      - GRAYLOG_ROOT_PASSWORD_SHA2=8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918
+      - GRAYLOG_HTTP_EXTERNAL_URI=http://ykoya.ru:9000/
+    entrypoint: /usr/bin/tini -- wait-for-it elasticsearch:9200 --  /docker-entrypoint.sh
+    networks:
+      - graylog
+    ports:
+      - "9000:9000"
+      - "12201:12201"
+      - "12201:12201/udp"
+    depends_on:
+      - mongo
+      - elasticsearch
+    restart: always
+
+networks:
+  graylog:
+    driver: bridge

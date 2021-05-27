@@ -14,6 +14,7 @@ type Session struct {
 	ExpiresAt time.Time
 }
 
+//easyjson:json
 type LoginRequest struct {
 	Telephone string `json:"telephone" valid:"phoneNumber"`
 	Password  string `json:"password" valid:"password"`

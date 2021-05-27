@@ -24,6 +24,16 @@ var userTest = &models.UserData{
 	Radius:     0,
 	Address:    "",
 	LinkImages: "",
+	Rating: 0,
+}
+
+var userOauthText = &models.UserOAuthRequest{
+	ID: 0,
+	FirstName: "Максим",
+	LastName: "Торжков",
+	Photo: "",
+	UserOAuthID: 34,
+	UserOAuthType: "",
 }
 
 func TestUserRepository_SelectByID_OK(t *testing.T) {
@@ -40,7 +50,7 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", "score", "reviews"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -54,7 +64,9 @@ func TestUserRepository_SelectByID_OK(t *testing.T) {
 		userTest.Longitude,
 		userTest.Radius,
 		userTest.Address,
-		userTest.LinkImages)
+		userTest.LinkImages,
+		userTest.Rating,
+		0)
 	mock.ExpectQuery(`SELECT`).WithArgs(userTest.ID).WillReturnRows(rows)
 
 	user, err := userRepo.SelectByID(userTest.ID)
@@ -116,7 +128,7 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 	layout := "2006-01-02"
 	time, _ := time.Parse(layout, userTest.DateBirth)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", "score", "reviews"})
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -130,7 +142,9 @@ func TestUserRepository_SelectByTelephone_OK(t *testing.T) {
 		userTest.Longitude,
 		userTest.Radius,
 		userTest.Address,
-		userTest.LinkImages)
+		userTest.LinkImages,
+		userTest.Rating,
+		0)
 	mock.ExpectQuery(`SELECT`).WithArgs(userTest.Telephone).WillReturnRows(rows)
 
 	user, err := userRepo.SelectByTelephone(userTest.Telephone)
@@ -153,7 +167,7 @@ func TestUserRepository_SelectByTelephone_Error(t *testing.T) {
 
 	userRepo := NewUserRepository(db)
 
-	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar"})
+	rows := sqlmock.NewRows([]string{"id", "email", "telephone", "password", "name", "surname", "sex", "birthdate", "latitude", "longitude", "radius", "address", "avatar", })
 	rows.AddRow(
 		userTest.ID,
 		userTest.Email,
@@ -308,6 +322,123 @@ func TestUserRepository_Update_Error(t *testing.T) {
 
 	err = userRepo.Update(userTest)
 	assert.Error(t, err)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestUserRepository_InsertOAuth_Error(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	userRepo := NewUserRepository(db)
+
+	mock.ExpectBegin()
+	answer := sqlmock.NewRows([]string{"id"}).AddRow(userTest.ID) //scan wrong type
+	mock.ExpectQuery(`INSERT INTO users`).WithArgs(
+		userOauthText.FirstName,
+		userOauthText.LastName,
+		userOauthText.Photo).WillReturnRows(answer)
+	mock.ExpectRollback()
+
+	err = userRepo.InsertOAuth(userOauthText)
+	assert.Error(t, err)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+//func TestUserRepository_InsertOAuth_OK(t *testing.T) {
+//	t.Parallel()
+//
+//	db, mock, err := sqlmock.New()
+//	if err != nil {
+//		t.Fatal(err)
+//	}
+//	defer db.Close()
+//
+//	userRepo := NewUserRepository(db)
+//
+//	mock.ExpectBegin()
+//	answer := sqlmock.NewRows([]string{"id"}).AddRow(userOauthText.ID)
+//	mock.ExpectQuery(`INSERT INTO users`).WithArgs(
+//		userOauthText.FirstName,
+//		userOauthText.LastName,
+//		userOauthText.Photo).WillReturnRows(answer)
+//	mock.ExpectCommit()
+//
+//	mock.ExpectBegin()
+//	mock.ExpectQuery(`INSERT INTO users_oauth`).WithArgs(
+//		userOauthText.ID,
+//		userOauthText.UserOAuthType,
+//		userOauthText.UserOAuthID)
+//	mock.ExpectCommit()
+//
+//	err = userRepo.InsertOAuth(userOauthText)
+//	assert.NoError(t, err)
+//
+//	if err := mock.ExpectationsWereMet(); err != nil {
+//		t.Errorf("there were unfulfilled expectations: %s", err)
+//	}
+//}
+
+
+func TestUserRepository_SelectByOAuthID__Error(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	userRepo := NewUserRepository(db)
+
+	rows := sqlmock.NewRows([]string{"id", "last_name", "first_name", "photo_max", "user_oauth_id", "user_oauth_type" })
+	rows.AddRow(
+		userOauthText.ID,
+		userOauthText.FirstName,
+		userOauthText.LastName,
+		userOauthText.Photo,
+		userOauthText.UserOAuthID,
+		userOauthText.UserOAuthType)
+	mock.ExpectQuery(`SELECT`).WithArgs(userOauthText.UserOAuthID).WillReturnRows(rows)
+
+	id := userRepo.SelectByOAuthID(userOauthText.UserOAuthID)
+	assert.Equal(t, uint64(0), id)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
+
+func TestUserRepository_SelectByOAuthID_OK(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	userRepo := NewUserRepository(db)
+
+
+	rows := sqlmock.NewRows([]string{"user_id" })
+	rows.AddRow(
+		userOauthText.ID)
+	mock.ExpectQuery(`SELECT`).WithArgs(userOauthText.UserOAuthID).WillReturnRows(rows)
+
+	user := userRepo.SelectByOAuthID(userOauthText.UserOAuthID)
+	assert.Equal(t, userOauthText.ID, user)
+	assert.NoError(t, err)
 
 	if err := mock.ExpectationsWereMet(); err != nil {
 		t.Errorf("there were unfulfilled expectations: %s", err)

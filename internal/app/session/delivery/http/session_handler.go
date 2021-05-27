@@ -100,12 +100,12 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger.Debug("session ", session)
 
 	cookie := http.Cookie{
-		Name:    "session_id",
-		Value:   session.Value,
-		Expires: session.ExpiresAt,
-		//Secure:   true,
-		//SameSite: http.SameSiteLaxMode,
-		//HttpOnly: true,
+		Name:     "session_id",
+		Value:    session.Value,
+		Expires:  session.ExpiresAt,
+		Secure:   true,
+		SameSite: http.SameSiteLaxMode,
+		HttpOnly: true,
 	}
 	logger.Debug("cookie ", cookie)
 

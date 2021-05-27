@@ -81,8 +81,9 @@ func TestChatClient_GetUserChats(t *testing.T) {
 	defer ctrl.Finish()
 	chatClient := mock.NewMockChatClient(ctrl)
 	cl := &ChatClient{client: chatClient}
+	cr := &chat.ChatResp{ID: 1}
 
-	chatClient.EXPECT().GetUserChats(context.Background(), &chat.UserID{UserID: int64(1)}).Return(&chat.ChatRespArray{}, nil)
+	chatClient.EXPECT().GetUserChats(context.Background(), &chat.UserID{UserID: int64(1)}).Return(&chat.ChatRespArray{Chats: []*chat.ChatResp{cr}}, nil)
 
 	_, err := cl.GetUserChats(1)
 	assert.Equal(t, err, (*errors.Error)(nil))
@@ -135,12 +136,13 @@ func TestChatClient_GetLastNMessages(t *testing.T) {
 	defer ctrl.Finish()
 	chatClient := mock.NewMockChatClient(ctrl)
 	cl := &ChatClient{client: chatClient}
+	mr := &chat.MessageResp{}
 
 	chatClient.EXPECT().GetLastNMessages(context.Background(), &chat.GetLastNMessagesReq{
 		UserID: int64(1),
 		ChatID: int64(2),
 		Count:  int32(3),
-	}).Return(&chat.MessageRespArray{}, nil)
+	}).Return(&chat.MessageRespArray{Messages: []*chat.MessageResp{mr}}, nil)
 
 	_, err := cl.GetLastNMessages(&models.GetLastNMessagesReq{
 		UserID: 1,
@@ -171,12 +173,13 @@ func TestChatClient_GetNMessagesBefore(t *testing.T) {
 	defer ctrl.Finish()
 	chatClient := mock.NewMockChatClient(ctrl)
 	cl := &ChatClient{client: chatClient}
+	mr := &chat.MessageResp{}
 
 	chatClient.EXPECT().GetNMessagesBefore(context.Background(), &chat.GetNMessagesReq{
 		ChatID:        int64(1),
 		Count:         int32(2),
 		LastMessageId: int64(3),
-	}).Return(&chat.MessageRespArray{}, nil)
+	}).Return(&chat.MessageRespArray{Messages: []*chat.MessageResp{mr}}, nil)
 
 	_, err := cl.GetNMessagesBefore(&models.GetNMessagesBeforeReq{
 		ChatID:        1,

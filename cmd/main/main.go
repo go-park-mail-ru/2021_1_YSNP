@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
 
-	"github.com/gorilla/csrf"
+	//"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
@@ -23,6 +24,11 @@ import (
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
 	categoryUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/usecase"
+
+
+	achievementHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/delivery/http"
+	achievementRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/repository/postgres"
+	achievementUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/usecase"
 
 	userHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/delivery/http"
 	userRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user/repository/postgres"
@@ -51,18 +57,18 @@ import (
 )
 
 func main() {
-	configs, err := configs.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.Configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer postgresDB.Close()
 
-	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.Configs.GetTarantoolUser(), configs.Configs.GetTarantoolPassword(), configs.Configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -73,15 +79,17 @@ func main() {
 	searchRepo := searchRepo.NewSearchRepository(postgresDB.GetDatabase())
 	categoryRepo := categoryRepo.NewCategoryRepository(postgresDB.GetDatabase())
 	uploadRepo := uploadRepo.NewUploadRepository()
+	achievementRepo := achievementRepo.NewAchievementRepository(postgresDB.GetDatabase())
 
 	userUcase := userUsecase.NewUserUsecase(userRepo, uploadRepo)
 	prodUcase := productUsecase.NewProductUsecase(prodRepo, uploadRepo, trendsRepo)
 	searchUcase := searchUsecase.NewSearchUsecase(searchRepo)
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepo)
 	trendsUsecase := trendsUsecase.NewTrendsUsecase(trendsRepo)
+	achievementUsecase := achievementUsecase.NewAchievementUsecase(achievementRepo)
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetServerHost(), configs.GetServerPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetMainHost())
+	logger.StartServerLog(configs.Configs.GetMainHost(), configs.Configs.GetMainPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("client")
@@ -93,7 +101,7 @@ func main() {
 	defer jaeger.Close()
 
 	sessionGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()),
+		fmt.Sprint(configs.Configs.GetAuthHost(), ":", configs.Configs.GetAuthPort()),
 		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -103,7 +111,7 @@ func main() {
 	sessUcase := sessUsecase.NewAuthClient(sessionGRPCConn)
 
 	chatGRPCConn, err := grpc.Dial(
-		fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()),
+		fmt.Sprint(configs.Configs.GetChatHost(), ":", configs.Configs.GetChatPort()),
 		grpc.WithChainUnaryInterceptor(traceutils.OpenTracingClientInterceptor(jaeger.GetTracer()), ic.ClientLogInterceptor),
 		grpc.WithInsecure())
 	if err != nil {
@@ -117,6 +125,7 @@ func main() {
 	searchHandler := searchHandler.NewSearchHandler(searchUcase)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 	trendsHandler := trendsHandler.NewTrendsHandler(trendsUsecase)
+	achievementHandler := achievementHandler.NewAchievementHandler(achievementUsecase)
 
 	chatHandler := chatHandler.NewChatHandler(chatUcase)
 	chatWSHandler := chatWSHandler.NewChatWSHandler(chatUcase)
@@ -145,11 +154,12 @@ func main() {
 	trendsHandler.Configure(api, mw)
 	searchHandler.Configure(api, mw)
 	categoryHandler.Configure(api, mw)
+	achievementHandler.Configure(api, mw)
 	chatHandler.Configure(api, mw, wsSrv)
 	chatWSHandler.Configure(api, mw, wsSrv)
 
 	server := http.Server{
-		Addr:         fmt.Sprint(":", configs.GetServerPort()),
+		Addr:         fmt.Sprint(":", configs.Configs.GetMainPort()),
 		Handler:      router,
 		ReadTimeout:  60 * time.Second,
 		WriteTimeout: 60 * time.Second,

@@ -28,11 +28,13 @@ type Chat struct {
 	NewMessages   int
 }
 
+//easyjson:json
 type ChatCreateReq struct {
 	ProductID uint64 `json:"productID"`
 	PartnerID uint64 `json:"partnerID"`
 }
 
+//easyjson:json
 type ChatResponse struct {
 	ID             uint64    `json:"id"`
 	CreationTime   time.Time `json:"creation_time"`
@@ -60,23 +62,27 @@ type Message struct {
 	UserID       uint64
 }
 
+//easyjson:json
 type CreateMessageReq struct {
 	ChatID  uint64 `json:"chat_id"`
 	Content string `json:"content"`
 }
 
+//easyjson:json
 type GetLastNMessagesReq struct {
 	UserID uint64 `json:"-"`
 	ChatID uint64 `json:"chat_id"`
 	Count  int    `json:"count"`
 }
 
+//easyjson:json
 type GetNMessagesBeforeReq struct {
 	ChatID        uint64 `json:"chat_id"`
 	Count         int    `json:"count"`
 	LastMessageID uint64 `json:"message_id"`
 }
 
+//easyjson:json
 type MessageResp struct {
 	ID           uint64    `json:"id"`
 	Content      string    `json:"content"`
@@ -85,6 +91,7 @@ type MessageResp struct {
 	UserID       uint64    `json:"user_id"`
 }
 
+//easyjson:json
 type CreateMsgAdditData struct {
 	PartnerID uint64 `json:"partner_id"`
 }

@@ -1,6 +1,7 @@
 package logger
 
 import (
+	formatters "github.com/fabienm/go-logrus-formatters"
 	"github.com/sirupsen/logrus"
 )
 
@@ -8,10 +9,14 @@ type Logger struct {
 	logrusLogger *logrus.Entry
 }
 
-func NewLogger(mode string) *Logger {
+func NewLogger(mode string, host string) *Logger {
 	switch mode {
+	case "prod":
+		setProductionFormatter(host)
+		setDevelopmentLevel()
+
 	case "production":
-		setProductionFormatter()
+		setProductionFormatter(host)
 		setProductionLevel()
 
 	case "development":
@@ -43,8 +48,8 @@ func (l *Logger) StartServerLog(host string, port string) {
 	}).Info("Starting server")
 }
 
-func setProductionFormatter() {
-	logrus.SetFormatter(&logrus.JSONFormatter{})
+func setProductionFormatter(host string) {
+	logrus.SetFormatter(formatters.NewGelf(host))
 }
 
 func setDevelopmentFormatter() {
@@ -64,16 +69,16 @@ func setDevelopmentLevel() {
 
 func (l *Logger) LogWSError(addr string, userID uint64, msg string) {
 	l.logrusLogger.WithFields(logrus.Fields{
-		"type": "websocket",
+		"type":   "websocket",
 		"client": addr,
-		"user": userID,
+		"user":   userID,
 	}).Error(msg)
 }
 
 func (l *Logger) LogWSInfo(addr string, userID uint64, msg string) {
 	l.logrusLogger.WithFields(logrus.Fields{
-		"type": "websocket",
+		"type":   "websocket",
 		"client": addr,
-		"user": userID,
+		"user":   userID,
 	}).Info(msg)
 }

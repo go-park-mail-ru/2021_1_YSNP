@@ -21,12 +21,12 @@ import (
 )
 
 func main() {
-	configs, err := configs.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	postgresDB, err := databases.NewPostgres(configs.GetPostgresConfig())
+	postgresDB, err := databases.NewPostgres(configs.Configs.GetPostgresConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -36,14 +36,14 @@ func main() {
 	cu := chatUsecase.NewChatUsecase(cr)
 	handler := chatGRPC.NewChatServer(cu)
 
-	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetChatHost(), ":", configs.GetChatPort()))
+	lis, err := net.Listen("tcp", fmt.Sprint(configs.Configs.GetChatHost(), ":", configs.Configs.GetChatPort()))
 	if err != nil {
 		log.Fatalln("Can't listen chat microservice port", err)
 	}
 	defer lis.Close()
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetChatHost(), configs.GetChatPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetChatPort())
+	logger.StartServerLog(configs.Configs.GetChatHost(), configs.Configs.GetChatPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("chat")

@@ -21,12 +21,12 @@ import (
 )
 
 func main() {
-	configs, err := configs.LoadConfig("./config.json")
+	err := configs.LoadConfig()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	tarantoolDB, err := databases.NewTarantool(configs.GetTarantoolUser(), configs.GetTarantoolPassword(), configs.GetTarantoolConfig())
+	tarantoolDB, err := databases.NewTarantool(configs.Configs.GetTarantoolUser(), configs.Configs.GetTarantoolPassword(), configs.Configs.GetTarantoolConfig())
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -35,14 +35,14 @@ func main() {
 	au := authUsecase.NewSessionUsecase(ar)
 	handler := authGRPC.NewAuthHandlerServer(au)
 
-	lis, err := net.Listen("tcp", fmt.Sprint(configs.GetAuthHost(), ":", configs.GetAuthPort()))
+	lis, err := net.Listen("tcp", fmt.Sprint(configs.Configs.GetAuthHost(), ":", configs.Configs.GetAuthPort()))
 	if err != nil {
 		log.Fatalln("Can't listen session microservice port", err)
 	}
 	defer lis.Close()
 
-	logger := logger.NewLogger(configs.GetLoggerMode())
-	logger.StartServerLog(configs.GetAuthHost(), configs.GetAuthPort())
+	logger := logger.NewLogger(configs.Configs.GetLoggerMode(), configs.Configs.GetAuthHost())
+	logger.StartServerLog(configs.Configs.GetAuthHost(), configs.Configs.GetAuthPort())
 	ic := interceptor.NewInterceptor(logger.GetLogger())
 
 	jaeger, err := metrics.NewJaeger("auth")

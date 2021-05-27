@@ -28,6 +28,8 @@ const (
 	ProductClose
 	WrongOwner
 	ChatNotExist
+	NoPhoto
+	ReviewExist
 )
 
 type Error struct {
@@ -158,6 +160,16 @@ var CustomErrors = map[ErrorType]*Error{
 		ErrorCode: ChatNotExist,
 		HttpError: http.StatusNotFound,
 		Message:   "chat doesn't exist",
+	},
+	NoPhoto: {
+		ErrorCode: NoPhoto,
+		HttpError: http.StatusBadRequest,
+		Message:   "no photo",
+	},
+	ReviewExist: {
+		ErrorCode: ReviewExist,
+		HttpError: http.StatusBadRequest,
+		Message:   "forbidden to leave the review",
 	},
 }
 
