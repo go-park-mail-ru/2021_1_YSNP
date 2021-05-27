@@ -1,6 +1,7 @@
 package repository
 
 import (
+	"database/sql/driver"
 	"testing"
 	"time"
 
@@ -355,39 +356,37 @@ func TestUserRepository_InsertOAuth_Error(t *testing.T) {
 	}
 }
 
-//func TestUserRepository_InsertOAuth_OK(t *testing.T) {
-//	t.Parallel()
-//
-//	db, mock, err := sqlmock.New()
-//	if err != nil {
-//		t.Fatal(err)
-//	}
-//	defer db.Close()
-//
-//	userRepo := NewUserRepository(db)
-//
-//	mock.ExpectBegin()
-//	answer := sqlmock.NewRows([]string{"id"}).AddRow(userOauthText.ID)
-//	mock.ExpectQuery(`INSERT INTO users`).WithArgs(
-//		userOauthText.FirstName,
-//		userOauthText.LastName,
-//		userOauthText.Photo).WillReturnRows(answer)
-//	mock.ExpectCommit()
-//
-//	mock.ExpectBegin()
-//	mock.ExpectQuery(`INSERT INTO users_oauth`).WithArgs(
-//		userOauthText.ID,
-//		userOauthText.UserOAuthType,
-//		userOauthText.UserOAuthID)
-//	mock.ExpectCommit()
-//
-//	err = userRepo.InsertOAuth(userOauthText)
-//	assert.NoError(t, err)
-//
-//	if err := mock.ExpectationsWereMet(); err != nil {
-//		t.Errorf("there were unfulfilled expectations: %s", err)
-//	}
-//}
+func TestUserRepository_InsertOAuth_OK(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	userRepo := NewUserRepository(db)
+
+	mock.ExpectBegin()
+	answer := sqlmock.NewRows([]string{"id"}).AddRow(userOauthText.ID)
+	mock.ExpectQuery(`INSERT INTO users`).WithArgs(
+		userOauthText.FirstName,
+		userOauthText.LastName,
+		userOauthText.Photo).WillReturnRows(answer)
+
+	mock.ExpectExec(`INSERT INTO users_oauth`).WithArgs(
+		userOauthText.ID,
+		userOauthText.UserOAuthType,
+		userOauthText.UserOAuthID).WillReturnResult(driver.ResultNoRows)
+	mock.ExpectCommit()
+
+	err = userRepo.InsertOAuth(userOauthText)
+	assert.NoError(t, err)
+
+	if err := mock.ExpectationsWereMet(); err != nil {
+		t.Errorf("there were unfulfilled expectations: %s", err)
+	}
+}
 
 
 func TestUserRepository_SelectByOAuthID__Error(t *testing.T) {
