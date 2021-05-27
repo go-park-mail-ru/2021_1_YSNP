@@ -82,20 +82,17 @@ CREATE OR REPLACE FUNCTION check_achievement() RETURNS TRIGGER AS
 $check_achievement$
 DECLARE
     P_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
---     CHECK_ACHIVE INTEGER ARRAY DEFAULT  ARRAY[1, 2, 3];
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (P_COUNT = 1 and length(ACHIVE) = 0) THEN
+    IF (P_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
     end if;
 
-    IF (P_COUNT = 10 and length(ACHIVE) < 3) THEN
+    IF (P_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
     end if;
 
-    IF (P_COUNT = 100 and length(ACHIVE) < 5) THEN
+    IF (P_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
     end if;
     
@@ -108,19 +105,17 @@ CREATE OR REPLACE FUNCTION check_achievement_sold() RETURNS TRIGGER AS
 $check_achievement_sold$
 DECLARE
     S_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id and product.close = true INTO S_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (S_COUNT = 1 and length(ACHIVE) < 2) THEN
+    IF (S_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 4);
     end if;
 
-    IF (S_COUNT = 10 and length(ACHIVE) < 4) THEN
+    IF (S_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 5);
     end if;
 
-    IF (S_COUNT = 100 and length(ACHIVE) < 6) THEN
+    IF (S_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 6);
     end if;
     
@@ -128,19 +123,20 @@ BEGIN
 END;
 $check_achievement_sold$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION check_achievement_fav() RETURNS TRIGGER AS
+$check_achievement_fav$
+DECLARE
+    F_COUNT INTEGER;
+BEGIN
 
-CREATE TRIGGER check_achievement
-    AFTER INSERT
-    ON product
-    FOR EACH ROW
-EXECUTE PROCEDURE check_achievement();
+    SELECT COUNT(*) from user_favorite where user_id = NEW.user_id INTO F_COUNT;
+    IF (F_COUNT = 10) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.user_id, 7);
+    end if;
 
-CREATE TRIGGER check_achievement_sold
-    AFTER UPDATE of close
-    ON product
-    FOR EACH ROW
-EXECUTE PROCEDURE check_achievement_sold();
-
+    RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
+END;
+$check_achievement_fav$ LANGUAGE plpgsql;
 
 
 CREATE TABLE IF NOT EXISTS product_images
@@ -269,7 +265,6 @@ VALUES ('Транспорт'),
        ('Животные');
 
 
-
 create table if not exists achievement
 (
     id             serial primary key,
@@ -279,13 +274,13 @@ create table if not exists achievement
 );
 
 INSERT INTO achievement (title, description, link_pic)
-VALUES ('Новичок', 'Первое объявление', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Опытный','Десять объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Шарящий','Сто объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Малый бизнесмен', 'Первая продажа', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Бизнесмен', 'Десять продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Директор по продажам', 'Сто продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Бытовая электрика', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
+VALUES ('Новичок', 'Первое объявление', '/img/svg/ach1.svg'),
+       ('Опытный','Десять объявлений', '/img/svg/ach3.svg'),
+       ('Шарящий','Сто объявлений', '/img/svg/ach3.svg'),
+       ('Малый бизнесмен', 'Первая продажа', '/img/svg/ach4.svg'),
+       ('Бизнесмен', 'Десять продаж', '/img/svg/ach5.svg'),
+       ('Директор по продажам', 'Сто продаж', '/img/svg/ach6.svg'),
+       ('Любимка', 'Добавил 10 вещей в избранное', '/img/svg/ach7.svg'),
        ('Хобби и отдых', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
        ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png');
 
@@ -329,3 +324,21 @@ create table if not exists user_achievement
 --        (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
 --        (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
 --        (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');
+
+CREATE TRIGGER check_achievement
+    AFTER INSERT
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement();
+
+CREATE TRIGGER check_achievement_sold
+    AFTER UPDATE of close
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_sold();
+
+CREATE TRIGGER check_achievement_fav
+    AFTER INSERT 
+    ON user_favorite
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_fav();

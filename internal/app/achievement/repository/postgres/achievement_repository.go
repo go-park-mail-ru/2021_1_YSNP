@@ -19,11 +19,16 @@ func NewAchievementRepository(conn *sql.DB) achievement.AchievementRepository {
 
 func(ar *AchievementRepository) GetUserAchievements(userId int) ([]*models.Achievement, error) {
 	req, err := ar.dbConn.Query(`
-		SELECT a.title, a.description, ua.date, a.link_pic
-		FROM user_achievement ua
-		JOIN achievement a ON ua.a_id = a.id
-		WHERE ua.user_id = $1
-		ORDER BY ua.date
+	SELECT a.title,
+    a.description,
+    ua.date,
+    a.link_pic,
+   CASE WHEN ua.user_id IS NOT NULL THEN  true ELSE false
+    END as achieved
+	FROM achievement a
+	LEFT JOIN user_achievement ua on a.id = ua.a_id
+	WHERE ua.user_id = $1 or  ua.user_id IS NULL
+	ORDER BY ua.date
 	`, userId)
 	if err != nil  {
 		return nil, err
@@ -35,12 +40,20 @@ func(ar *AchievementRepository) GetUserAchievements(userId int) ([]*models.Achie
 	for req.Next() {
 		achievement := &models.Achievement{}
 
+		var date sql.NullString
+
 		err := req.Scan(
 			&achievement.Titie,
 			&achievement.Description,
-			&achievement.Date, 
+			&date, 
 			&achievement.LinkPic,
+			&achievement.Achieved,
 		)
+		if date.Valid {
+			achievement.Date = date.String
+		 } else {
+			achievement.Date = ""
+		 }
 
 		if err != nil {
 			return nil, err
