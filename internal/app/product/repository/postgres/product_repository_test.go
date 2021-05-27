@@ -778,3 +778,78 @@ func TestProductRepository_UpdateProductViews(t *testing.T) {
 	err = prodRepo.UpdateProductViews(prodTest.ID, 1)
 	assert.Error(t, err)
 }
+
+func TestProductRepository_SelectProductReviewers(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	answer := sqlmock.NewRows([]string{"u.id", "u.name", "u.avatar"}).AddRow(prodTest.OwnerID, prodTest.OwnerName, prodTest.OwnerLinkImages)
+	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID, prodTest.OwnerID).WillReturnRows(answer)
+
+	_, err = prodRepo.SelectProductReviewers(prodTest.ID, prodTest.OwnerID)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID, prodTest.OwnerID).WillReturnError(sql.ErrConnDone)
+
+	_, err = prodRepo.SelectProductReviewers(prodTest.ID, prodTest.OwnerID)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_InsertProductBuyer(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID, prodTest.OwnerID).WillReturnResult(driver.RowsAffected(1))
+	mock.ExpectCommit()
+
+	err = prodRepo.InsertProductBuyer(prodTest.ID, prodTest.OwnerID)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectBegin()
+	mock.ExpectExec(`UPDATE product`).WithArgs(prodTest.ID, prodTest.OwnerID).WillReturnError(sql.ErrConnDone)
+	mock.ExpectRollback()
+
+	err = prodRepo.InsertProductBuyer(prodTest.ID, prodTest.OwnerID)
+	assert.Error(t, err)
+}
+
+func TestProductRepository_CheckProductReview(t *testing.T) {
+	t.Parallel()
+
+	db, mock, err := sqlmock.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	prodRepo := NewProductRepository(db)
+
+	answer := sqlmock.NewRows([]string{"owner_id", "seller_left_review"}).AddRow(prodTest.OwnerID, false)
+	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID).WillReturnRows(answer)
+
+	_, err = prodRepo.CheckProductReview(prodTest.ID, "seller", prodTest.OwnerID)
+	assert.NoError(t, err)
+
+	//error
+	mock.ExpectQuery(`SELECT`).WithArgs(prodTest.ID).WillReturnError(sql.ErrConnDone)
+
+	_, err = prodRepo.CheckProductReview(prodTest.ID, "buyer", prodTest.OwnerID)
+	assert.Error(t, err)
+}
