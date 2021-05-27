@@ -317,7 +317,7 @@ func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID u
 	if err != nil {
 		return nil, err
 	}
-	productsID = append(productsID)
+//	productsID = append(productsID)
 	if len(productsID) < 10 {
 		addProd, err := tr.getProdIdSameCategory(productID, userID)
 		if err != nil {
