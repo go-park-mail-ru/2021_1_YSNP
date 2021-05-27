@@ -313,13 +313,27 @@ func (tr *TrendsRepository) GetRecommendationProducts(productID uint64, userID u
 		}
 	}
 
-	productsID, err := tr.getNewTrendsProductID(userID, words, "likes", categoryId)
-	if err != nil {
-		return nil, err
+	var productsID []uint64
+	resp, _ := tr.dbConn.Insert("trends", []interface{}{userID, words})
+
+	if resp.Code == 3 {
+		productsID, err = tr.getNewTrendsProductID(userID, words, "likes", categoryId)
+
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		productsID, err = tr.getNewTrendsProductID(1, words, "likes", categoryId)
+
+		if err != nil {
+			return nil, err
+		}
+		userID = 1
 	}
-//	productsID = append(productsID)
+
 	if len(productsID) < 10 {
 		addProd, err := tr.getProdIdSameCategory(productID, userID)
+
 		if err != nil {
 			return nil, err
 		}
@@ -332,7 +346,7 @@ func (tr *TrendsRepository) GetTrendsProducts(userID uint64) ([]uint64, error) {
 	products := &models.TrendProducts{}
 	val, err := tr.dbConn.Call("get_user_trends_products", []interface{}{userID})
 	if err != nil {
-		return nil, err
+		return nil, nil
 	}
 	d := fmt.Sprintf("%v", val.Data)
 	jsonErr := json.Unmarshal([]byte(removeLastChar(d)), &products)

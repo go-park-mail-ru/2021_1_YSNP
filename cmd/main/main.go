@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/gorilla/csrf"
 	"log"
 	"net/http"
 	"time"
@@ -140,8 +141,8 @@ func main() {
 	router.Use(mw.AccessLogMiddleware)
 
 	api := router.PathPrefix("/api/v1").Subrouter()
-	//api.Use(csrf.Protect([]byte(middleware.CsrfKey),
-	//	csrf.ErrorHandler(mw.CSFRErrorHandler())))
+	api.Use(csrf.Protect([]byte(middleware.CsrfKey),
+		csrf.ErrorHandler(mw.CSFRErrorHandler())))
 
 	wsSrv := websocket.NewWSServer(logger)
 	wsSrv.Run()

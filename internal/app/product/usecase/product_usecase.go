@@ -140,6 +140,10 @@ func (pu *ProductUsecase) TrendList(userID *uint64) ([]*models.ProductListData, 
 		return nil, errors.UnexpectedInternal(err)
 	}
 
+	if len(productIdArray) == 0 {
+		return []*models.ProductListData{}, nil
+	}
+
 	products, err := pu.productRepo.SelectTrands(productIdArray, userID)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
