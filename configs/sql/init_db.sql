@@ -127,10 +127,12 @@ CREATE OR REPLACE FUNCTION check_achievement_fav() RETURNS TRIGGER AS
 $check_achievement_fav$
 DECLARE
     F_COUNT INTEGER;
+    Ach_Count INTEGER;
 BEGIN
 
     SELECT COUNT(*) from user_favorite where user_id = NEW.user_id INTO F_COUNT;
-    IF (F_COUNT = 10) THEN
+    Select count(*) from user_achievement where user_achievement.user_id = New.user_id and user_achievement.a_id = 7 INTO Ach_Count;
+    IF (F_COUNT = 10 and Ach_Count = 0) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.user_id, 7);
     end if;
 
