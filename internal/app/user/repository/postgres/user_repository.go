@@ -118,7 +118,7 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		`
 				SELECT id, email, telephone, password, 
 			    name, surname, sex, birthdate, 
-				latitude, longitude, radius, address, avatar, score, reviews
+				latitude, longitude, radius, address, avatar, score, reviews, new_msg, new_achives, new_revs
 				FROM users
 				WHERE id=$1`,
 		userID)
@@ -145,7 +145,10 @@ func (ur *UserRepository) SelectByID(userID uint64) (*models.UserData, error) {
 		&user.Address,
 		&user.LinkImages,
 		&user.Rating,
-		&reviews)
+		&reviews,
+		&user.NewMsg,
+		&user.NewAchievs,
+		&user.NewReviews)
 	if err != nil {
 		return nil, err
 	}

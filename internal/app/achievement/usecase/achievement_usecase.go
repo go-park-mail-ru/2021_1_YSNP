@@ -16,8 +16,8 @@ func NewAchievementUsecase(repo achievement.AchievementRepository) achievement.A
 	}
 }
 
-func (au *AchievementUsecase) GetUserAchievements(userId int) ([]*models.Achievement, *errors.Error){
-	achievement, err := au.achRepo.GetUserAchievements(userId)
+func (au *AchievementUsecase) GetUserAchievements(userId int, loggedUser int) ([]*models.Achievement, *errors.Error){
+	achievement, err := au.achRepo.GetUserAchievements(userId, loggedUser)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

@@ -276,6 +276,22 @@ func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*m
 		return nil, err
 	}
 
+	var new_msg int
+
+	err = tx.QueryRow(
+		`SELECT new_messages
+				FROM user_messages
+				WHERE chat_id = $1
+				AND user_id = $2`,
+		req.ChatID, req.UserID).Scan(&new_msg)
+	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
+		return nil, err
+	}
+
 	_, err = tx.Exec(
 		"UPDATE user_chats "+
 			"SET new_messages = 0, "+
@@ -292,6 +308,23 @@ func (c *ChatRepository) GetLastNMessages(req *models.GetLastNMessagesReq) ([]*m
 			return nil, rollbackErr
 		}
 		return nil, err
+	}
+
+	if (new_msg != 0) {
+		_, err = tx.Exec(
+			"UPDATE users "+
+				"SET new_msg = new_msg - 1 "+
+				"WHERE"+
+				"id = $1",
+			req.UserID)
+
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return nil, rollbackErr
+			}
+			return nil, err
+		}
 	}
 
 	err = tx.Commit()

@@ -289,8 +289,8 @@ func (pu *ProductUsecase) CreateProductReview(review *models.Review) *errors.Err
 
 }
 
-func (pu *ProductUsecase) GetUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, *errors.Error) {
-	reviews, err := pu.productRepo.SelectUserReviews(userID, reviewType, content)
+func (pu *ProductUsecase) GetUserReviews(userID uint64, reviewType string, content *models.PageWithSort, loggedUser int64) ([]*models.Review, *errors.Error) {
+	reviews, err := pu.productRepo.SelectUserReviews(userID, reviewType, content, loggedUser)
 	if err != nil {
 		return nil, errors.UnexpectedInternal(err)
 	}

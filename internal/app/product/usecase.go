@@ -24,7 +24,7 @@ type ProductUsecase interface {
 	GetUserFavorite(userID uint64, content *models.Page) ([]*models.ProductListData, *errors.Error)
 	SetProductBuyer(productID uint64, buyerID uint64) *errors.Error
 	GetProductReviewers(productID uint64, userID uint64) ([]*models.UserData, *errors.Error)
-	GetUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, *errors.Error)
+	GetUserReviews(userID uint64, reviewType string, content *models.PageWithSort, loggedUser int64) ([]*models.Review, *errors.Error)
 	GetWaitingReviews(userID uint64, reviewType string, content *models.Page) ([]*models.WaitingReview, *errors.Error)
 
 	LikeProduct(userID uint64, productID uint64) *errors.Error

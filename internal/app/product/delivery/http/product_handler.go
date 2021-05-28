@@ -788,6 +788,8 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 		logger.Warn("no logger")
 	}
 
+
+
 	page := &models.PageWithSort{}
 	decoder := schema.NewDecoder()
 	decoder.IgnoreUnknownKeys(true)
@@ -806,7 +808,12 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 	reviewType := vars["type"]
 	logger.Info("user id ", userID)
 
-	reviews, errE := ph.productUcase.GetUserReviews(userID, reviewType, page)
+	loggedUserID, ok := r.Context().Value(middleware.ContextUserID).(uint64)
+	if !ok {
+		loggedUserID = -1
+	}
+
+	reviews, errE := ph.productUcase.GetUserReviews(userID, reviewType, page, int64(loggedUserID))
 	if errE != nil {
 		logger.Error(errE.Message)
 		w.WriteHeader(errE.HttpError)

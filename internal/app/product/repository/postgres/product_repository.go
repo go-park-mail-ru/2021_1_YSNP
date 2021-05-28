@@ -783,7 +783,7 @@ func (pr *ProductRepository) InsertReview(review *models.Review) error {
 		return err
 	}
 
-	_, err = tx.Exec(`UPDATE users SET score= score + $1, reviews = reviews + 1 WHERE id = $2`,
+	_, err = tx.Exec(`UPDATE users SET score= score + $1, reviews = reviews + 1, new_revs = new_revs + 1 WHERE id = $2`,
 		int64(review.Rating), review.TargetID)
 	if err != nil {
 		rollbackErr := tx.Rollback()
@@ -824,7 +824,11 @@ func (pr *ProductRepository) CheckProductReview(productID uint64, reviewType str
 	return result, nil
 }
 
-func (pr *ProductRepository) SelectUserReviews(userID uint64, reviewType string, content *models.PageWithSort) ([]*models.Review, error) {
+func (pr *ProductRepository) SelectUserReviews(userID uint64, reviewType string, content *models.PageWithSort, loggedUser int64) ([]*models.Review, error) {
+	tx, err := pr.dbConn.BeginTx(context.Background(), &sql.TxOptions{})
+	if err != nil {
+		return nil, err
+	}
 	var reviews []*models.Review
 
 	selectQuery := `WITH ORDERED AS
@@ -862,8 +866,12 @@ WHERE ur.target_id = $1 and ur.type = $2`
 	queryData = append(queryData, content.Count)
 	queryData = append(queryData, content.From*content.Count)
 
-	query, err := pr.dbConn.Query(selectQuery, queryData...)
+	query, err := tx.Query(selectQuery, queryData...)
 	if err != nil {
+		rollbackErr := tx.Rollback()
+		if rollbackErr != nil {
+			return nil, rollbackErr
+		}
 		return nil, err
 	}
 
@@ -886,6 +894,10 @@ WHERE ur.target_id = $1 and ur.type = $2`
 			&review.ProductImage)
 
 		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return nil, rollbackErr
+			}
 			return nil, err
 		}
 
@@ -893,6 +905,22 @@ WHERE ur.target_id = $1 and ur.type = $2`
 	}
 
 	if err := query.Err(); err != nil {
+		return nil, err
+	}
+
+	if (loggedUser == int64(userID)) {
+		_, err = tx.Exec(`UPDATE users SET new_revs = 0 WHERE id = $1`, userID)
+		if err != nil {
+			rollbackErr := tx.Rollback()
+			if rollbackErr != nil {
+				return nil, rollbackErr
+			}
+			return nil, err
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
 		return nil, err
 	}
 

@@ -79,6 +79,9 @@ func (uu *UserUsecase) GetByID(userID uint64) (*models.ProfileData, *errors.Erro
 		Address:    user.Address,
 		LinkImages: user.LinkImages,
 		Rating: user.Rating,
+		NewReviews: user.NewReviews,
+		NewAchievs: user.NewAchievs,
+		NewMsg: user.NewMsg,
 	}
 
 	return profile, nil

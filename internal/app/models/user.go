@@ -16,6 +16,9 @@ type UserData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 	Rating 	   float64 `json:"rating"`
+	NewMsg     int     `json:"new_msg"`
+	NewAchievs int     `json:"new_achievs"`
+	NewReviews  int     `json:"new_revies"`
 }
 
 //easyjson:json
@@ -33,6 +36,9 @@ type ProfileData struct {
 	Address    string  `json:"address" valid:"type(string)"`
 	LinkImages string  `json:"linkImages" valid:"type(string)"`
 	Rating     float64 `json:"rating"`
+	NewMsg     int     `json:"new_msg"`
+	NewAchievs int     `json:"new_achievs"`
+	NewReviews  int     `json:"new_revies"`
 }
 
 //easyjson:json

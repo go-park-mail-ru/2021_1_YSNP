@@ -32,7 +32,10 @@ create table if not exists users
     address   varchar(128)          DEFAULT 'Москва',
     avatar    varchar(512) NOT NULL DEFAULT '',
     score     int                   DEFAULT 0,
-    reviews   int                   DEFAULT 0
+    reviews   int                   DEFAULT 0,
+    new_msg   int                   DEFAULT 0,
+    new_achives  int                DEFAULT 0,
+    new_revs  int                   DEFAULT 0
 );
 
 create table if not exists users_oauth
@@ -82,21 +85,21 @@ CREATE OR REPLACE FUNCTION check_achievement() RETURNS TRIGGER AS
 $check_achievement$
 DECLARE
     P_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
---     CHECK_ACHIVE INTEGER ARRAY DEFAULT  ARRAY[1, 2, 3];
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (P_COUNT = 1 and length(ACHIVE) = 0) THEN
+    IF (P_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
 
-    IF (P_COUNT = 10 and length(ACHIVE) < 3) THEN
+    IF (P_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
 
-    IF (P_COUNT = 100 and length(ACHIVE) < 5) THEN
+    IF (P_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
     
     RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
@@ -108,20 +111,21 @@ CREATE OR REPLACE FUNCTION check_achievement_sold() RETURNS TRIGGER AS
 $check_achievement_sold$
 DECLARE
     S_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id and product.close = true INTO S_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (S_COUNT = 1 and length(ACHIVE) < 2) THEN
+    IF (S_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 4);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
 
-    IF (S_COUNT = 10 and length(ACHIVE) < 4) THEN
+    IF (S_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 5);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
 
-    IF (S_COUNT = 100 and length(ACHIVE) < 6) THEN
+    IF (S_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 6);
+        UPDATE users SET new_achives = new_achives + 1 where id = NEW.owner_id;
     end if;
     
     RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
@@ -244,6 +248,12 @@ BEGIN
             last_msg_content = NEW.content,
             last_msg_time    = NEW.creation_time
         WHERE chats.id = NEW.chat_id;
+
+        IF(SELECT new_messages FROM user_chats where user_chats.chat_id = NEW.chat_id
+                                                 AND user_chats.partner_id = NEW.user_id = 0) THEN
+        UPDATE users
+        SET new_msg = new_msg + 1 WHERE id = NEW.user_id;
+        END IF;
 
     END IF;
     RETURN NULL; -- возвращаемое значение для триггера AFTER игнорируется
