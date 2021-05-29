@@ -348,7 +348,7 @@ func (pr *ProductRepository) SelectLatest(userID *uint64, content *models.Page) 
 				left join user_favorite uf on p.id = uf.product_id and uf.user_id = $3
 				WHERE p.close=false
 				GROUP BY p.id, uf.user_id
-				ORDER BY p.date DESC
+				ORDER BY p.id DESC
 				LIMIT $1 OFFSET $2`,
 		content.Count,
 		content.From*content.Count,
@@ -408,7 +408,7 @@ func (pr *ProductRepository) SelectUserAd(userId uint64, content *models.Page) (
 				left join product_images as pi on pi.product_id=p.id
 				WHERE owner_id=$1
 				GROUP BY p.id
-				ORDER BY p.date DESC
+				ORDER BY p.id DESC
 				LIMIT $2 OFFSET $3`,
 		userId,
 		content.Count,
@@ -465,7 +465,7 @@ func (pr *ProductRepository) SelectUserFavorite(userID uint64, content *models.P
                 LEFT JOIN product_images AS pi ON pi.product_id = p.id
                 WHERE user_id=$1
                 GROUP BY p.id
-                ORDER BY p.date DESC
+                ORDER BY p.id DESC
                 LIMIT $2 OFFSET $3`,
 		userID,
 		content.Count,
