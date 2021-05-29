@@ -100,4 +100,5 @@ type Achievement struct {
 	Description string `json:"description"`
 	Date        string `json:"date"`
 	LinkPic     string `json:"link_pic"`
+	Achieved   	bool `json:"achieved"`
 }

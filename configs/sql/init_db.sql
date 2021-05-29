@@ -82,20 +82,17 @@ CREATE OR REPLACE FUNCTION check_achievement() RETURNS TRIGGER AS
 $check_achievement$
 DECLARE
     P_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
---     CHECK_ACHIVE INTEGER ARRAY DEFAULT  ARRAY[1, 2, 3];
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id INTO P_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (P_COUNT = 1 and length(ACHIVE) = 0) THEN
+    IF (P_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 1);
     end if;
 
-    IF (P_COUNT = 10 and length(ACHIVE) < 3) THEN
+    IF (P_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 2);
     end if;
 
-    IF (P_COUNT = 100 and length(ACHIVE) < 5) THEN
+    IF (P_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 3);
     end if;
     
@@ -108,19 +105,17 @@ CREATE OR REPLACE FUNCTION check_achievement_sold() RETURNS TRIGGER AS
 $check_achievement_sold$
 DECLARE
     S_COUNT INTEGER;
-    ACHIVE INTEGER ARRAY;
 BEGIN
     SELECT COUNT(*) from product where owner_id = NEW.owner_id and product.close = true INTO S_COUNT;
-    SELECT COUNT(*) from user_achievement where user_id = new.owner_id into ACHIVE;
-    IF (S_COUNT = 1 and length(ACHIVE) < 2) THEN
+    IF (S_COUNT = 1) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 4);
     end if;
 
-    IF (S_COUNT = 10 and length(ACHIVE) < 4) THEN
+    IF (S_COUNT = 10) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 5);
     end if;
 
-    IF (S_COUNT = 100 and length(ACHIVE) < 6) THEN
+    IF (S_COUNT = 100) THEN
         INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.owner_id, 6);
     end if;
     
@@ -128,19 +123,22 @@ BEGIN
 END;
 $check_achievement_sold$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION check_achievement_fav() RETURNS TRIGGER AS
+$check_achievement_fav$
+DECLARE
+    F_COUNT INTEGER;
+    Ach_Count INTEGER;
+BEGIN
 
-CREATE TRIGGER check_achievement
-    AFTER INSERT
-    ON product
-    FOR EACH ROW
-EXECUTE PROCEDURE check_achievement();
+    SELECT COUNT(*) from user_favorite where user_id = NEW.user_id INTO F_COUNT;
+    Select count(*) from user_achievement where user_achievement.user_id = New.user_id and user_achievement.a_id = 7 INTO Ach_Count;
+    IF (F_COUNT = 10 and Ach_Count = 0) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.user_id, 7);
+    end if;
 
-CREATE TRIGGER check_achievement_sold
-    AFTER UPDATE of close
-    ON product
-    FOR EACH ROW
-EXECUTE PROCEDURE check_achievement_sold();
-
+    RETURN NEW; -- возвращаемое значение для триггера AFTER игнорируется
+END;
+$check_achievement_fav$ LANGUAGE plpgsql;
 
 
 CREATE TABLE IF NOT EXISTS product_images
@@ -208,6 +206,31 @@ create table if not exists reviews
     creation_time    timestamp
 );
 
+
+CREATE OR REPLACE FUNCTION check_achievement_review() RETURNS TRIGGER AS
+$check_achievement_review$
+DECLARE
+    R_COUNT INTEGER;
+BEGIN
+
+    SELECT COUNT(*) from user_reviews where reviewer_id = NEW.reviewer_id INTO R_COUNT;
+    IF (R_COUNT = 1) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.reviewer_id, 8);
+    end if;
+
+    IF (R_COUNT = 10) THEN
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.reviewer_id, 9);
+    end if;
+
+    SELECT COUNT(rating) from user_reviews where target_id = NEW.target_id INTO R_COUNT;
+    IF (R_COUNT = 10) THEN  
+        INSERT INTO user_achievement (user_id, a_id) VALUES (NEW.target_id, 10);
+    end if;
+    RETURN NEW; 
+END;
+$check_achievement_review$ LANGUAGE plpgsql;
+
+
 create table if not exists user_reviews
 (
   review_id        int      not null,
@@ -269,7 +292,6 @@ VALUES ('Транспорт'),
        ('Животные');
 
 
-
 create table if not exists achievement
 (
     id             serial primary key,
@@ -279,15 +301,16 @@ create table if not exists achievement
 );
 
 INSERT INTO achievement (title, description, link_pic)
-VALUES ('Новичок', 'Первое объявление', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Опытный','Десять объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Шарящий','Сто объявлений', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Малый бизнесмен', 'Первая продажа', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Бизнесмен', 'Десять продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Директор по продажам', 'Сто продаж', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Бытовая электрика', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Хобби и отдых', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png'),
-       ('Животные', 'Транспорт', 'https://achievement-images.teamtreehouse.com/badge_javascript-array-iteration-methods_stage01.png');
+VALUES ('Новичок', 'Первое объявление', '/img/svg/ach1.svg'),
+       ('Опытный','Десять объявлений', '/img/svg/ach3.svg'),
+       ('Шарящий','Сто объявлений', '/img/svg/ach3.svg'),
+       ('Малый бизнесмен', 'Первая продажа', '/img/svg/ach4.svg'),
+       ('Бизнесмен', 'Десять продаж', '/img/svg/ach5.svg'),
+       ('Директор по продажам', 'Сто продаж', '/img/svg/ach6.svg'),
+       ('Любимка', 'Добавил 10 вещей в избранное', '/img/svg/ach7.svg'),
+       ('Рецензент', 'Первый оставленный отзыв', '/img/svg/ach8.svg'),
+       ('Главный рецензент', 'Десять оставленных отзывов', '/img/svg/ach9.svg'),
+       ('Честный', '10 полученных 5-звездочных отзывов', '/img/svg/ach10.svg');
 
 create table if not exists user_achievement
 (
@@ -300,32 +323,26 @@ create table if not exists user_achievement
     FOREIGN KEY (a_id) REFERENCES achievement (id) ON DELETE NO ACTION
 );
 
+CREATE TRIGGER check_achievement
+    AFTER INSERT
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement();
 
--- INSERT INTO users (email, telephone, password, name, surname, sex)
--- VALUES ('asd', '123', '123', '123', '123', 'M');
+CREATE TRIGGER check_achievement_sold
+    AFTER UPDATE of close
+    ON product
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_sold();
 
--- INSERT INTO product (name, amount, description, category_id, owner_id, address, longitude, latitude)
--- VALUES ('iPhone 10', 1000, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 11', 1200, 'hello', 2, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 12', 1300, 'hello', 3, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 13', 1400, 'hello', 4, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 14', 1500, 'hello', 5, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 15', 1600, 'hello', 6, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 16', 1700, 'hello', 7, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 17', 1800, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 18', 1900, 'hello', 8, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 19', 2100, 'hello', 1, 1, 'Москва', 37.620017, 55.753808),
---        ('iPhone 20', 2400, 'hello', 2, 1, 'Москва', 37.620017, 55.753808);
---
--- INSERT INTO product_images (product_id, img_link)
--- VALUES (1, '/static/product/2e5659cd-72ac-43d8-8494-52bbc7a885fd.webp'),
---        (2, '/static/product/3af8506c-0608-498e-b2b7-7f7a445aa6df.webp'),
---        (3, '/static/product/4abcea38-00ad-4365-85af-1c144085ebd2.webp'),
---        (4, '/static/product/6d835ba7-1ecc-478d-8832-a64b3c58124c.webp'),
---        (5, '/static/product/8b644046-55b7-40a2-beab-308a964630ab.jpg'),
---        (6, '/static/product/697bade2-a4cb-49fc-bad3-c2205554b92a.jpeg'),
---        (7, '/static/product/936de281-1bdb-46e5-a404-3bf2a3fdbaac.webp'),
---        (8, '/static/product/ba1b1a47-97d3-4efb-aed2-f574fc28970f.webp'),
---        (9, '/static/product/dfc9f3d6-60cd-480f-97d1-c31c52dca48b.webp'),
---        (10, '/static/product/f75694ab-42a6-42f7-8f24-cd933cd4da2e.webp'),
---        (11, '/static/product/8776ad39-e754-4f29-8d19-640b1543fbfe.jpg');
+CREATE TRIGGER check_achievement_fav
+    AFTER INSERT 
+    ON user_favorite
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_fav();
+
+CREATE TRIGGER check_achievement_review
+    AFTER INSERT 
+    ON user_reviews
+    FOR EACH ROW
+EXECUTE PROCEDURE check_achievement_review();
