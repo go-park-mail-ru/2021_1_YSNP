@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 	"database/sql"
-
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/models"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/tools/null_value"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/user"
@@ -275,4 +274,16 @@ func (ur *UserRepository) SelectByOAuthID(userOAuthID float64) uint64 {
 	}
 
 	return userID
+}
+
+func (ur *UserRepository) Delete(userID uint64) error {
+	_, err := ur.dbConn.Exec(
+		`DELETE FROM users 
+                WHERE id=$1`,
+		userID)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

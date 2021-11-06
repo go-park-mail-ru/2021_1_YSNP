@@ -314,3 +314,12 @@ func (pu *ProductUsecase) GetWaitingReviews(userID uint64, reviewType string, co
 
 	return reviews, nil
 }
+
+func (pu *ProductUsecase) Delete(productID uint64) *errors.Error {
+	err := pu.productRepo.Delete(productID)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
+}

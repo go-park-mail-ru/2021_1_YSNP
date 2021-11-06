@@ -19,6 +19,7 @@ type UserUsecase interface {
 	CheckPassword(user *models.UserData, password string) *errors.Error
 	UpdatePassword(userID uint64, password string) (*models.UserData, *errors.Error)
 	UpdateLocation(userID uint64, data *models.LocationRequest) (*models.UserData, *errors.Error)
+	Delete(userID uint64) *errors.Error
 
 	CreateOrLogin(userOAuth *models.UserOAuthRequest) *errors.Error
 }

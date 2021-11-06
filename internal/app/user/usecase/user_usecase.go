@@ -214,3 +214,12 @@ func (uu *UserUsecase) CreateOrLogin(userOAuth *models.UserOAuthRequest) *errors
 
 	return nil
 }
+
+func (uu *UserUsecase) Delete(userID uint64) *errors.Error {
+	err := uu.userRepo.Delete(userID)
+	if err != nil {
+		return errors.UnexpectedInternal(err)
+	}
+
+	return nil
+}

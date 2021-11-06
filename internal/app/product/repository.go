@@ -8,6 +8,7 @@ type ProductRepository interface {
 	Insert(product *models.ProductData) error
 	Close(product *models.ProductData) error
 	Update(product *models.ProductData) error
+	Delete(productID uint64) error
 
 	InsertPhoto(content *models.ProductData) error
 	UpdateTariff(productID uint64, tariff int) error

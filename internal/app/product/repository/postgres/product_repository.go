@@ -979,3 +979,14 @@ WHERE
 
 	return reviews, err
 }
+
+func (pr *ProductRepository) Delete(productID uint64) error {
+	_, err := pr.dbConn.Exec(
+		`DELETE FROM product
+                WHERE id=$1`,
+		productID)
+	if err != nil {
+		return err
+	}
+		return nil
+}
