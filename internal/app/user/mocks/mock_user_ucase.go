@@ -78,6 +78,20 @@ func (mr *MockUserUsecaseMockRecorder) CreateOrLogin(arg0 interface{}) *gomock.C
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateOrLogin", reflect.TypeOf((*MockUserUsecase)(nil).CreateOrLogin), arg0)
 }
 
+// Delete mocks base method.
+func (m *MockUserUsecase) Delete(arg0 uint64) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockUserUsecaseMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockUserUsecase)(nil).Delete), arg0)
+}
+
 // GetByID mocks base method.
 func (m *MockUserUsecase) GetByID(arg0 uint64) (*models.ProfileData, *errors.Error) {
 	m.ctrl.T.Helper()

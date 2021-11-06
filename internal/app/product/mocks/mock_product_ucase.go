@@ -78,6 +78,20 @@ func (mr *MockProductUsecaseMockRecorder) CreateProductReview(arg0 interface{}) 
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "CreateProductReview", reflect.TypeOf((*MockProductUsecase)(nil).CreateProductReview), arg0)
 }
 
+// Delete mocks base method.
+func (m *MockProductUsecase) Delete(arg0 uint64) *errors.Error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "Delete", arg0)
+	ret0, _ := ret[0].(*errors.Error)
+	return ret0
+}
+
+// Delete indicates an expected call of Delete.
+func (mr *MockProductUsecaseMockRecorder) Delete(arg0 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "Delete", reflect.TypeOf((*MockProductUsecase)(nil).Delete), arg0)
+}
+
 // DislikeProduct mocks base method.
 func (m *MockProductUsecase) DislikeProduct(arg0, arg1 uint64) *errors.Error {
 	m.ctrl.T.Helper()
