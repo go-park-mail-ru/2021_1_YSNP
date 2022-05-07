@@ -1,0 +1,1562 @@
+basePath: /api/v1
+definitions:
+  errors.Error:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  errors.Success:
+    properties:
+      id:
+        type: integer
+      message:
+        type: string
+    type: object
+  models.Category:
+    properties:
+      title:
+        type: string
+    type: object
+  models.ChatCreateReq:
+    properties:
+      partnerID:
+        type: integer
+      productID:
+        type: integer
+    type: object
+  models.ChatResponse:
+    properties:
+      creation_time:
+        type: string
+      id:
+        type: integer
+      last_msg_content:
+        type: string
+      last_msg_time:
+        type: string
+      new_messages:
+        type: integer
+      partner_avatar:
+        type: string
+      partner_id:
+        type: integer
+      partner_name:
+        type: string
+      partner_surname:
+        type: string
+      product_amount:
+        type: integer
+      product_avatar_link:
+        type: string
+      product_id:
+        type: integer
+      product_name:
+        type: string
+    type: object
+  models.LocationRequest:
+    properties:
+      address:
+        type: string
+      latitude:
+        type: number
+      longitude:
+        type: number
+      radius:
+        type: integer
+    type: object
+  models.LoginRequest:
+    properties:
+      password:
+        type: string
+      telephone:
+        type: string
+    type: object
+  models.PasswordChangeRequest:
+    properties:
+      newPassword1:
+        type: string
+      newPassword2:
+        type: string
+      oldPassword:
+        type: string
+    type: object
+  models.ProductData:
+    properties:
+      address:
+        type: string
+      amount:
+        type: integer
+      category:
+        type: string
+      close:
+        type: boolean
+      date:
+        type: string
+      description:
+        type: string
+      id:
+        type: integer
+      latitude:
+        type: number
+      likes:
+        type: integer
+      linkImages:
+        items:
+          type: string
+        type: array
+      longitude:
+        type: number
+      name:
+        type: string
+      owner_rating:
+        type: number
+      ownerId:
+        type: integer
+      ownerLinkImages:
+        type: string
+      ownerName:
+        type: string
+      ownerSurname:
+        type: string
+      tariff:
+        type: integer
+      views:
+        type: integer
+    type: object
+  models.ProductListData:
+    properties:
+      amount:
+        type: integer
+      close:
+        type: boolean
+      date:
+        type: string
+      id:
+        type: integer
+      linkImages:
+        items:
+          type: string
+        type: array
+      name:
+        type: string
+      tariff:
+        type: integer
+      userLiked:
+        type: boolean
+    type: object
+  models.ProfileData:
+    properties:
+      address:
+        type: string
+      dateBirth:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      latitude:
+        type: number
+      linkImages:
+        type: string
+      longitude:
+        type: number
+      name:
+        type: string
+      radius:
+        type: integer
+      rating:
+        type: number
+      sex:
+        type: string
+      surname:
+        type: string
+      telephone:
+        type: string
+    type: object
+  models.Review:
+    properties:
+      content:
+        type: string
+      creation_time:
+        type: string
+      id:
+        type: integer
+      product_id:
+        type: integer
+      product_image:
+        type: string
+      product_name:
+        type: string
+      rating:
+        type: number
+      reviewer_avatar:
+        type: string
+      reviewer_id:
+        type: integer
+      reviewer_name:
+        type: string
+      target_id:
+        type: integer
+      type:
+        type: string
+    type: object
+  models.SellerData:
+    properties:
+      id:
+        type: integer
+      linkImages:
+        description: DateBirth  string `json:"dateBirth" valid:"-"`
+        type: string
+      name:
+        type: string
+      rating:
+        type: number
+      surname:
+        type: string
+      telephone:
+        description: |-
+          Sex        string `json:"sex" valid:"in(male|female)"`
+          Email      string `json:"email" valid:"email"`
+        type: string
+    type: object
+  models.SetProductBuyerRequest:
+    properties:
+      buyer_id:
+        type: integer
+    type: object
+  models.SignUpRequest:
+    properties:
+      dateBirth:
+        type: string
+      email:
+        type: string
+      linkImages:
+        type: string
+      name:
+        type: string
+      password1:
+        type: string
+      password2:
+        type: string
+      sex:
+        type: string
+      surname:
+        type: string
+      telephone:
+        type: string
+    type: object
+  models.UserData:
+    properties:
+      address:
+        type: string
+      dateBirth:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      latitude:
+        type: number
+      linkImages:
+        type: string
+      longitude:
+        type: number
+      name:
+        type: string
+      password:
+        type: string
+      radius:
+        type: integer
+      rating:
+        type: number
+      sex:
+        type: string
+      surname:
+        type: string
+      telephone:
+        type: string
+    type: object
+  models.UserInterested:
+    properties:
+      text:
+        type: string
+      userID:
+        type: integer
+    type: object
+  models.WaitingReview:
+    properties:
+      product_id:
+        type: integer
+      product_image:
+        type: string
+      product_name:
+        type: string
+      target_avatar:
+        type: string
+      target_id:
+        type: integer
+      target_name:
+        type: string
+      type:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API for Koya application
+  title: KOYA API
+  version: "1.0"
+paths:
+  /categories:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Category'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get categories
+      tags:
+      - Category
+  /chat/{cid}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting chat
+      parameters:
+      - description: Chat ID
+        in: path
+        name: cid
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get chat by id
+      tags:
+      - Chat
+  /chat/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting user chat
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ChatResponse'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get user chats
+      tags:
+      - Chat
+  /chat/new:
+    post:
+      consumes:
+      - application/json
+      description: Handler for creating chat
+      parameters:
+      - description: Chat
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ChatCreateReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ChatResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Create chat
+      tags:
+      - Chat
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Handler for login user
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: login user
+      tags:
+      - Session
+  /logout:
+    post:
+      consumes:
+      - application/json
+      description: Handler for logout user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: logout user
+      tags:
+      - Session
+  /me:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting profile
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProfileData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get profile
+      tags:
+      - User
+  /product/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting product by id
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.ProductData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get product by id
+      tags:
+      - Product
+  /product/{id}/trend/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting recommendation to product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get recommendation to product
+      tags:
+      - Product
+  /product/buyer/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Handler for setting product buyer id
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Body
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SetProductBuyerRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: set product buyer id
+      tags:
+      - Product
+  /product/close/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Handler for closing new product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.UserData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: close product
+      tags:
+      - Product
+  /product/create:
+    post:
+      consumes:
+      - application/json
+      description: Handler for creating new product
+      parameters:
+      - description: Product
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: create product
+      tags:
+      - Product
+  /product/edit:
+    post:
+      consumes:
+      - application/json
+      description: Handler for editing new product
+      parameters:
+      - description: Product
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.ProductData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: edit product
+      tags:
+      - Product
+  /product/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting list of products
+      parameters:
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: list of products
+      tags:
+      - Product
+  /product/promote:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Handler for promoting new product
+      parameters:
+      - description: Image to upload
+        in: formData
+        name: photos
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: promote product
+      tags:
+      - Product
+  /product/review/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Handler for creating product review
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Review
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.Review'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Create product review
+      tags:
+      - Product
+  /product/trend/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting recommendation to user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get recommendation to user
+      tags:
+      - Product
+  /product/upload/{pid}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Handler for uploading a product's photos
+      parameters:
+      - description: Product ID
+        in: path
+        name: pid
+        required: true
+        type: integer
+      - description: Image to upload
+        in: formData
+        name: photos
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: upload photos for products
+      tags:
+      - Product
+  /search:
+    get:
+      consumes:
+      - application/json
+      description: Handler for searching products
+      parameters:
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      - description: Sorting
+        in: query
+        name: Sorting
+        type: string
+      - description: Search
+        in: query
+        name: Search
+        type: string
+      - description: Longitude
+        in: query
+        name: Longitude
+        type: number
+      - description: Latitude
+        in: query
+        name: Latitude
+        type: number
+      - description: Radius
+        in: query
+        name: Radius
+        type: integer
+      - description: FromAmount
+        in: query
+        name: FromAmount
+        type: integer
+      - description: ToAmount
+        in: query
+        name: ToAmount
+        type: integer
+      - description: Date
+        in: query
+        name: Date
+        type: string
+      - description: Category
+        in: query
+        name: Category
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Search products
+      tags:
+      - Search
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Handler for signing up new user
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: sign uo new user
+      tags:
+      - User
+  /stat:
+    post:
+      consumes:
+      - application/json
+      description: Handler for creating trends
+      parameters:
+      - description: UserInterested
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UserInterested'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Create trends
+      tags:
+      - Trends
+  /upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Handler for uploading a user's avatar
+      parameters:
+      - description: Image to upload
+        in: formData
+        name: file-upload
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: upload avatar for user
+      tags:
+      - User
+  /user:
+    post:
+      consumes:
+      - application/json
+      description: Handler for changing user info
+      parameters:
+      - description: User
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignUpRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: change user info
+      tags:
+      - User
+  /user/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting seller profile
+      parameters:
+      - description: Seller ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SellerData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get seller profile
+      tags:
+      - User
+  /user/{id}/ad/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting list of seller ad products
+      parameters:
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: list of seller ad products
+      tags:
+      - Product
+  /user/{id}/reviews/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting user reviews
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Type
+        enum:
+        - seller
+        - buyer
+        in: path
+        name: type
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.Review'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get user reviews
+      tags:
+      - Product
+  /user/{id}/telephone:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting seller telephone
+      parameters:
+      - description: Seller ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SellerData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get seller telephone
+      tags:
+      - User
+  /user/ad/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting list of user ad products
+      parameters:
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: list of user ad products
+      tags:
+      - Product
+  /user/favorite/dislike/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Handler for removing product from favorites
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: remove product to favorites
+      tags:
+      - Product
+  /user/favorite/like/{id}:
+    post:
+      consumes:
+      - application/json
+      description: Handler for adding product to favorites
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: add product to favorites
+      tags:
+      - Product
+  /user/favorite/list:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting list of user favorite products
+      parameters:
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.ProductListData'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: list of user favorite products
+      tags:
+      - Product
+  /user/landing/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting user landing
+      parameters:
+      - description: Seller ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.SellerData'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: Get user landing
+      tags:
+      - User
+  /user/password:
+    post:
+      consumes:
+      - application/json
+      description: Handler for changing user password
+      parameters:
+      - description: Password
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.PasswordChangeRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: change user password
+      tags:
+      - User
+  /user/position:
+    post:
+      consumes:
+      - application/json
+      description: Handler for changing user location
+      parameters:
+      - description: Location
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LocationRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/errors.Success'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: change user location
+      tags:
+      - User
+  /user/reviews/await/{type}:
+    get:
+      consumes:
+      - application/json
+      description: Handler for getting waiting reviews
+      parameters:
+      - description: Type
+        enum:
+        - seller
+        - buyer
+        in: path
+        name: type
+        required: true
+        type: string
+      - description: From
+        in: query
+        name: From
+        type: integer
+      - description: Count
+        in: query
+        name: Count
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.WaitingReview'
+            type: array
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/errors.Error'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/errors.Error'
+      summary: get waiting reviews
+      tags:
+      - Product
+swagger: "2.0"

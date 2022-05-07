@@ -54,8 +54,15 @@ import (
 	chatHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/http"
 	chatWSHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/delivery/websocket"
 	chatUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/chat/usecase"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
+// @title           KOYA API
+// @version         1.0
+// @description     API for Koya application
+
+// @host      localhost:8080
+// @BasePath  /api/v1
 func main() {
 	err := configs.LoadConfig()
 	if err != nil {
@@ -157,6 +164,7 @@ func main() {
 	achievementHandler.Configure(api, mw)
 	chatHandler.Configure(api, mw, wsSrv)
 	chatWSHandler.Configure(api, mw, wsSrv)
+	api.PathPrefix("/swagger").Handler(httpSwagger.WrapHandler)
 
 	server := http.Server{
 		Addr:         fmt.Sprint(":", configs.Configs.GetMainPort()),

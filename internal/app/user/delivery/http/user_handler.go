@@ -50,6 +50,18 @@ func (uh *UserHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/oauth/vk", uh.VKOauth).Methods(http.MethodOptions, http.MethodGet)
 }
 
+// SignUpHandler godoc
+// @Summary      sign uo new user
+// @Description  Handler for signing up new user
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        body body models.SignUpRequest true "User"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /signup [post]
 func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -137,6 +149,18 @@ func (uh *UserHandler) SignUpHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(errors.JSONSuccess("Successful login."))
 }
 
+// UploadAvatarHandler godoc
+// @Summary      upload avatar for user
+// @Description  Handler for uploading a user's avatar
+// @Tags         User
+// @Accept       mpfd
+// @Produce      json
+// @Param 		 file-upload formData file true "Image to upload"
+// @Success      200  {object}  errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /upload [post]
 func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -186,6 +210,17 @@ func (uh *UserHandler) UploadAvatarHandler(w http.ResponseWriter, r *http.Reques
 	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
+// GetProfileHandler godoc
+// @Summary      Get profile
+// @Description  Handler for getting profile
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} models.ProfileData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /me [get]
 func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -225,6 +260,18 @@ func (uh *UserHandler) GetProfileHandler(w http.ResponseWriter, r *http.Request)
 	w.Write(body)
 }
 
+// GetSellerHandler godoc
+// @Summary      Get seller profile
+// @Description  Handler for getting seller profile
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Seller ID"
+// @Success      200 {object} models.SellerData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/{id} [get]
 func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -258,6 +305,18 @@ func (uh *UserHandler) GetSellerHandler(w http.ResponseWriter, r *http.Request) 
 	w.Write(body)
 }
 
+// GetSellerTelephoneHandler godoc
+// @Summary      Get seller telephone
+// @Description  Handler for getting seller telephone
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Seller ID"
+// @Success      200 {object} models.SellerData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/{id}/telephone [get]
 func (uh *UserHandler) GetSellerTelephoneHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -301,6 +360,18 @@ func (uh *UserHandler) GetSellerTelephoneHandler(w http.ResponseWriter, r *http.
 	w.Write(body)
 }
 
+// GetUserLandingHandler godoc
+// @Summary      Get user landing
+// @Description  Handler for getting user landing
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Seller ID"
+// @Success      200 {object} models.SellerData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/landing/{id} [get]
 func (uh *UserHandler) GetUserLandingHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -334,6 +405,18 @@ func (uh *UserHandler) GetUserLandingHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(body)
 }
 
+// ChangeProfileHandler godoc
+// @Summary      change user info
+// @Description  Handler for changing user info
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        body body models.SignUpRequest true "User"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user [post]
 func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -406,6 +489,18 @@ func (uh *UserHandler) ChangeProfileHandler(w http.ResponseWriter, r *http.Reque
 	w.Write(errors.JSONSuccess("Successful change."))
 }
 
+// ChangeProfilePasswordHandler godoc
+// @Summary      change user password
+// @Description  Handler for changing user password
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        body body models.PasswordChangeRequest true "Password"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/password [post]
 func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -464,6 +559,18 @@ func (uh *UserHandler) ChangeProfilePasswordHandler(w http.ResponseWriter, r *ht
 	w.Write(errors.JSONSuccess("Successful change."))
 }
 
+// ChangeUserLocationHandler godoc
+// @Summary      change user location
+// @Description  Handler for changing user location
+// @Tags         User
+// @Accept       json
+// @Produce      json
+// @Param        body body models.LocationRequest true "Location"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/position [post]
 func (uh *UserHandler) ChangeUserLocationHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

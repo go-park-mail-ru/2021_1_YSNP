@@ -55,6 +55,18 @@ func (ph *ProductHandler) Configure(r *mux.Router, rNoCSRF *mux.Router, mw *midd
 	r.HandleFunc("/user/reviews/await/{type:seller|buyer}", mw.SetCSRFToken(mw.CheckAuthMiddleware(ph.GetWaitingReviews))).Methods(http.MethodGet, http.MethodOptions)
 }
 
+// ProductCreateHandler godoc
+// @Summary      create product
+// @Description  Handler for creating new product
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        body body models.ProductData true "Product"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/create [post]
 func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -115,6 +127,18 @@ func (ph *ProductHandler) ProductCreateHandler(w http.ResponseWriter, r *http.Re
 	w.Write(errors.JSONSuccess("Successful creation.", productData.ID))
 }
 
+// ProductCloseHandler godoc
+// @Summary      close product
+// @Description  Handler for closing new product
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Success      200 {object} []models.UserData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/close/{id} [post]
 func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -167,6 +191,18 @@ func (ph *ProductHandler) ProductCloseHandler(w http.ResponseWriter, r *http.Req
 	w.Write(body)
 }
 
+// ProductEditHandler godoc
+// @Summary      edit product
+// @Description  Handler for editing new product
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        body body models.ProductData true "Product"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/edit [post]
 func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -234,6 +270,19 @@ func (ph *ProductHandler) ProductEditHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(errors.JSONSuccess("Successful update.", productData.ID))
 }
 
+// UploadPhotoHandler godoc
+// @Summary      upload photos for products
+// @Description  Handler for uploading a product's photos
+// @Tags         Product
+// @Accept       mpfd
+// @Produce      json
+// @Param        pid path int64 true "Product ID"
+// @Param 		 photos formData file true "Image to upload"
+// @Success      200  {object}  errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/upload/{pid} [post]
 func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -278,6 +327,18 @@ func (ph *ProductHandler) UploadPhotoHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(errors.JSONSuccess("Successful upload."))
 }
 
+// PromoteProductHandler godoc
+// @Summary      promote product
+// @Description  Handler for promoting new product
+// @Tags         Product
+// @Accept       mpfd
+// @Produce      json
+// @Param 		 photos formData file true "Image to upload"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/promote [post]
 func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -337,6 +398,18 @@ func (ph *ProductHandler) PromoteProductHandler(w http.ResponseWriter, r *http.R
 	w.Write(errors.JSONSuccess("Successful promotion."))
 }
 
+// ProductIDHandler godoc
+// @Summary      get product by id
+// @Description  Handler for getting product by id
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Success      200 {object} models.ProductData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/{id} [get]
 func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -371,6 +444,19 @@ func (ph *ProductHandler) ProductIDHandler(w http.ResponseWriter, r *http.Reques
 	w.Write(body)
 }
 
+// MainPageHandler godoc
+// @Summary      list of products
+// @Description  Handler for getting list of products
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/list [get]
 func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -414,6 +500,19 @@ func (ph *ProductHandler) MainPageHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// UserAdHandler godoc
+// @Summary      list of user ad products
+// @Description  Handler for getting list of user ad products
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/ad/list [get]
 func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -464,6 +563,20 @@ func (ph *ProductHandler) UserAdHandler(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// SellerAdHandler godoc
+// @Summary      list of seller ad products
+// @Description  Handler for getting list of seller ad products
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Param        id path int64 true "User ID"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/{id}/ad/list [get]
 func (ph *ProductHandler) SellerAdHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -508,6 +621,19 @@ func (ph *ProductHandler) SellerAdHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// UserFavoriteHandler godoc
+// @Summary      list of user favorite products
+// @Description  Handler for getting list of user favorite products
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/favorite/list [get]
 func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -558,6 +684,18 @@ func (ph *ProductHandler) UserFavoriteHandler(w http.ResponseWriter, r *http.Req
 	}
 }
 
+// LikeProductHandler godoc
+// @Summary      add product to favorites
+// @Description  Handler for adding product to favorites
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/favorite/like/{id} [post]
 func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -591,6 +729,18 @@ func (ph *ProductHandler) LikeProductHandler(w http.ResponseWriter, r *http.Requ
 	w.Write(errors.JSONSuccess("Successful like."))
 }
 
+// DislikeProductHandler godoc
+// @Summary      remove product to favorites
+// @Description  Handler for removing product from favorites
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/favorite/dislike/{id} [post]
 func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -624,6 +774,17 @@ func (ph *ProductHandler) DislikeProductHandler(w http.ResponseWriter, r *http.R
 	w.Write(errors.JSONSuccess("Successful dislike."))
 }
 
+// TrendHandler godoc
+// @Summary      get recommendation to user
+// @Description  Handler for getting recommendation to user
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/trend/list [get]
 func (ph *ProductHandler) TrendHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -661,6 +822,18 @@ func (ph *ProductHandler) TrendHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// ProductTrendsHandler godoc
+// @Summary      get recommendation to product
+// @Description  Handler for getting recommendation to product
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/{id}/trend/list [get]
 func (ph *ProductHandler) ProductTrendsHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -695,6 +868,19 @@ func (ph *ProductHandler) ProductTrendsHandler(w http.ResponseWriter, r *http.Re
 	}
 }
 
+// SetProductBuyer godoc
+// @Summary      set product buyer id
+// @Description  Handler for setting product buyer id
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Param        body body models.SetProductBuyerRequest true "Body"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/buyer/{id} [post]
 func (ph *ProductHandler) SetProductBuyer(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -716,10 +902,7 @@ func (ph *ProductHandler) SetProductBuyer(w http.ResponseWriter, r *http.Request
 	productID, _ := strconv.ParseUint(vars["id"], 10, 64)
 	logger.Info("product id ", productID)
 
-	type Request struct {
-		Buyer_id uint64 `json:"buyer_id"`
-	}
-	req := &Request{}
+	req := &models.SetProductBuyerRequest{}
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil {
 		logger.Error(err)
@@ -741,6 +924,19 @@ func (ph *ProductHandler) SetProductBuyer(w http.ResponseWriter, r *http.Request
 	w.Write(errors.JSONSuccess("Successful set."))
 }
 
+// CreateProductReview godoc
+// @Summary      Create product review
+// @Description  Handler for creating product review
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "Product ID"
+// @Param        body body models.Review true "Review"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /product/review/{id} [post]
 func (ph *ProductHandler) CreateProductReview(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -781,6 +977,19 @@ func (ph *ProductHandler) CreateProductReview(w http.ResponseWriter, r *http.Req
 	w.Write(errors.JSONSuccess("Successful creation."))
 }
 
+// GetUserReviews godoc
+// @Summary      get user reviews
+// @Description  Handler for getting user reviews
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        id path int64 true "User ID"
+// @Param        type path string true "Type" Enums(seller, buyer)
+// @Success      200 {object} []models.Review
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/{id}/reviews/{type} [get]
 func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -826,6 +1035,20 @@ func (ph *ProductHandler) GetUserReviews(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+// GetWaitingReviews godoc
+// @Summary      get waiting reviews
+// @Description  Handler for getting waiting reviews
+// @Tags         Product
+// @Accept       json
+// @Produce      json
+// @Param        type path string true "Type" Enums(seller, buyer)
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Success      200 {object} []models.WaitingReview
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /user/reviews/await/{type} [get]
 func (ph *ProductHandler) GetWaitingReviews(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

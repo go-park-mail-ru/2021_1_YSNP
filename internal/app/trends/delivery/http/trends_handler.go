@@ -28,6 +28,18 @@ func (th *TrendsHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/stat", mw.CheckAuthMiddleware(th.CreateTrends)).Methods(http.MethodPost, http.MethodOptions)
 }
 
+// CreateTrends godoc
+// @Summary      Create trends
+// @Description  Handler for creating trends
+// @Tags         Trends
+// @Accept       json
+// @Produce      json
+// @Param        body body models.UserInterested true "UserInterested"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /stat [post]
 func (th *TrendsHandler) CreateTrends(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

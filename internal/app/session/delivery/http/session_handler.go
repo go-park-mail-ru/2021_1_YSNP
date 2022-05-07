@@ -36,6 +36,18 @@ func (sh *SessionHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/logout", mw.CheckAuthMiddleware(sh.LogoutHandler)).Methods(http.MethodPost, http.MethodOptions)
 }
 
+// LoginHandler godoc
+// @Summary      login user
+// @Description  Handler for login user
+// @Tags         Session
+// @Accept       json
+// @Produce      json
+// @Param        body body models.LoginRequest true "User"
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /login [post]
 func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -114,6 +126,17 @@ func (sh *SessionHandler) LoginHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write(errors.JSONSuccess("Successful login."))
 }
 
+// LogoutHandler godoc
+// @Summary      logout user
+// @Description  Handler for logout user
+// @Tags         Session
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} errors.Success
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /logout [post]
 func (sh *SessionHandler) LogoutHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

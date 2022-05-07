@@ -7,7 +7,6 @@ require (
 	github.com/HdrHistogram/hdrhistogram-go v1.1.0 // indirect
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/bbalet/stopwords v1.0.0
-	github.com/bketelsen/crypt v0.0.3 // indirect
 	github.com/cockroachdb/apd v1.1.0 // indirect
 	github.com/fabienm/go-logrus-formatters v1.0.0
 	github.com/gofrs/uuid v4.0.0+incompatible // indirect
@@ -44,4 +43,6 @@ require (
 	google.golang.org/genproto v0.0.0-20210423144448-3a41ef94ed2b // indirect
 	google.golang.org/grpc v1.37.0
 	google.golang.org/protobuf v1.26.0
+	github.com/swaggo/http-swagger v1.2.5
+	github.com/swaggo/swag v1.8.0
 )

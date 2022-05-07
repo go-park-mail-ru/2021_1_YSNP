@@ -33,6 +33,18 @@ func (ch *ChatHandler) Configure(r *mux.Router, mw *middleware.Middleware, serve
 	r.HandleFunc("/chat/ws", mw.CheckAuthMiddleware(ch.ServeWs(server))).Methods(http.MethodGet, http.MethodOptions)
 }
 
+// CreateChat godoc
+// @Summary      Create chat
+// @Description  Handler for creating chat
+// @Tags         Chat
+// @Accept       json
+// @Produce      json
+// @Param        body body models.ChatCreateReq true "Chat"
+// @Success      200 {object} models.ChatResponse
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /chat/new [post]
 func (ch *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -84,6 +96,17 @@ func (ch *ChatHandler) CreateChat(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetUserChats godoc
+// @Summary      Get user chats
+// @Description  Handler for getting user chat
+// @Tags         Chat
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} []models.ChatResponse
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /chat/list [get]
 func (ch *ChatHandler) GetUserChats(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
@@ -123,6 +146,18 @@ func (ch *ChatHandler) GetUserChats(w http.ResponseWriter, r *http.Request) {
 	w.Write(body)
 }
 
+// GetChatByID godoc
+// @Summary      Get chat by id
+// @Description  Handler for getting chat
+// @Tags         Chat
+// @Accept       json
+// @Produce      json
+// @Param        cid path int64 true "Chat ID"
+// @Success      200 {object} models.ChatResponse
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /chat/{cid} [get]
 func (ch *ChatHandler) GetChatByID(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

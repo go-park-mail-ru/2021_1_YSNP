@@ -79,3 +79,7 @@ type WaitingReview struct {
 	TargetAvatar string `json:"target_avatar"`
 	Type         string `json:"type"`
 }
+
+type SetProductBuyerRequest struct {
+	Buyer_id uint64 `json:"buyer_id"`
+}

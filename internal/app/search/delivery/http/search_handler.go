@@ -30,6 +30,28 @@ func (sh *SearchHandler) Configure(r *mux.Router, mw *middleware.Middleware) {
 	r.HandleFunc("/search", mw.SetCSRFToken(mw.CheckAuthMiddleware(sh.SearchHandler))).Methods(http.MethodGet, http.MethodOptions)
 }
 
+// SearchHandler godoc
+// @Summary      Search products
+// @Description  Handler for searching products
+// @Tags         Search
+// @Accept       json
+// @Produce      json
+// @Param        From query integer false "From"
+// @Param        Count query integer false "Count"
+// @Param        Sorting query string false "Sorting"
+// @Param        Search query string false "Search"
+// @Param        Longitude query number false "Longitude"
+// @Param        Latitude query number false "Latitude"
+// @Param        Radius query integer false "Radius"
+// @Param        FromAmount query integer false "FromAmount"
+// @Param        ToAmount query integer false "ToAmount"
+// @Param        Date query string false "Date"
+// @Param        Category query string false "Category"
+// @Success      200 {object} []models.ProductListData
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router      /search [get]
 func (sh *SearchHandler) SearchHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {

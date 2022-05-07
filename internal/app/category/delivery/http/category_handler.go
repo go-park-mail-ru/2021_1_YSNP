@@ -27,6 +27,17 @@ func (cat *CategoryHandler) Configure(r *mux.Router, mw *middleware.Middleware) 
 	r.HandleFunc("/categories", mw.SetCSRFToken(cat.CategoriesHandler)).Methods(http.MethodGet, http.MethodOptions)
 }
 
+// CategoriesHandler godoc
+// @Summary      get categories
+// @Description  Handler for getting categories
+// @Tags         Category
+// @Accept       json
+// @Produce      json
+// @Success      200 {object} []models.Category
+// @Failure      400  {object}  errors.Error
+// @Failure      404  {object}  errors.Error
+// @Failure      500  {object}  errors.Error
+// @Router       /categories [get]
 func (cat *CategoryHandler) CategoriesHandler(w http.ResponseWriter, r *http.Request) {
 	logger, ok := r.Context().Value(middleware.ContextLogger).(*logrus.Entry)
 	if !ok {
