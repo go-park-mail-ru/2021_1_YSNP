@@ -11,6 +11,7 @@ import (
 	"github.com/gorilla/mux"
 	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/cmd/main/docs"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
