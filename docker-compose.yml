@@ -126,28 +126,28 @@ services:
     volumes:
       - $PWD/metrics:/etc/prometheus
 
-  alertmanager:
-    image: prom/alertmanager
-    ports:
-      - "9093:9093"
-    command:
-      - "--config.file=/etc/alertmanager/alertmanager.yml"
-    volumes:
-      - $PWD/metrics:/etc/alertmanager
-
-  alertmanager-bot:
-    image: metalmatze/alertmanager-bot
-    command:
-      - "--listen.addr=0.0.0.0:8080"
-    environment:
-      ALERTMANAGER_URL: http://alertmanager:9093
-      BOLT_PATH: /data/bot.db
-      STORE: bolt
-      TEMPLATE_PATHS: /templates/default.tmpl
-      TELEGRAM_ADMIN: "138632615\n211453202\n389692057\n535095969"
-      TELEGRAM_TOKEN: 1751242193:AAGNrFE61pvarspGfU4FBzhYF2ECUnf0eKo
-    volumes:
-      - $PWD/metrics/alertmanager-bot/templates:/templates
+#  alertmanager:
+#    image: prom/alertmanager
+#    ports:
+#      - "9093:9093"
+#    command:
+#      - "--config.file=/etc/alertmanager/alertmanager.yml"
+#    volumes:
+#      - $PWD/metrics:/etc/alertmanager
+#
+#  alertmanager-bot:
+#    image: metalmatze/alertmanager-bot
+#    command:
+#      - "--listen.addr=0.0.0.0:8080"
+#    environment:
+#      ALERTMANAGER_URL: http://alertmanager:9093
+#      BOLT_PATH: /data/bot.db
+#      STORE: bolt
+#      TEMPLATE_PATHS: /templates/default.tmpl
+#      TELEGRAM_ADMIN: "138632615\n211453202\n389692057\n535095969"
+#      TELEGRAM_TOKEN: 1751242193:AAGNrFE61pvarspGfU4FBzhYF2ECUnf0eKo
+#    volumes:
+#      - $PWD/metrics/alertmanager-bot/templates:/templates
 
   grafana:
     image: grafana/grafana
