@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	_ "github.com/go-park-mail-ru/2021_1_YSNP/docs"
 	//"github.com/gorilla/csrf"
 	"github.com/gorilla/mux"
 	traceutils "github.com/opentracing-contrib/go-grpc"
 	"google.golang.org/grpc"
-	_ "github.com/go-park-mail-ru/2021_1_YSNP/cmd/main/docs"
 
 	"github.com/go-park-mail-ru/2021_1_YSNP/configs"
 	"github.com/go-park-mail-ru/2021_1_YSNP/internal/app/metrics"
@@ -25,7 +25,6 @@ import (
 	categoryHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/delivery/http"
 	categoryRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/repository/postgres"
 	categoryUsecase "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/category/usecase"
-
 
 	achievementHandler "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/delivery/http"
 	achievementRepo "github.com/go-park-mail-ru/2021_1_YSNP/internal/app/achievement/repository/postgres"
@@ -62,7 +61,7 @@ import (
 // @version         1.0
 // @description     API for Koya application
 
-// @host      localhost:8080
+// @host      /
 // @BasePath  /api/v1
 func main() {
 	err := configs.LoadConfig()
