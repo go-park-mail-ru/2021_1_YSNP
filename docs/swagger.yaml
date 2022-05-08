@@ -302,7 +302,7 @@ definitions:
       type:
         type: string
     type: object
-host: /
+host: ykoya.ru
 info:
   contact: {}
   description: API for Koya application
